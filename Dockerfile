@@ -1,4 +1,4 @@
-FROM nodered/node-red:4.0.8-22
+FROM nodered/node-red:4.1.0-22
 
 # package 
 USER root
