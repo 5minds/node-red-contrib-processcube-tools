@@ -1,0 +1,9 @@
+.github
+.processcube
+.vscode
+doc_generator
+postgres
+processes
+DEVELOPMENT.md
+docker-compose.yml
+Dockerfile
