@@ -7,74 +7,81 @@ module.exports = function(RED) {
         var node = this;
 
         node.on('input', function(msg, send, done) {
+            send = send || function() { node.send.apply(node, arguments); };
+            done = done || function(err) { if (err) node.error(err, msg); };
 
-            // Konfiguration und Daten aus der Nachricht extrahieren
-            const emailConfig = RED.util.evaluateNodeProperty(config.email, config.emailType, node, msg) || {};
-            const smtpConfig = RED.util.evaluateNodeProperty(config.smtp, config.smtpType, node, msg) || {};
+            // Retrieve and evaluate mail configuration values
+            const sender = RED.util.evaluateNodeProperty(config.sender, config.senderType, node, msg);
+            const address = RED.util.evaluateNodeProperty(config.address, config.addressType, node, msg);
+            const to = RED.util.evaluateNodeProperty(config.to, config.toType, node, msg);
+            const cc = RED.util.evaluateNodeProperty(config.cc, config.ccType, node, msg) || "";
+            const bcc = RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || "";
+            const subject = RED.util.evaluateNodeProperty(config.subject, config.subjectType, node, msg) || msg.topic || "Message from Node-RED";
+            const attachments = RED.util.evaluateNodeProperty(config.attachments, config.attachmentsType, node, msg);
+            const htmlContent = RED.util.evaluateNodeProperty(config.htmlContent, config.htmlContentType, node, msg);
 
-            // Fallback für send und done, falls ältere Node-RED Version
-            send = send || function() { node.send.apply(node, arguments); }
-            done = done || function(err) { if (err) node.error(err, msg); }
+            // Retrieve and evaluate SMTP configuration values
+            const host = RED.util.evaluateNodeProperty(config.host, config.hostType, node, msg);
+            const port = RED.util.evaluateNodeProperty(config.port, config.portType, node, msg);
+            const user = RED.util.evaluateNodeProperty(config.user, config.userType, node, msg);
+            const password = RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg);
+            const secure = RED.util.evaluateNodeProperty(config.secure, config.secureType, node, msg);
+            const rejectUnauthorized = RED.util.evaluateNodeProperty(config.rejectUnauthorized, config.rejectUnauthorizedType, node, msg);
 
-            // Logik vom Code-Snippet
+            // Create SMTP transporter
             const transporter = nodemailer.createTransport({
-                host: smtpConfig.host,
-                port: smtpConfig.port,
+                host: host,
+                port: port,
+                secure: secure,
                 auth: {
-                    user: smtpConfig.auth?.user,
-                    pass: smtpConfig.auth?.pass
+                    user: user,
+                    pass: password
                 },
-                secure: smtpConfig.secure !== undefined ? smtpConfig.secure : true,
-                proxy: smtpConfig.proxy || undefined,
                 tls: {
-                    rejectUnauthorized: smtpConfig.tls?.rejectUnauthorized !== undefined
-                        ? smtpConfig.tls.rejectUnauthorized
-                        : true
+                    rejectUnauthorized: rejectUnauthorized
                 }
             });
 
-            const mail = {
-                from: emailConfig.from,
-                to: emailConfig.to,
-                cc: emailConfig.cc || "",
-                bcc: emailConfig.bcc || "",
-                subject: emailConfig.subject || msg.topic || "Message from Node-RED",
-                attachments: emailConfig.attachments,
-                text: emailConfig.text,
-                html: emailConfig.html,
-                amp: emailConfig.amp,
-                priority: emailConfig.priority || "normal"
+            // Create email object
+            const mailOptions = {
+                from: {
+                    name: sender,
+                    address: address
+                },
+                to: to,
+                cc: cc,
+                bcc: bcc,
+                subject: subject,
+                html: Buffer.from(htmlContent, 'utf-8'),
+                attachments: attachments
             };
 
-            // E-Mail senden und den Status überprüfen
-            transporter.sendMail(mail, (error, info) => {
+            // Send email
+            transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    node.error(error, msg);
-                    done(error); // Fehler an Node-RED weiterleiten
-                    return;
-                }
-
-                node.log('E-Mail gesendet: ' + info.response);
-                msg.payload = info;
-
-                // Statusprüfung basierend auf dem Code-Auszug
-                if (msg.payload.accepted && msg.payload.accepted.length > 0) {
-                    msg.payload = { result: msg.input };
-                    send(msg); // Nachricht an den nächsten Knoten senden
-                } else if (msg.payload.rejected && msg.payload.rejected.length > 0) {
-                    msg.error = { result: msg.payload.rejected };
-                    done('E-Mail abgelehnt: ' + msg.payload.rejected.join(', '));
-                    node.status({fill:"red", shape:"dot", text:"rejected"});
-                    return;
-                } else if (msg.payload.pending && msg.payload.pending.length > 0) {
-                    msg.error = { result: msg.payload.pending };
-                    done('E-Mail ausstehend: ' + msg.payload.pending.join(', '));
-                    node.status({fill:"yellow", shape:"dot", text:"pending"});
-                    return;
+                    node.status({ fill: "red", shape: "dot", text: "error sending" });
+                    done(error);
                 } else {
-                    done('Unbekannter Fehler beim Senden der E-Mail.');
-                    node.status({fill:"red", shape:"dot", text:"error"});
-                    return;
+                    node.log('Email sent: ' + info.response);
+                    msg.payload = info;
+
+                    if (msg.payload.accepted && msg.payload.accepted.length > 0) {
+                        msg.payload = msg.input;
+                        node.status({ fill: "green", shape: "dot", text: "sent" });
+                        send(msg);
+                        done();
+                    } else if (msg.payload.rejected && msg.payload.rejected.length > 0) {
+                        msg.error = { result: msg.payload.rejected };
+                        node.status({ fill: "red", shape: "dot", text: "rejected" });
+                        done(new Error('Email rejected: ' + msg.payload.rejected.join(', ')));
+                    } else if (msg.payload.pending && msg.payload.pending.length > 0) {
+                        msg.error = { result: msg.payload.pending };
+                        node.status({ fill: "yellow", shape: "dot", text: "pending" });
+                        done(new Error('Email pending: ' + msg.payload.pending.join(', ')));
+                    } else {
+                        node.status({ fill: "red", shape: "dot", text: "unknown error" });
+                        done(new Error('Unknown error while sending email.'));
+                    }
                 }
             });
         });
