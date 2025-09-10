@@ -19,8 +19,6 @@ module.exports = function(RED) {
             let folders;
             if (Array.isArray(imap_folder)) {
                 folders = imap_folder;
-            } else if (typeof imap_folder === 'string') {
-                folders = imap_folder.split(',').map(f => f.trim()).filter(f => f.length > 0);
             } else {
                 const errorMsg = "The 'folders' property must be an array of strings or a comma-separated string.";
                 node.status({ fill: 'red', shape: 'ring', text: errorMsg });
@@ -45,7 +43,14 @@ module.exports = function(RED) {
             };
 
             if (!finalConfig.user || !finalConfig.password || !finalConfig.port || !finalConfig.host || !finalConfig.folders) {
-                const errorMessage = 'Missing required IMAP config (user, password, port, host, or folders missing). Aborting.';
+                const missingFields = [];
+                if (!finalConfig.user) missingFields.push('user');
+                if (!finalConfig.password) missingFields.push('password');
+                if (!finalConfig.port) missingFields.push('port');
+                if (!finalConfig.host) missingFields.push('host');
+                if (!finalConfig.folders) missingFields.push('folders');
+
+                const errorMessage = `Missing required IMAP config: ${missingFields.join(', ')}. Aborting.`;
                 node.status({ fill: 'red', shape: 'ring', text: 'missing config' });
                 node.error(errorMessage);
                 return;

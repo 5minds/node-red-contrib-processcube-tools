@@ -328,7 +328,7 @@
         "userType": "global",
         "password": "EMAIL_SEND_PASSWORD",
         "passwordType": "env",
-        "folder": "[\"stoelting/serviceline\"]",
+        "folder": "[\"stoelting/serviceline\", \"Inbox\"]",
         "folderType": "json",
         "markseen": "false",
         "markseenType": "bool",
