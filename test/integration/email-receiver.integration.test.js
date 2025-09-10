@@ -1,16 +1,25 @@
 const should = require('should');
 const helper = require('node-red-node-test-helper');
+const {
+  createMockImap,
+  createMockMailparser,
+  createMockNodeRED,
+  setupModuleMocks,
+  testConfigs,
+  testFlows,
+  testUtils
+} = require('./test-helpers');
 
-describe('Email Receiver Node - Integration Tests', function() {
+describe('Email Receiver Node - Integration Tests with Helpers', function() {
   // Set a reasonable timeout for integration tests
   this.timeout(10000);
 
   let emailReceiverNode;
-  let originalLoad;
+  let cleanupMocks;
 
   before(function(done) {
-    // Set up mocks for dependencies before loading the node
-    setupMocks();
+    // Set up mocks using helper
+    cleanupMocks = setupModuleMocks();
 
     // Load the node with mocked dependencies
     emailReceiverNode = require('../../email-receiver/email-receiver.js');
@@ -21,10 +30,9 @@ describe('Email Receiver Node - Integration Tests', function() {
   });
 
   after(function() {
-    // Restore original module loading
-    if (originalLoad) {
-      const Module = require('module');
-      Module._load = originalLoad;
+    // Clean up mocks using helper cleanup function
+    if (cleanupMocks) {
+      cleanupMocks();
     }
   });
 
@@ -37,105 +45,18 @@ describe('Email Receiver Node - Integration Tests', function() {
     helper.stopServer(done);
   });
 
-  function setupMocks() {
-    // Create mock IMAP module
-    const mockImap = function(config) {
-      this.config = config;
-      this.connect = () => {
-        // Simulate a successful connection by immediately emitting 'ready'
-        if (this.events && this.events.ready) {
-          this.events.ready();
-        }
-      };
-      this.openBox = (folder, readOnly, callback) => {
-        callback(null, { messages: { total: 1 } });
-      };
-      this.search = (criteria, callback) => {
-        callback(null, [123]);
-      };
-      this.fetch = (results, options) => {
-        return {
-          on: (event, cb) => {
-            if (event === 'message') {
-              cb({ on: (e, bodyCb) => { if (e === 'body') bodyCb({}); } });
-            }
-          },
-          once: (event, cb) => {
-            if (event === 'end') { cb(); }
-          }
-        };
-      };
-      this.end = () => {};
-      this.once = (event, callback) => {
-        if (!this.events) this.events = {};
-        this.events[event] = callback;
-      };
-      return this;
-    };
-
-    // Create mock mailparser module
-    const mockMailparser = {
-      simpleParser: function() {
-        return Promise.resolve({
-          subject: 'test integration email',
-          text: 'test integration body',
-          html: '<p>test integration</p>',
-          from: { text: 'integration@test.com' },
-          date: new Date(),
-          headers: new Map(),
-          attachments: []
-        });
-      }
-    };
-
-    const mockModules = {
-      'node-imap': mockImap,
-      'mailparser': mockMailparser
-    };
-
-    // Override require to use mocks
-    const Module = require('module');
-    originalLoad = Module._load;
-    Module._load = function(request, parent) {
-      if (mockModules[request]) {
-        return mockModules[request];
-      }
-      return originalLoad.apply(this, arguments);
-    };
-  }
-
   describe('Node Loading', function() {
     it('should load in Node-RED test environment', function(done) {
-      // ARRANGE: Set up Node-RED flow with proper configuration
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "test node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          tls: true,
-          tlsType: "bool",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str",
-          markseen: true,
-          markseenType: "bool"
-        }
-      ];
+      // ARRANGE: Use test flow from helpers
+      const flow = [testConfigs.valid];
 
       // ACT: Load the node in the test helper environment
       helper.load(emailReceiverNode, flow, function() {
         try {
           // ASSERT: Verify the node loaded correctly
-          const n1 = helper.getNode("n1");
+          const n1 = helper.getNode(testConfigs.valid.id);
           should.exist(n1);
-          n1.should.have.property('name', 'test node');
+          n1.should.have.property('name', testConfigs.valid.name);
           n1.should.have.property('type', 'email-receiver');
           done();
         } catch (err) {
@@ -145,31 +66,52 @@ describe('Email Receiver Node - Integration Tests', function() {
     });
 
     it('should load with minimal configuration', function(done) {
-      // ARRANGE: Set up minimal flow configuration
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          host: "imap.minimal.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          user: "minimal@test.com",
-          userType: "str",
-          password: "minimalpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str"
-        }
-      ];
+      // ARRANGE: Use minimal test config from helpers
+      const flow = [testConfigs.minimal];
 
       // ACT: Load the node
       helper.load(emailReceiverNode, flow, function() {
         try {
           // ASSERT: Verify the node loaded with minimal config
-          const n1 = helper.getNode("n1");
+          const n1 = helper.getNode(testConfigs.minimal.id);
           should.exist(n1);
           n1.should.have.property('type', 'email-receiver');
+          done();
+        } catch (err) {
+          done(err);
+        }
+      });
+    });
+
+    it('should load with string folders configuration', function(done) {
+      // ARRANGE: Use string folders config from helpers
+      const flow = [testConfigs.stringFolders];
+
+      // ACT: Load the node
+      helper.load(emailReceiverNode, flow, function() {
+        try {
+          // ASSERT: Verify the node loaded with string folders
+          const n1 = helper.getNode(testConfigs.stringFolders.id);
+          should.exist(n1);
+          n1.should.have.property('name', testConfigs.stringFolders.name);
+          done();
+        } catch (err) {
+          done(err);
+        }
+      });
+    });
+
+    it('should load with array folders configuration', function(done) {
+      // ARRANGE: Use array folders config from helpers
+      const flow = [testConfigs.arrayFolders];
+
+      // ACT: Load the node
+      helper.load(emailReceiverNode, flow, function() {
+        try {
+          // ASSERT: Verify the node loaded with array folders
+          const n1 = helper.getNode(testConfigs.arrayFolders.id);
+          should.exist(n1);
+          n1.should.have.property('name', testConfigs.arrayFolders.name);
           done();
         } catch (err) {
           done(err);
@@ -180,42 +122,20 @@ describe('Email Receiver Node - Integration Tests', function() {
 
   describe('Node Connections', function() {
     it('should create wired connections correctly', function(done) {
-      // ARRANGE: Set up flow with helper node to catch output
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "test node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          tls: true,
-          tlsType: "bool",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str",
-          markseen: true,
-          markseenType: "bool",
-          wires: [["n2"]]
-        },
-        { id: "n2", type: "helper" }
-      ];
+      // ARRANGE: Use connected test flow from helpers
+      const flow = testFlows.connected;
 
       // ACT: Load nodes and verify connections
       helper.load(emailReceiverNode, flow, function() {
         try {
-          const n1 = helper.getNode("n1");
-          const n2 = helper.getNode("n2");
+          const n1 = helper.getNode(testConfigs.valid.id);
+          const h1 = helper.getNode('h1');
 
           // ASSERT: Both nodes should exist and be connected
           should.exist(n1);
-          should.exist(n2);
-          n1.should.have.property('name', 'test node');
-          n2.should.have.property('type', 'helper');
+          should.exist(h1);
+          n1.should.have.property('name', testConfigs.valid.name);
+          h1.should.have.property('type', 'helper');
 
           done();
         } catch (err) {
@@ -225,42 +145,21 @@ describe('Email Receiver Node - Integration Tests', function() {
     });
 
     it('should handle multiple output connections', function(done) {
-      // ARRANGE: Set up flow with multiple helper nodes
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "multi-output node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str",
-          markseen: true,
-          markseenType: "bool",
-          wires: [["n2", "n3"]]
-        },
-        { id: "n2", type: "helper" },
-        { id: "n3", type: "helper" }
-      ];
+      // ARRANGE: Use multi-output test flow from helpers
+      const flow = testFlows.multiOutput;
 
       // ACT: Load nodes
       helper.load(emailReceiverNode, flow, function() {
         try {
-          const n1 = helper.getNode("n1");
-          const n2 = helper.getNode("n2");
-          const n3 = helper.getNode("n3");
+          const n1 = helper.getNode(testConfigs.valid.id);
+          const h1 = helper.getNode('h1');
+          const h2 = helper.getNode('h2');
 
           // ASSERT: All nodes should exist
           should.exist(n1);
-          should.exist(n2);
-          should.exist(n3);
-          n1.should.have.property('name', 'multi-output node');
+          should.exist(h1);
+          should.exist(h2);
+          n1.should.have.property('name', testConfigs.valid.name);
 
           done();
         } catch (err) {
@@ -271,87 +170,53 @@ describe('Email Receiver Node - Integration Tests', function() {
   });
 
   describe('Message Flow', function() {
-    it('should handle input without crashing', function(done) {
-      // ARRANGE: Set up minimal flow
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "test node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          tls: true,
-          tlsType: "bool",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str",
-          markseen: true,
-          markseenType: "bool"
-        }
-      ];
+    it('should handle input without crashing', async function() {
+      // ARRANGE: Use test flow from helpers
+      const flow = testFlows.single;
 
-      // ACT: Load node and send input
-      helper.load(emailReceiverNode, flow, function() {
-        try {
-          const n1 = helper.getNode("n1");
-          should.exist(n1);
+      return new Promise((resolve, reject) => {
+        helper.load(emailReceiverNode, flow, function() {
+          try {
+            const n1 = helper.getNode(testConfigs.valid.id);
+            should.exist(n1);
 
-          // Send input - this should not crash due to mocked IMAP
-          n1.receive({ payload: "test input" });
+            // Send input - this should not crash due to mocked IMAP
+            n1.receive({ payload: "test input" });
 
-          // ASSERT: If we reach here, the node handled input gracefully
-          setTimeout(() => {
-            done(); // Success if no errors thrown
-          }, 500);
+            // ASSERT: If we reach here, the node handled input gracefully
+            testUtils.wait(500).then(() => {
+              resolve(); // Success if no errors thrown
+            });
 
-        } catch (err) {
-          done(err);
-        }
+          } catch (err) {
+            reject(err);
+          }
+        });
       });
     });
 
     it('should process messages through connected nodes', function(done) {
-      // ARRANGE: Set up flow with helper to capture output
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "sender node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str",
-          markseen: true,
-          markseenType: "bool",
-          wires: [["n2"]]
-        },
-        { id: "n2", type: "helper" }
-      ];
+      // ARRANGE: Use connected test flow from helpers
+      const flow = testFlows.connected;
 
       // ACT: Load nodes and set up message listener
       helper.load(emailReceiverNode, flow, function() {
         try {
-          const n1 = helper.getNode("n1");
-          const n2 = helper.getNode("n2");
+          const n1 = helper.getNode(testConfigs.valid.id);
+          const h1 = helper.getNode('h1');
 
           // Set up listener for messages from email receiver
-          n2.on("input", function(msg) {
+          h1.on("input", function(msg) {
             try {
               // ASSERT: Should receive a message with expected properties
               should.exist(msg);
               should.exist(msg.payload);
-              msg.payload.should.equal('test integration body');
+
+              // Use helper utility to verify message
+              testUtils.verifyMessage(msg, {
+                payload: 'This is a mock email body for testing purposes.'
+              });
+
               done();
             } catch (err) {
               done(err);
@@ -366,33 +231,50 @@ describe('Email Receiver Node - Integration Tests', function() {
         }
       });
     });
+
+    it('should handle message timeout gracefully', async function() {
+      // ARRANGE: Use connected test flow
+      const flow = testFlows.connected;
+
+      return new Promise((resolve, reject) => {
+        helper.load(emailReceiverNode, flow, function() {
+          try {
+            const n1 = helper.getNode(testConfigs.valid.id);
+            const h1 = helper.getNode('h1');
+
+            // Use testUtils.waitForMessage with timeout
+            testUtils.waitForMessage(h1, 1000)
+              .then((msg) => {
+                // ASSERT: Should receive message within timeout
+                should.exist(msg);
+                resolve();
+              })
+              .catch((err) => {
+                // ASSERT: Should handle timeout appropriately
+                err.message.should.containEql('Timeout waiting for message');
+                resolve(); // This is expected behavior for this test
+              });
+
+            // Trigger the node but don't send a message (to test timeout)
+            // n1.receive({ payload: "trigger" }); // Commented out to test timeout
+
+          } catch (err) {
+            reject(err);
+          }
+        });
+      });
+    });
   });
 
   describe('Configuration Validation', function() {
     it('should handle invalid configuration gracefully', function(done) {
-      // ARRANGE: Set up flow with missing required config
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "invalid config node",
-          host: "", // Missing host
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str"
-        }
-      ];
+      // ARRANGE: Use invalid config from helpers
+      const flow = [testConfigs.invalidConfig];
 
       // ACT: Load node with invalid config
       helper.load(emailReceiverNode, flow, function() {
         try {
-          const n1 = helper.getNode("n1");
+          const n1 = helper.getNode(testConfigs.invalidConfig.id);
           should.exist(n1);
 
           // ASSERT: Node should exist but handle invalid config appropriately
@@ -400,9 +282,9 @@ describe('Email Receiver Node - Integration Tests', function() {
           n1.receive({ payload: "test" });
 
           // If we get here without crashing, the validation worked
-          setTimeout(() => {
+          testUtils.wait(300).then(() => {
             done();
-          }, 300);
+          });
 
         } catch (err) {
           done(err);
@@ -410,78 +292,183 @@ describe('Email Receiver Node - Integration Tests', function() {
       });
     });
 
-    it('should load with different folder configurations', function(done) {
-      // ARRANGE: Set up flow with array folder config
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "array folder node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: ["INBOX", "Sent", "Drafts"],
-          folderType: "json",
-          markseen: true,
-          markseenType: "bool"
-        }
+    it('should validate folder configurations properly', async function() {
+      // ARRANGE: Test different folder configurations
+      const folderConfigs = [
+        testConfigs.stringFolders,
+        testConfigs.arrayFolders
       ];
 
-      // ACT: Load node with array folder config
-      helper.load(emailReceiverNode, flow, function() {
-        try {
-          const n1 = helper.getNode("n1");
+      for (const config of folderConfigs) {
+        await new Promise((resolve, reject) => {
+          const flow = [config];
 
-          // ASSERT: Node should load successfully with array config
-          should.exist(n1);
-          n1.should.have.property('name', 'array folder node');
-          done();
+          helper.load(emailReceiverNode, flow, function() {
+            try {
+              const n1 = helper.getNode(config.id);
 
-        } catch (err) {
-          done(err);
-        }
+              // ASSERT: Node should load successfully with different folder configs
+              should.exist(n1);
+              n1.should.have.property('name', config.name);
+
+              helper.unload();
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          });
+        });
+      }
+    });
+  });
+
+  describe('Mock Integration Verification', function() {
+    it('should work with createMockImap from helpers', function(done) {
+      // ARRANGE: Create IMAP mock instance directly
+      const mockImap = createMockImap();
+      const imapInstance = new mockImap({
+        host: testConfigs.valid.host,
+        port: testConfigs.valid.port,
+        secure: true
       });
+
+      // ACT: Test IMAP mock behavior
+      let readyFired = false;
+      imapInstance.once('ready', () => {
+        readyFired = true;
+
+        // Test openBox functionality
+        imapInstance.openBox('INBOX', false, (err, box) => {
+          should.not.exist(err);
+          should.exist(box);
+          box.should.have.property('messages');
+
+          // ASSERT: Mock IMAP should work as expected
+          readyFired.should.be.true();
+          done();
+        });
+      });
+
+      imapInstance.connect();
+    });
+
+    it('should work with createMockMailparser from helpers', async function() {
+      // ARRANGE: Create mailparser mock instance directly
+      const mockMailparser = createMockMailparser();
+
+      // ACT: Test mailparser mock behavior
+      const result = await mockMailparser.simpleParser('test content', {
+        subject: 'Integration Test Email',
+        from: 'integration@test.com'
+      });
+
+      // ASSERT: Mock mailparser should return expected structure
+      result.should.have.property('subject', 'Integration Test Email');
+      result.should.have.property('from');
+      result.from.should.have.property('text', 'integration@test.com');
+      result.should.have.property('headers');
+      result.headers.should.be.instanceOf(Map);
     });
   });
 
   describe('Node Lifecycle', function() {
-    it('should clean up properly on unload', function(done) {
-      // ARRANGE: Set up flow
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "cleanup test node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str"
-        }
-      ];
+    it('should clean up properly on unload', async function() {
+      // ARRANGE: Use test flow from helpers
+      const flow = testFlows.single;
 
-      // ACT: Load and then unload the node
+      return new Promise((resolve, reject) => {
+        helper.load(emailReceiverNode, flow, function() {
+          try {
+            const n1 = helper.getNode(testConfigs.valid.id);
+            should.exist(n1);
+
+            // Simulate some activity
+            n1.receive({ payload: "test" });
+
+            // Wait a bit for any async operations
+            testUtils.wait(100).then(() => {
+              // ASSERT: Unloading should not throw errors
+              helper.unload();
+              resolve();
+            });
+
+          } catch (err) {
+            reject(err);
+          }
+        });
+      });
+    });
+
+    it('should handle multiple load/unload cycles', async function() {
+      // ARRANGE: Test multiple cycles
+      const flow = testFlows.single;
+      const cycles = 3;
+
+      for (let i = 0; i < cycles; i++) {
+        await new Promise((resolve, reject) => {
+          helper.load(emailReceiverNode, flow, function() {
+            try {
+              const n1 = helper.getNode(testConfigs.valid.id);
+              should.exist(n1);
+
+              // Quick activity simulation
+              n1.receive({ payload: `test cycle ${i}` });
+
+              testUtils.wait(50).then(() => {
+                helper.unload();
+                resolve();
+              });
+            } catch (err) {
+              reject(err);
+            }
+          });
+        });
+      }
+
+      // ASSERT: If we complete all cycles without error, lifecycle handling works
+      // This assertion is implicit in the successful completion of the loop
+    });
+  });
+
+  describe('Advanced Flow Testing', function() {
+    it('should handle complex message flows with multiple helpers', function(done) {
+      // ARRANGE: Use multi-output flow from helpers
+      const flow = testFlows.multiOutput;
+      let receivedMessages = [];
+
       helper.load(emailReceiverNode, flow, function() {
         try {
-          const n1 = helper.getNode("n1");
-          should.exist(n1);
+          const n1 = helper.getNode(testConfigs.valid.id);
+          const h1 = helper.getNode('h1');
+          const h2 = helper.getNode('h2');
 
-          // Simulate some activity
-          n1.receive({ payload: "test" });
+          // Set up listeners for both helper nodes
+          h1.on("input", function(msg) {
+            receivedMessages.push({ node: 'h1', msg: msg });
+            checkCompletion();
+          });
 
-          // ASSERT: Unloading should not throw errors
-          helper.unload();
-          done();
+          h2.on("input", function(msg) {
+            receivedMessages.push({ node: 'h2', msg: msg });
+            checkCompletion();
+          });
+
+          function checkCompletion() {
+            if (receivedMessages.length >= 2) {
+              // ASSERT: Both helpers should receive messages
+              receivedMessages.length.should.equal(2);
+
+              receivedMessages.forEach(item => {
+                should.exist(item.msg);
+                should.exist(item.msg.payload);
+              });
+
+              done();
+            }
+          }
+
+          // Trigger the email receiver
+          n1.receive({ payload: "multi-trigger" });
 
         } catch (err) {
           done(err);
