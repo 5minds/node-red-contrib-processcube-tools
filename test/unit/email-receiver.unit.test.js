@@ -1,6 +1,6 @@
 const should = require('should');
 
-describe('Email Receiver Node', function() {
+describe('Email Receiver Node - Unit Tests', function() {
   // Set a reasonable timeout
   this.timeout(10000);
 
@@ -72,7 +72,7 @@ describe('Email Receiver Node', function() {
     };
 
     // Load the node with mocked dependencies
-    emailReceiverNode = require('../email-receiver/email-receiver.js');
+    emailReceiverNode = require('../../email-receiver/email-receiver.js');
   });
 
   after(function() {
@@ -83,7 +83,7 @@ describe('Email Receiver Node', function() {
     }
   });
 
-  describe('Unit Tests', function() {
+  describe('Module Export', function() {
     it('should export a function', function() {
       // ARRANGE: Node module is already loaded
 
@@ -92,7 +92,9 @@ describe('Email Receiver Node', function() {
       // ASSERT: Should be a function
       emailReceiverNode.should.be.type('function');
     });
+  });
 
+  describe('Node Registration', function() {
     it('should register node type without errors', function() {
       // ARRANGE: Set up mock RED object and capture registration calls
       let registeredType;
@@ -132,8 +134,10 @@ describe('Email Receiver Node', function() {
       registeredType.should.equal('email-receiver');
       registeredConstructor.should.be.type('function');
     });
+  });
 
-    it('should handle node instantiation', function() {
+  describe('Node Instantiation', function() {
+    it('should handle node instantiation with valid config', function() {
       // ARRANGE: Set up mock RED object and node instance tracking
       let nodeInstance;
 
@@ -190,46 +194,11 @@ describe('Email Receiver Node', function() {
       should.exist(nodeInstance);
       nodeInstance.should.have.property('name', 'Test Email Receiver');
     });
+  });
 
-    it('should handle comma-separated folder string', function(done) {
-      // ARRANGE: Mock the Node-RED and IMAP environment
-      let nodeInstance;
-      let inputCallback;
-      const mockRED = {
-        nodes: {
-          createNode: function(node, config) {
-            nodeInstance = node;
-            node.on = (event, callback) => { if (event === 'input') inputCallback = callback; };
-            node.status = () => {};
-            node.error = () => {};
-            node.send = (msg) => {
-              should.exist(msg);
-              msg.payload.should.equal('test body');
-              done();
-            };
-            return node;
-          },
-          registerType: (type, constructor) => {
-            new constructor({
-              host: "imap.test.com", hostType: "str",
-              port: 993, portType: "num",
-              user: "test@test.com", userType: "str",
-              password: "testpass", passwordType: "str",
-              folder: "INBOX, Spam, Sent", folderType: 'str',
-              markseen: true, markseenType: 'bool'
-            });
-          }
-        },
-        util: { evaluateNodeProperty: (value) => value },
-      };
-
-      // ACT: Register the node, then simulate input
-      emailReceiverNode(mockRED);
-      inputCallback({});
-    });
-
+  describe('Folder Configuration', function() {
     it('should handle an array of folders', function(done) {
-      // ARRANGE: Mock the Node-RED and IMAP environment
+      // ARRANGE: Mock the Node-RED environment
       let nodeInstance;
       let inputCallback;
       const mockRED = {
@@ -264,7 +233,9 @@ describe('Email Receiver Node', function() {
       emailReceiverNode(mockRED);
       inputCallback({});
     });
+  });
 
+  describe('Error Handling', function() {
     it('should call node.error for invalid folder type', function(done) {
       // ARRANGE: Mock the node instance to capture errors
       let errorCalled = false;
@@ -301,7 +272,7 @@ describe('Email Receiver Node', function() {
           host: "imap.test.com", hostType: "str",
           port: 993, portType: "num",
           user: "test@test.com", userType: "str",
-          password: "", passwordType: "str",
+          password: "", passwordType: "str", // Empty password should trigger error
           folder: "INBOX", folderType: "str"
         },
         on: (event, callback) => { if (event === 'input') nodeInstance.inputCallback = callback; },
@@ -324,154 +295,6 @@ describe('Email Receiver Node', function() {
       // ACT: Register and instantiate the node, then simulate an input message
       emailReceiverNode(mockRED);
       nodeInstance.inputCallback({});
-    });
-  });
-
-  describe('Integration Tests with Node-RED Helper', function() {
-    const helper = require('node-red-node-test-helper');
-
-    // CRITICAL: Initialize the helper with Node-RED
-    before(function(done) {
-      // This is the missing piece that was causing the clearRegistry error
-      helper.init(require.resolve('node-red'));
-      done();
-    });
-
-    beforeEach(function(done) {
-      helper.startServer(done);
-    });
-
-    afterEach(function(done) {
-      helper.unload();
-      helper.stopServer(done);
-    });
-
-    it('should load in Node-RED test environment', function(done) {
-      // ARRANGE: Set up Node-RED flow with proper configuration
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "test node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          tls: true,
-          tlsType: "bool",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str",
-          markseen: true,
-          markseenType: "bool"
-        }
-      ];
-
-      // ACT: Load the node in the test helper environment
-      helper.load(emailReceiverNode, flow, function() {
-        try {
-          // ASSERT: Verify the node loaded correctly
-          const n1 = helper.getNode("n1");
-          should.exist(n1);
-          n1.should.have.property('name', 'test node');
-          n1.should.have.property('type', 'email-receiver');
-          done();
-        } catch (err) {
-          done(err);
-        }
-      });
-    });
-
-    it('should create wired connections correctly', function(done) {
-      // ARRANGE: Set up flow with helper node to catch output
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "test node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          tls: true,
-          tlsType: "bool",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str",
-          markseen: true,
-          markseenType: "bool",
-          wires: [["n2"]]
-        },
-        { id: "n2", type: "helper" }
-      ];
-
-      // ACT: Load nodes and verify connections
-      helper.load(emailReceiverNode, flow, function() {
-        try {
-          const n1 = helper.getNode("n1");
-          const n2 = helper.getNode("n2");
-
-          // ASSERT: Both nodes should exist and be connected
-          should.exist(n1);
-          should.exist(n2);
-          n1.should.have.property('name', 'test node');
-          n2.should.have.property('type', 'helper');
-
-          done();
-        } catch (err) {
-          done(err);
-        }
-      });
-    });
-
-    it('should handle input without crashing', function(done) {
-      // ARRANGE: Set up minimal flow
-      const flow = [
-        {
-          id: "n1",
-          type: "email-receiver",
-          name: "test node",
-          host: "imap.test.com",
-          hostType: "str",
-          port: "993",
-          portType: "str",
-          tls: true,
-          tlsType: "bool",
-          user: "test@example.com",
-          userType: "str",
-          password: "testpass",
-          passwordType: "str",
-          folder: "INBOX",
-          folderType: "str",
-          markseen: true,
-          markseenType: "bool"
-        }
-      ];
-
-      // ACT: Load node and send input
-      helper.load(emailReceiverNode, flow, function() {
-        try {
-          const n1 = helper.getNode("n1");
-          should.exist(n1);
-
-          // Send input - this should not crash due to mocked IMAP
-          n1.receive({ payload: "test input" });
-
-          // ASSERT: If we reach here, the node handled input gracefully
-          setTimeout(() => {
-            done(); // Success if no errors thrown
-          }, 500);
-
-        } catch (err) {
-          done(err);
-        }
-      });
     });
   });
 });

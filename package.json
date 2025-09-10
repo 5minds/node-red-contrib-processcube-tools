@@ -5,8 +5,10 @@
     "description": "Node-RED tools nodes for ProcessCube",
     "scripts": {
         "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
-        "test": "mocha test/**/*_spec.js --timeout 10000",
-        "test:debug": "mocha test/**/*_spec.js --timeout 0 --reporter spec"
+        "test:unit": "mocha test/unit/**/*.test.js --timeout 10000",
+        "test:integration": "mocha test/integration/**/*.test.js --timeout 10000",
+        "test": "npm run test:unit && npm run test:integration",
+        "test:debug": "mocha test/unit/**/*.test.js test/integration/**/*.test.js --timeout 0 --reporter spec"
     },
     "authors": [
         {
