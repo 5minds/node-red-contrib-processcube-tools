@@ -8,7 +8,7 @@ const {
   testConfigs,
   testFlows,
   testUtils
-} = require('./test-helpers');
+} = require('../helpers/email-receiver.mocks.js');
 
 describe('Email Receiver Node - Integration Tests with Helpers', function() {
   // Set a reasonable timeout for integration tests

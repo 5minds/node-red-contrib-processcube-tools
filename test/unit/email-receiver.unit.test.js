@@ -118,7 +118,7 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       const mockRED = createMockNodeRED({
         errorHandler: function(err) {
           // ASSERT: Should receive appropriate error message
-          err.should.containEql('folders');
+          err.should.containEql("The 'folders' property must be an array of strings.");
           done();
         }
       });
