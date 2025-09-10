@@ -1,0 +1,50 @@
+<script type="text/javascript">
+    RED.nodes.registerType('email-sender',{
+        category: 'network',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value: ""},
+            email: {value: "", type: "json"},
+            smtp: {value: "", type: "json"}
+        },
+        inputs:1,
+        outputs:1,
+        icon: "font-awesome/fa-envelope",
+        label: function() {
+            return this.name || "Custom Email Sender";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        }
+    });
+</script>
+
+<script type="text/html" data-template-name="custom-email-sender">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+    <div class="form-row">
+        <label for="node-input-email"><i class="fa fa-envelope"></i> E-Mail Konfiguration</label>
+        <input type="text" id="node-input-email" placeholder="JSON-Objekt oder J:...">
+        <input type="hidden" id="node-input-emailType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-smtp"><i class="fa fa-cogs"></i> SMTP Konfiguration</label>
+        <input type="text" id="node-input-smtp" placeholder="JSON-Objekt oder J:...">
+        <input type="hidden" id="node-input-smtpType">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="custom-email-sender">
+    <p>Eine benutzerdefinierte Node, um E-Mails über einen SMTP-Server zu versenden.</p>
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt>payload
+            <span class="property-type">object</span>
+        </dt>
+        <dd>Beinhaltet die Daten zum E-Mail-Versand.</dd>
+    </dl>
+    <h3>Details</h3>
+    <p>Die Node verwendet Nodemailer, um eine E-Mail zu senden. Die Konfiguration kann über die Node-Eigenschaften oder die eingehende Nachricht erfolgen.</p>
+</script>
