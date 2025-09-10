@@ -8,6 +8,14 @@
         "env": []
     },
     {
+        "id": "efcace170d0f887c",
+        "type": "tab",
+        "label": "Email sender",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "fd4bdf33d0253f6a",
         "type": "processcube-html-to-text",
         "z": "4a5484c44fd92283",
@@ -60,5 +68,65 @@
         "x": 560,
         "y": 180,
         "wires": []
+    },
+    {
+        "id": "7be89384c1b95ac1",
+        "type": "inject",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 140,
+        "y": 120,
+        "wires": [
+            [
+                "9f7dfdb7f34fa92b"
+            ]
+        ]
+    },
+    {
+        "id": "c246681d350609e4",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 700,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "9f7dfdb7f34fa92b",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "email": "",
+        "smtp": "",
+        "x": 350,
+        "y": 120,
+        "wires": [
+            [
+                "c246681d350609e4"
+            ]
+        ]
     }
 ]
