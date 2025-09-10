@@ -1,50 +1,138 @@
 <script type="text/javascript">
     RED.nodes.registerType('email-sender',{
-        category: 'network',
-        color: '#a6bbcf',
+        category: 'ProcessCube Tools',
+        color: '#02AFD6',
         defaults: {
-            name: {value: ""},
-            email: {value: "", type: "json"},
-            smtp: {value: "", type: "json"}
+            name: { value: "" },
+            // Definition der Felder mit dem Typ 'typedInput'
+            fromName: { value: "Stoelting Ticket-System", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            fromAddress: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            to: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            cc: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            bcc: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            subject: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            attachments: { value: "", type: "typedInput", types: ["msg", "flow", "global"] },
+            htmlContent: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "json"] },
+
+            // SMTP-Felder
+            smtpHost: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            smtpPort: { value: "", type: "typedInput", types: ["num", "str", "msg", "flow", "global", "env"] },
+            smtpUser: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            smtpPassword: { value: "", type: "typedInput", types: ["str", "msg", "flow", "global", "env"] },
+            smtpSecure: { value: true, type: "typedInput", types: ["bool", "msg", "flow", "global"] },
+            smtpRejectUnauthorized: { value: true, type: "typedInput", types: ["bool", "msg", "flow", "global"] }
         },
         inputs:1,
         outputs:1,
-        icon: "font-awesome/fa-envelope",
+        icon: "font-awesome/fa-paper-plane",
         label: function() {
-            return this.name || "Custom Email Sender";
+            return this.name || "Email Sender";
         },
         labelStyle: function() {
             return this.name?"node_label_italic":"";
         }
     });
 </script>
-
 <script type="text/html" data-template-name="custom-email-sender">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
+
+    <h3>E-Mail Konfiguration</h3>
     <div class="form-row">
-        <label for="node-input-email"><i class="fa fa-envelope"></i> E-Mail Konfiguration</label>
-        <input type="text" id="node-input-email" placeholder="JSON-Objekt oder J:...">
-        <input type="hidden" id="node-input-emailType">
+        <label for="node-input-fromName"><i class="fa fa-user"></i> Absendername</label>
+        <input type="text" id="node-input-fromName">
     </div>
     <div class="form-row">
-        <label for="node-input-smtp"><i class="fa fa-cogs"></i> SMTP Konfiguration</label>
-        <input type="text" id="node-input-smtp" placeholder="JSON-Objekt oder J:...">
-        <input type="hidden" id="node-input-smtpType">
+        <label for="node-input-fromAddress"><i class="fa fa-envelope"></i> Absenderadresse</label>
+        <input type="text" id="node-input-fromAddress">
+    </div>
+    <div class="form-row">
+        <label for="node-input-to"><i class="fa fa-user-plus"></i> Empfänger (To)</label>
+        <input type="text" id="node-input-to">
+    </div>
+    <div class="form-row">
+        <label for="node-input-cc"><i class="fa fa-user"></i> CC</label>
+        <input type="text" id="node-input-cc">
+    </div>
+    <div class="form-row">
+        <label for="node-input-bcc"><i class="fa fa-user-secret"></i> BCC</label>
+        <input type="text" id="node-input-bcc">
+    </div>
+    <div class="form-row">
+        <label for="node-input-subject"><i class="fa fa-info-circle"></i> Betreff</label>
+        <input type="text" id="node-input-subject">
+    </div>
+    <div class="form-row">
+        <label for="node-input-attachments"><i class="fa fa-paperclip"></i> Anhänge</label>
+        <input type="text" id="node-input-attachments">
+    </div>
+    <div class="form-row">
+        <label for="node-input-htmlContent"><i class="fa fa-file-code-o"></i> HTML Inhalt</label>
+        <input type="text" id="node-input-htmlContent">
+    </div>
+
+    <h3>SMTP Konfiguration</h3>
+    <div class="form-row">
+        <label for="node-input-smtpHost"><i class="fa fa-server"></i> Host</label>
+        <input type="text" id="node-input-smtpHost">
+    </div>
+    <div class="form-row">
+        <label for="node-input-smtpPort"><i class="fa fa-plug"></i> Port</label>
+        <input type="text" id="node-input-smtpPort">
+    </div>
+    <div class="form-row">
+        <label for="node-input-smtpUser"><i class="fa fa-user"></i> Benutzer</label>
+        <input type="text" id="node-input-smtpUser">
+    </div>
+    <div class="form-row">
+        <label for="node-input-smtpPassword"><i class="fa fa-lock"></i> Passwort</label>
+        <input type="password" id="node-input-smtpPassword">
+    </div>
+    <div class="form-row">
+        <label for="node-input-smtpSecure"><i class="fa fa-shield"></i> SSL/TLS (Secure)</label>
+        <input type="checkbox" id="node-input-smtpSecure">
+    </div>
+    <div class="form-row">
+        <label for="node-input-smtpRejectUnauthorized"><i class="fa fa-ban"></i> Zertifikate ablehnen</label>
+        <input type="checkbox" id="node-input-smtpRejectUnauthorized">
     </div>
 </script>
 
 <script type="text/html" data-help-name="custom-email-sender">
-    <p>Eine benutzerdefinierte Node, um E-Mails über einen SMTP-Server zu versenden.</p>
-    <h3>Inputs</h3>
-    <dl class="message-properties">
-        <dt>payload
-            <span class="property-type">object</span>
-        </dt>
-        <dd>Beinhaltet die Daten zum E-Mail-Versand.</dd>
-    </dl>
-    <h3>Details</h3>
-    <p>Die Node verwendet Nodemailer, um eine E-Mail zu senden. Die Konfiguration kann über die Node-Eigenschaften oder die eingehende Nachricht erfolgen.</p>
+    <p>Eine benutzerdefinierte Node, um E-Mails über einen SMTP-Server zu versenden. Die Konfiguration kann über die Node-Eigenschaften, die eingehende Nachricht, Flow- oder Global-Kontexte oder Umgebungsvariablen erfolgen.</p>
+    <h3>Konfiguration der Felder</h3>
+    <p>Jedes Feld kann so konfiguriert werden, dass es einen festen Wert (string, number, boolean) oder einen Wert aus <code>msg</code>, <code>flow</code>, <code>global</code> oder <code>env</code> bezieht. Verwenden Sie das Dropdown-Menü neben dem Eingabefeld, um den Typ auszuwählen.</p>
+</script>
+
+<script type="text/javascript">
+    (function() {
+        // Initialisierung des typedInput-Widgets für die einzelnen Felder
+        function initializeTypedInput(id, types) {
+            $("#node-input-" + id).typedInput({
+                default: types[0],
+                types: types
+            });
+        }
+
+        // Initialisierung aller Felder
+        RED.events.on('nodes:load', function() {
+            initializeTypedInput('fromName', ["str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('fromAddress', ["str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('to', ["str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('cc', ["str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('bcc', ["str", "msg", "global", "env"]);
+            initializeTypedInput('subject', ["str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('attachments', ["msg", "flow", "global"]);
+            initializeTypedInput('htmlContent', ["str", "msg", "flow", "global"]);
+
+            initializeTypedInput('smtpHost', ["str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('smtpPort', ["num", "str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('smtpUser', ["str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('smtpPassword', ["str", "msg", "flow", "global", "env"]);
+            initializeTypedInput('smtpSecure', ["bool", "msg", "flow", "global"]);
+            initializeTypedInput('smtpRejectUnauthorized', ["bool", "msg", "flow", "global"]);
+        });
+    })();
 </script>
