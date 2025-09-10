@@ -123,56 +123,65 @@
   <script type="text/html" data-help-name="email-receiver">
     <p>A Node-RED node that fetches unseen emails from a specified IMAP server. Each fetched email is sent as a separate message on the output.</p>
 
-<p>All fields can be configured as a <strong>string</strong>, from a <strong>message property (msg)</strong>, <strong>flow</strong> or <strong>global</strong> context, or an <strong>environment variable</strong>.</p>
+    <p>All fields can be configured as a <strong>string</strong>, from a <strong>message property (msg)</strong>, <strong>flow</strong> or <strong>global</strong> context, or an <strong>environment variable</strong>.</p>
 
-<p><strong>Security Tip:</strong> It's a best practice to avoid storing sensitive information like passwords directly in your Node-RED flow. This prevents them from being exposed in your flow file. Instead, use an <strong>environment variable</strong>. You can define these variables in a <code>.env</code> file, which is especially useful when deploying your application.</p>
+    <p><strong>Security Tip:</strong> It's a best practice to avoid storing sensitive information like passwords directly in your Node-RED flow. This prevents them from being exposed in your flow file. Instead, use an <strong>environment variable</strong>. You can define these variables in a <code>.env</code> file, which is especially useful when deploying your application with Docker.</p>
 
-<p>A <code>.env</code> file should look like this:</p>
-<pre>
-EMAIL_SEND_PORT=123
-EMAIL_SEND_HOST=smtp.gmail.com
-EMAIL_SEND_USER=myTestMail@company.com
-EMAIL_SEND_PASSWORD=mySecretPassword
-</pre>
+    <p>A <code>.env</code> file should look like this:</p>
+    <pre>
+    EMAIL_SEND_PORT=123
+    EMAIL_SEND_HOST=smtp.gmail.com
+    EMAIL_SEND_USER=myTestMail@company.com
+    EMAIL_SEND_PASSWORD=mySecretPassword
+    </pre>
 
-<p>In your flow, you can then access the password using the environment variable <code>EMAIL_SEND_PASSWORD</code>.</p>
+    <p>To ensure Docker loads these variables from the <code>.env</code> file, you need to add the following line to your <code>docker-compose.yaml</code> file:</p>
+    <pre>
+    services:
+    your_service_name:
+    ...
+    env_file:
+    - .env
+    </pre>
 
-Inputs
-<dl class="message-properties">
-<dt>payload</dt>
-<dd>The node is triggered by any incoming message. The node's configuration can be overridden by properties of the incoming <code>msg</code> object.</dd>
-</dl>
+    <p>In your flow, you can then access the password using the environment variable <code>EMAIL_SEND_PASSWORD</code>.</p>
 
-Outputs
-<dl class="message-properties">
-<dt>payload
-<span class="property-type">string</span>
-</dt>
-<dd>The text body of the email.</dd>
-</dl>
+    Inputs
+    <dl class="message-properties">
+    <dt>payload</dt>
+    <dd>The node is triggered by any incoming message. The node's configuration can be overridden by properties of the incoming <code>msg</code> object.</dd>
+    </dl>
 
-Optional Message Properties
-<p>You can override default settings by passing the following properties in the incoming <code>msg</code> object:</p>
-<dl class="message-properties">
-<dt>msg.imap_connTimeout
-<span class="property-type">number</span>
-</dt>
-<dd>The connection timeout in milliseconds (default: 10000).</dd>
-<dt>msg.imap_authTimeout
-<span class="property-type">number</span>
-</dt>
-<dd>The authentication timeout in milliseconds (default: 5000).</dd>
-<dt>msg.imap_keepalive
-<span class="property-type">boolean</span>
-</dt>
-<dd>If set to true, a periodic NOOP command is sent to keep the connection alive (default: true).</dd>
-<dt>msg.imap_autotls
-<span class="property-type">string</span>
-</dt>
-<dd>Controls STARTTLS behavior. Set to never to disable it (default: never).</dd>
-<dt>msg.imap_tlsOptions
-<span class="property-type">object</span>
-</dt>
-<dd>An object containing TLS options for the connection.</dd>
-</dl>
+    Outputs
+    <dl class="message-properties">
+    <dt>payload
+    <span class="property-type">string</span>
+    </dt>
+    <dd>The text body of the email.</dd>
+    </dl>
+
+    Optional Message Properties
+    <p>You can override default settings by passing the following properties in the incoming <code>msg</code> object:</p>
+    <dl class="message-properties">
+    <dt>msg.imap_connTimeout
+    <span class="property-type">number</span>
+    </dt>
+    <dd>The connection timeout in milliseconds (default: 10000).</dd>
+    <dt>msg.imap_authTimeout
+    <span class="property-type">number</span>
+    </dt>
+    <dd>The authentication timeout in milliseconds (default: 5000).</dd>
+    <dt>msg.imap_keepalive
+    <span class="property-type">boolean</span>
+    </dt>
+    <dd>If set to <code>true</code>, a periodic NOOP command is sent to keep the connection alive (default: <code>true</code>).</dd>
+    <dt>msg.imap_autotls
+    <span class="property-type">string</span>
+    </dt>
+    <dd>Controls STARTTLS behavior. Set to <code>never</code> to disable it (default: <code>never</code>).</dd>
+    <dt>msg.imap_tlsOptions
+    <span class="property-type">object</span>
+    </dt>
+    <dd>An object containing TLS options for the connection.</dd>
+    </dl>
 </script>
