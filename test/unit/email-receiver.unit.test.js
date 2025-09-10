@@ -168,8 +168,8 @@ describe('Email Receiver Node - Unit Tests', function() {
               userType: 'str',
               password: 'testpass',
               passwordType: 'str',
-              folder: 'INBOX',
-              folderType: 'str',
+              folder: ["INBOX"],
+              folderType: 'json',
               markseen: true,
               markseenType: 'bool'
             };
@@ -201,6 +201,9 @@ describe('Email Receiver Node - Unit Tests', function() {
       // ARRANGE: Mock the Node-RED environment
       let nodeInstance;
       let inputCallback;
+      let messagesSent = 0;
+      const expectedMessages = 2;
+
       const mockRED = {
         nodes: {
           createNode: function(node, config) {
@@ -211,29 +214,58 @@ describe('Email Receiver Node - Unit Tests', function() {
             node.send = (msg) => {
               should.exist(msg);
               msg.payload.should.equal('test body');
-              done();
+              messagesSent++;
+              if (messagesSent === expectedMessages) {
+                done();
+              }
             };
             return node;
           },
           registerType: (type, constructor) => {
-            new constructor({
-              host: "imap.test.com", hostType: "str",
-              port: 993, portType: "num",
-              user: "test@test.com", userType: "str",
-              password: "testpass", passwordType: "str",
-              folder: ["INBOX", "Junk"], folderType: 'json',
-              markseen: true, markseenType: 'bool'
-            });
-          }
-        },
-        util: { evaluateNodeProperty: (value) => value },
-      };
+          const mockNode = {
+            id: 'mock-node-id',
+            on: (event, callback) => {
+              if (event === 'input') {
+                inputCallback = callback;
+              }
+            },
+            status: () => {},
+            error: () => {},
+            send: (msg) => {
+              should.exist(msg);
+              msg.payload.should.equal('test body');
+              messagesSent++;
+              if (messagesSent === expectedMessages) {
+                done();
+              }
+            },
+          };
+          // Create an instance of the node with the test configuration
+          const node = new constructor(mockNode, {
+            host: "imap.test.com", hostType: "str",
+            port: 993, portType: "num",
+            user: "test@test.com", userType: "str",
+            password: "testpass", passwordType: "str",
+            folder: ["INBOX", "Junk"], folderType: 'json',
+            markseen: true, markseenType: 'bool'
+          });
+        }
+      },
+      util: { evaluateNodeProperty: (value) => value },
+    };
 
       // ACT: Register the node, then simulate input
-      emailReceiverNode(mockRED);
-      inputCallback({});
-    });
+       emailReceiverNode(mockRED);
+    // After the node is registered, simulate an input to trigger the flow
+    setTimeout(() => {
+        if (inputCallback) {
+            inputCallback({});
+        } else {
+            done(new Error("Input callback not set up."));
+        }
+    }, 50); // Use a small timeout to ensure the mocks are fully set up
   });
+});
 
   describe('Error Handling', function() {
     it('should call node.error for invalid folder type', function(done) {
@@ -273,7 +305,7 @@ describe('Email Receiver Node - Unit Tests', function() {
           port: 993, portType: "num",
           user: "test@test.com", userType: "str",
           password: "", passwordType: "str", // Empty password should trigger error
-          folder: "INBOX", folderType: "str"
+          folder: ["INBOX"], folderType: "json"
         },
         on: (event, callback) => { if (event === 'input') nodeInstance.inputCallback = callback; },
         status: (s) => { statusCalled = true; s.fill.should.equal('red'); },

@@ -20,7 +20,7 @@ module.exports = function(RED) {
             if (Array.isArray(imap_folder)) {
                 folders = imap_folder;
             } else {
-                const errorMsg = "The 'folders' property must be an array of strings or a comma-separated string.";
+                const errorMsg = "The 'folders' property must be an array of strings.";
                 node.status({ fill: 'red', shape: 'ring', text: errorMsg });
                 node.error(errorMsg, msg);
                 return;
