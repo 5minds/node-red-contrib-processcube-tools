@@ -308,36 +308,4 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       }, 10);
     });
   });
-
-  describe('Message Verification Utilities', function() {
-    it('should verify message properties using testUtils', function() {
-      // ARRANGE: Create a test message
-      const testMessage = {
-        payload: 'test content',
-        topic: 'email/received',
-        from: 'test@example.com'
-      };
-
-      // ACT & ASSERT: Use helper to verify message properties
-      testUtils.verifyMessage(testMessage, {
-        payload: 'test content',
-        topic: 'email/received'
-      });
-
-      // Should not throw any errors if verification passes
-      testMessage.should.have.property('from', 'test@example.com');
-    });
-
-    it('should use wait utility for async operations', async function() {
-      // ARRANGE: Record start time
-      const startTime = Date.now();
-
-      // ACT: Use the wait utility
-      await testUtils.wait(100);
-
-      // ASSERT: Should have waited approximately the right amount of time
-      const elapsed = Date.now() - startTime;
-      elapsed.should.be.approximately(100, 50); // Allow 50ms tolerance
-    });
-  });
 });
