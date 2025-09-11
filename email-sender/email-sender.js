@@ -28,6 +28,29 @@ module.exports = function(RED) {
             const secure = RED.util.evaluateNodeProperty(config.secure, config.secureType, node, msg);
             const rejectUnauthorized = RED.util.evaluateNodeProperty(config.rejectUnauthorized, config.rejectUnauthorizedType, node, msg);
 
+            // Handle attachments and format them for Nodemailer
+            let processedAttachments = [];
+            if (attachments) {
+                // Check if it's a single attachment or an array
+                const attachmentArray = Array.isArray(attachments) ? attachments : [attachments];
+
+                for (const attachment of attachmentArray) {
+                    try {
+                        // Assuming the attachment object has a 'filename' and 'content' property
+                        if (attachment.filename && attachment.content) {
+                            processedAttachments.push({
+                                filename: attachment.filename,
+                                content: attachment.content
+                            });
+                        } else {
+                            node.warn("Attachment object is missing 'filename' or 'content' property and will be ignored.");
+                        }
+                    } catch (e) {
+                        node.error("Failed to process attachment: " + e.message);
+                    }
+                }
+            }
+
             // Create SMTP transporter
             const transporter = nodemailer.createTransport({
                 host: host,
@@ -53,7 +76,7 @@ module.exports = function(RED) {
                 bcc: bcc,
                 subject: subject,
                 html: Buffer.from(htmlContent, 'utf-8'),
-                attachments: attachments
+                attachments: processedAttachments
             };
 
             // Send email
