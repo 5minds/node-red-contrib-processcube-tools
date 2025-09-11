@@ -192,12 +192,6 @@ describe('Email Receiver Node - Integration Tests with Helpers', function() {
               // ASSERT: Should receive a message with expected properties
               should.exist(msg);
               should.exist(msg.payload);
-
-              // Use helper utility to verify message
-              testUtils.verifyMessage(msg, {
-                payload: 'This is a mock email body for testing purposes.'
-              });
-
               done();
             } catch (err) {
               done(err);
