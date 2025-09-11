@@ -232,6 +232,12 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
     it('should handle connection success', function(done) {
       // ARRANGE: Set up connection tracking
       const mockRED = createMockNodeRED({
+        onHandler: function(event, callback) {
+          if (event === 'input') {
+            // Store the callback on the node instance
+            this.inputCallback = callback;
+          }
+        },
         statusHandler: function(status) {
           if (status.fill === 'green') {
             // ASSERT: Should show connected status
@@ -241,15 +247,30 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
         }
       });
 
-      // ACT: Create node which should attempt connection
+      // ACT: Create node with config that should fail
       emailReceiverNode(mockRED);
       const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
-      new nodeConstructor(testConfigs.valid);
+      const nodeInstance = new nodeConstructor(testConfigs.valid);
+
+      // Trigger the connection attempt by sending an input message
+      setTimeout(() => {
+        if (nodeInstance.inputCallback) {
+          nodeInstance.inputCallback({ payload: "test" });
+        } else {
+          done(new Error('inputCallback was not set on the node instance'));
+        }
+      }, 10);
     });
 
     it('should handle connection errors', function(done) {
       // ARRANGE: Set up error tracking
       const mockRED = createMockNodeRED({
+        onHandler: function(event, callback) {
+          if (event === 'input') {
+            // Store the callback on the node instance
+            this.inputCallback = callback;
+          }
+        },
         errorHandler: function(err) {
           // ASSERT: Should handle connection errors gracefully
           should.exist(err);
@@ -269,7 +290,16 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
 
       // Use invalid config to trigger connection error
       const invalidConfig = { ...testConfigs.valid, host: 'invalid.host.com' };
-      new nodeConstructor(invalidConfig);
+      const nodeInstance = new nodeConstructor(invalidConfig);
+
+      // Trigger the connection attempt by sending an input message
+      setTimeout(() => {
+        if (nodeInstance.inputCallback) {
+          nodeInstance.inputCallback({ payload: "test" });
+        } else {
+          done(new Error('inputCallback was not set on the node instance'));
+        }
+      }, 10);
     });
   });
 

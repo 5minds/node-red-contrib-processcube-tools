@@ -12,10 +12,21 @@ function createMockImap() {
 
     // Simulate connection behavior
     this.connect = () => {
-      // Simulate successful connection by emitting 'ready' event
-      if (this.events && this.events.ready) {
-        // Use setTimeout to simulate async behavior
-        setTimeout(() => this.events.ready(), 10);
+      // Check if we should simulate a connection error
+      if (this.config.host && this.config.host.includes('invalid')) {
+        // Simulate connection error
+        if (this.events && this.events.error) {
+          setTimeout(() => {
+            const error = new Error('Connection failed');
+            error.code = 'ENOTFOUND';
+            this.events.error(error);
+          }, 10);
+        }
+      } else {
+        // Simulate successful connection by emitting 'ready' event
+        if (this.events && this.events.ready) {
+          setTimeout(() => this.events.ready(), 10);
+        }
       }
     };
 
