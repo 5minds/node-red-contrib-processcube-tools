@@ -1,7 +1,5 @@
 const should = require('should');
 const {
-  createMockImap,
-  createMockMailparser,
   createMockNodeRED,
   setupModuleMocks,
   testConfigs,
@@ -184,7 +182,16 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
     });
 
     it('should handle connection errors gracefully', function(done) {
-      // ARRANGE: Set up connection error scenario
+      // ARRANGE: Set up connection error scenario with done() protection
+      let testCompleted = false;
+
+      const completeDone = () => {
+        if (!testCompleted) {
+          testCompleted = true;
+          done();
+        }
+      };
+
       const mockRED = createMockNodeRED({
         onHandler: function(event, callback) {
           if (event === 'input') {
@@ -193,19 +200,15 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
         },
         statusHandler: function(status) {
           if (status.fill === 'red' && status.text && status.text.includes('error')) {
-            done(); // Success - error status was set
+            completeDone(); // Success - error status was set
           }
         },
         errorHandler: function(err) {
           // Also accept errors as valid completion
           should.exist(err);
-          done();
+          completeDone();
         }
       });
-
-      // ACT: Create node and trigger connection attempt
-      emailReceiverNode(mockRED);
-      const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
 
       // Use a config that should cause connection issues
       const badConfig = {
@@ -214,6 +217,9 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
         port: 12345 // Invalid port
       };
 
+      // ACT: Register node and create instance with invalid config
+      emailReceiverNode(mockRED);
+      const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
       const nodeInstance = new nodeConstructor(badConfig);
 
       // Trigger the error by sending an input message
@@ -222,7 +228,7 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
         if (nodeInstance.inputCallback) {
           nodeInstance.inputCallback({ payload: "test" });
         } else {
-          done(new Error('inputCallback was not set on the node instance'));
+          completeDone(new Error('inputCallback was not set on the node instance'));
         }
       }, 10);
     });
