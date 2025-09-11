@@ -8,6 +8,14 @@
         "env": []
     },
     {
+        "id": "ea83acb4b5051be5",
+        "type": "tab",
+        "label": "Email receiver",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "efcace170d0f887c",
         "type": "tab",
         "label": "Email sender",
@@ -68,6 +76,328 @@
         "x": 560,
         "y": 180,
         "wires": []
+    },
+    {
+        "id": "bb3bd11a802bd671",
+        "type": "inject",
+        "z": "ea83acb4b5051be5",
+        "name": "Preset msg, global and flow with a password from the env",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 280,
+        "y": 120,
+        "wires": [
+            [
+                "40951f130640e822",
+                "5a6a5f9d1c4fd4fc",
+                "931dd8be9290213e"
+            ]
+        ]
+    },
+    {
+        "id": "40951f130640e822",
+        "type": "change",
+        "z": "ea83acb4b5051be5",
+        "name": "Set user and password to msg.payload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload.user",
+                "pt": "msg",
+                "to": "EMAIL_SEND_USER",
+                "tot": "env",
+                "dc": true
+            },
+            {
+                "t": "set",
+                "p": "payload.password",
+                "pt": "msg",
+                "to": "EMAIL_SEND_PASSWORD",
+                "tot": "env",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 740,
+        "y": 80,
+        "wires": [
+            [
+                "11c54cb89dee1026"
+            ]
+        ]
+    },
+    {
+        "id": "5a6a5f9d1c4fd4fc",
+        "type": "change",
+        "z": "ea83acb4b5051be5",
+        "name": "Set global user and password",
+        "rules": [
+            {
+                "t": "set",
+                "p": "user",
+                "pt": "global",
+                "to": "EMAIL_SEND_USER",
+                "tot": "env",
+                "dc": true
+            },
+            {
+                "t": "set",
+                "p": "password",
+                "pt": "global",
+                "to": "EMAIL_SEND_PASSWORD",
+                "tot": "env",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 710,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d902b06948353c07",
+        "type": "inject",
+        "z": "ea83acb4b5051be5",
+        "name": "Test the Email receiver node for flow and global",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 260,
+        "y": 360,
+        "wires": [
+            [
+                "38057e937d452056",
+                "4597104b5f3d48be",
+                "73b10f832fff4e8a"
+            ]
+        ]
+    },
+    {
+        "id": "11c54cb89dee1026",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via msg",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": "993",
+        "portType": "num",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "payload.user",
+        "userType": "msg",
+        "password": "payload.password",
+        "passwordType": "msg",
+        "folder": "[\"stoelting/serviceline\"]",
+        "folderType": "json",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 1040,
+        "y": 80,
+        "wires": [
+            [
+                "0de3b977ad96591b"
+            ]
+        ]
+    },
+    {
+        "id": "0de3b977ad96591b",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver msg output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1310,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "38057e937d452056",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via flow",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": "993",
+        "portType": "num",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "user",
+        "userType": "flow",
+        "password": "password",
+        "passwordType": "flow",
+        "folder": "[\"stoelting/serviceline\"]",
+        "folderType": "json",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 660,
+        "y": 320,
+        "wires": [
+            [
+                "85122d6c840dd054"
+            ]
+        ]
+    },
+    {
+        "id": "85122d6c840dd054",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver flow output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "4597104b5f3d48be",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via global",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": "993",
+        "portType": "num",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "user",
+        "userType": "global",
+        "password": "password",
+        "passwordType": "global",
+        "folder": "[\"stoelting/serviceline\"]",
+        "folderType": "json",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 650,
+        "y": 380,
+        "wires": [
+            [
+                "734fff9822cbb1d9"
+            ]
+        ]
+    },
+    {
+        "id": "734fff9822cbb1d9",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver flow output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "73b10f832fff4e8a",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via env",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": "993",
+        "portType": "num",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "user",
+        "userType": "global",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "folder": "[\"stoelting/serviceline\", \"Inbox\"]",
+        "folderType": "json",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 640,
+        "y": 440,
+        "wires": [
+            [
+                "4572ad36fe686399"
+            ]
+        ]
+    },
+    {
+        "id": "4572ad36fe686399",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver env output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "931dd8be9290213e",
+        "type": "change",
+        "z": "ea83acb4b5051be5",
+        "name": "Set flow user and password",
+        "rules": [
+            {
+                "t": "set",
+                "p": "user",
+                "pt": "flow",
+                "to": "EMAIL_SEND_USER",
+                "tot": "env",
+                "dc": true
+            },
+            {
+                "t": "set",
+                "p": "password",
+                "pt": "flow",
+                "to": "EMAIL_SEND_PASSWORD",
+                "tot": "env",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 700,
+        "y": 120,
+        "wires": [
+            []
+        ]
     },
     {
         "id": "7be89384c1b95ac1",

@@ -10,5 +10,5 @@
         "localRoot": "${workspaceFolder}",
         "remoteRoot": "/package_src"
       }
-    ]
-  }
+  ]
+}

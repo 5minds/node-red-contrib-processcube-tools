@@ -4,7 +4,8 @@
     "license": "MIT",
     "description": "Node-RED tools nodes for ProcessCube",
     "scripts": {
-        "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\""
+        "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
+        "test": "mocha test/unit/ test/integration"
     },
     "authors": [
         {
@@ -14,6 +15,10 @@
         {
             "name": "Robin Lenz",
             "email": "Robin.Lenz@5Minds.de"
+        },
+        {
+            "name": "Diana Stefan",
+            "email": "Diana.Stefan@5Minds.de"
         }
     ],
     "repository": {
@@ -31,6 +36,7 @@
     "node-red": {
         "version": ">=3.1.9",
         "nodes": {
+            "EmailReceiver": "email-receiver/email-receiver.js",
             "EmailSender": "email-sender/email-sender.js",
             "HtmlToText": "processcube-html-to-text/processcube-html-to-text.js"
         },
@@ -38,7 +44,21 @@
     },
     "dependencies": {
         "html-to-text": "^9.0.5",
-        "nodemailer": "^7.0.6"
+        "nodemailer": "^7.0.6",
+        "mailparser": "^3.6.8",
+        "node-imap": "^0.9.6",
+        "utf7": "^1.0.2"
+    },
+    "devDependencies": {
+        "chai": "^4.3.4",
+        "mocha": "^11.7.2",
+        "node-red": "^4.1.0",
+        "node-red-node-test-helper": "^0.3.5",
+        "should": "^13.2.3",
+        "sinon": "^11.1.2"
+    },
+    "overrides": {
+        "semver": ">=7.5.2"
     },
     "keywords": [
         "node-red",

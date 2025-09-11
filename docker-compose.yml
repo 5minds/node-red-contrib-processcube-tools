@@ -8,6 +8,8 @@ services:
       - 1880:1880
       # debugger port
       - 9229:9229
+    env_file:
+      - .env
     environment:
       - TZ=Europe/Berlin
       # start node-red with debugger port open
@@ -18,4 +20,4 @@ services:
       - ./.:/package_src/
       # save the flows
       - ./.processcube/nodered:/data
-  
+

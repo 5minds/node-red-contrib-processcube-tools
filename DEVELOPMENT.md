@@ -14,3 +14,7 @@
 4. docker compose up
 5. Connect to app via vscode launch.json (Attach to Node-RED)
 6. Happy coding
+
+## Want to run some tests
+
+1. You can use the Macha Test Explorer extension to run them.
