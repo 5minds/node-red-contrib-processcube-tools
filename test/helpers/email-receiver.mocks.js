@@ -144,15 +144,31 @@ function createMockMailparser() {
  * Create mock Node-RED object for unit testing
  */
 function createMockNodeRED(options = {}) {
-  return {
+  // Store input callback in the mock RED context
+  let storedInputCallback = null;
+  let nodeInstance = null;
+
+  const mockRED = {
     nodes: {
       createNode: function(node, config) {
+        nodeInstance = node; // Capture the node instance
+
         // Apply config properties to node
         Object.assign(node, {
           id: config.id || 'mock-node-id',
           type: config.type || 'email-receiver',
           name: config.name || 'Mock Node',
-          on: options.onHandler || function() {},
+          on: function(event, callback) {
+            if (event === 'input') {
+              storedInputCallback = callback;
+              // Store the callback on the node instance for easy access
+              node.inputCallback = callback;
+            }
+            // Call the original onHandler if provided
+            if (options.onHandler) {
+              options.onHandler.call(node, event, callback);
+            }
+          },
           status: options.statusHandler || function() {},
           error: options.errorHandler || function() {},
           send: options.sendHandler || function() {},
@@ -166,6 +182,14 @@ function createMockNodeRED(options = {}) {
         // Store registration for verification in tests
         this.lastRegisteredType = type;
         this.lastRegisteredConstructor = constructor;
+      },
+      // Helper method to get the stored input callback
+      getInputCallback: function() {
+        return storedInputCallback;
+      },
+      // Helper method to get the node instance
+      getNodeInstance: function() {
+        return nodeInstance;
       }
     },
     util: {
@@ -181,7 +205,7 @@ function createMockNodeRED(options = {}) {
             return null;
           }
         }
-        
+
         // Simple mock implementation
         if (callback) {
           callback(null, value);
@@ -202,6 +226,8 @@ function createMockNodeRED(options = {}) {
       debug: options.logDebug || function() {}
     }
   };
+
+  return mockRED;
 }
 
 /**
