@@ -9,19 +9,6 @@
         "port": 9229,
         "localRoot": "${workspaceFolder}",
         "remoteRoot": "/package_src"
-      },
-      {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug npm test",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": [
-        "run",
-        "test",
-        "--"
-      ],
-      "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen"
-    }
+      }
   ]
 }
