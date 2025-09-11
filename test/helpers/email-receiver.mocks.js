@@ -273,7 +273,7 @@ const testConfigs = {
     userType: 'str',
     password: 'testpass',
     passwordType: 'str',
-    folder: 'INBOX',
+    folder: ['INBOX'],
     folderType: 'str',
     markseen: true,
     markseenType: 'bool'
@@ -297,6 +297,22 @@ const testConfigs = {
     markseenType: 'bool'
   },
 
+  invalidFolderType: {
+    id: 'test-node-4',
+    type: 'email-receiver',
+    name: 'Invalid Config Test',
+    host: '',  // Missing host
+    hostType: 'str',
+    port: 993,
+    portType: 'num',
+    user: 'test@test.com',
+    userType: 'str',
+    password: '',  // Missing password
+    passwordType: 'str',
+    folder: 123,
+    folderType: 'num'
+  },
+
   invalidConfig: {
     id: 'test-node-4',
     type: 'email-receiver',
@@ -309,7 +325,7 @@ const testConfigs = {
     userType: 'str',
     password: '',  // Missing password
     passwordType: 'str',
-    folder: 123,  // Wrong type
+    folder: ["Inbox"],
     folderType: 'num'
   },
 

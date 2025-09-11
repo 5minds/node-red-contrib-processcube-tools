@@ -116,6 +116,11 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
     it('should call node.error for invalid folder type', function(done) {
       // ARRANGE: Set up error tracking
       const mockRED = createMockNodeRED({
+        onHandler: function(event, callback) {
+          if (event === 'input') {
+            this.inputCallback = callback;
+          }
+        },
         errorHandler: function(err) {
           // ASSERT: Should receive appropriate error message
           err.should.containEql("The 'folders' property must be an array of strings.");
@@ -126,13 +131,28 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       // ACT: Register node and create instance with invalid config
       emailReceiverNode(mockRED);
       const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
-      new nodeConstructor(testConfigs.invalidConfig);
+      const nodeInstance = new nodeConstructor(testConfigs.invalidFolderType);
+
+      // Trigger the error by sending an input message
+      // Use a small delay to ensure the constructor has completed
+      setTimeout(() => {
+        if (nodeInstance.inputCallback) {
+          nodeInstance.inputCallback({ payload: "test" });
+        } else {
+          done(new Error('inputCallback was not set on the node instance'));
+        }
+      }, 10);
     });
 
     it('should call node.error for missing config', function(done) {
       // ARRANGE: Set up error and status tracking
       let statusCalled = false;
       const mockRED = createMockNodeRED({
+        onHandler: function(event, callback) {
+          if (event === 'input') {
+            this.inputCallback = callback;
+          }
+        },
         statusHandler: function(status) {
           statusCalled = true;
           if (status.fill) {
@@ -150,7 +170,61 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       // ACT: Register node and create instance with invalid config
       emailReceiverNode(mockRED);
       const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
-      new nodeConstructor(testConfigs.invalidConfig);
+      const nodeInstance = new nodeConstructor(testConfigs.invalidConfig);
+
+      // Trigger the error by sending an input message
+      // Use a small delay to ensure the constructor has completed
+      setTimeout(() => {
+        if (nodeInstance.inputCallback) {
+          nodeInstance.inputCallback({ payload: "test" });
+        } else {
+          done(new Error('inputCallback was not set on the node instance'));
+        }
+      }, 10);
+    });
+
+    it('should handle connection errors gracefully', function(done) {
+      // ARRANGE: Set up connection error scenario
+      const mockRED = createMockNodeRED({
+        onHandler: function(event, callback) {
+          if (event === 'input') {
+            this.inputCallback = callback;
+          }
+        },
+        statusHandler: function(status) {
+          if (status.fill === 'red' && status.text && status.text.includes('error')) {
+            done(); // Success - error status was set
+          }
+        },
+        errorHandler: function(err) {
+          // Also accept errors as valid completion
+          should.exist(err);
+          done();
+        }
+      });
+
+      // ACT: Create node and trigger connection attempt
+      emailReceiverNode(mockRED);
+      const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
+
+      // Use a config that should cause connection issues
+      const badConfig = {
+        ...testConfigs.valid,
+        host: 'nonexistent.invalid.host.com',
+        port: 12345 // Invalid port
+      };
+
+      const nodeInstance = new nodeConstructor(badConfig);
+
+      // Trigger the error by sending an input message
+      // Use a small delay to ensure the constructor has completed
+      setTimeout(() => {
+        if (nodeInstance.inputCallback) {
+          nodeInstance.inputCallback({ payload: "test" });
+        } else {
+          done(new Error('inputCallback was not set on the node instance'));
+        }
+      }, 10);
     });
   });
 
