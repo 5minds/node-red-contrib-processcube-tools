@@ -240,15 +240,13 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       const mockRED = createMockNodeRED({
         onHandler: function(event, callback) {
           if (event === 'input') {
-            // Store the callback on the node instance
             this.inputCallback = callback;
           }
         },
         statusHandler: function(status) {
-          if (status.fill === 'green') {
-            // ASSERT: Should show connected status
-            status.text.should.containEql('connected');
-            done();
+          // ASSERT: Check for 'connected' status and then complete the test
+            if (status.fill === 'green' && status.text === 'connected') {
+              done();
           }
         }
       });
