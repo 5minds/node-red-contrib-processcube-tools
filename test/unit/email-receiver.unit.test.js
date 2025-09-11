@@ -228,52 +228,6 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
     });
   });
 
-  describe('Message Processing', function() {
-    it('should process email message correctly', async function() {
-      // ARRANGE: Set up message capture
-      let processedMessage = null;
-      const mockRED = createMockNodeRED({
-        sendHandler: function(msg) {
-          processedMessage = msg;
-        }
-      });
-
-      // ACT: Create node and simulate email processing
-      emailReceiverNode(mockRED);
-      const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
-      const nodeInstance = new nodeConstructor(testConfigs.valid);
-
-      // Simulate input trigger (this would depend on your node's implementation)
-      // The actual trigger mechanism would need to match your node's design
-
-      await testUtils.wait(100);
-
-      // ASSERT: Message processing behavior would be verified here
-      // The specific assertions depend on your node's output format
-      should.exist(nodeInstance);
-    });
-
-    it('should handle multiple messages', async function() {
-      // ARRANGE: Set up message collection
-      const messages = [];
-      const mockRED = createMockNodeRED({
-        sendHandler: function(msg) {
-          messages.push(msg);
-        }
-      });
-
-      // ACT: Create node and simulate multiple emails
-      emailReceiverNode(mockRED);
-      const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
-      const nodeInstance = new nodeConstructor(testConfigs.valid);
-
-      await testUtils.wait(150);
-
-      // ASSERT: Should handle multiple messages appropriately
-      should.exist(nodeInstance);
-    });
-  });
-
   describe('IMAP Connection', function() {
     it('should handle connection success', function(done) {
       // ARRANGE: Set up connection tracking
