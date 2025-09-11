@@ -4,7 +4,8 @@
     "license": "MIT",
     "description": "Node-RED tools nodes for ProcessCube",
     "scripts": {
-        "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\""
+        "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
+        "test": "mocha test/unit/ test/integration"
     },
     "authors": [
         {
