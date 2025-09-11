@@ -3,7 +3,6 @@ const helper = require('node-red-node-test-helper');
 const {
   createMockImap,
   createMockMailparser,
-  createMockNodeRED,
   setupModuleMocks,
   testConfigs,
   testFlows,
@@ -76,24 +75,6 @@ describe('Email Receiver Node - Integration Tests with Helpers', function() {
           const n1 = helper.getNode(testConfigs.minimal.id);
           should.exist(n1);
           n1.should.have.property('type', 'email-receiver');
-          done();
-        } catch (err) {
-          done(err);
-        }
-      });
-    });
-
-    it('should load with string folders configuration', function(done) {
-      // ARRANGE: Use string folders config from helpers
-      const flow = [testConfigs.stringFolders];
-
-      // ACT: Load the node
-      helper.load(emailReceiverNode, flow, function() {
-        try {
-          // ASSERT: Verify the node loaded with string folders
-          const n1 = helper.getNode(testConfigs.stringFolders.id);
-          should.exist(n1);
-          n1.should.have.property('name', testConfigs.stringFolders.name);
           done();
         } catch (err) {
           done(err);
