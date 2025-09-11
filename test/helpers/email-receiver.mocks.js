@@ -51,7 +51,7 @@ function createMockImap() {
 
     // Simulate fetching email messages
     this.fetch = (results, options) => {
-      return {
+      const fetchEmitter = {
         on: (event, callback) => {
           if (event === 'message') {
             setTimeout(() => {
@@ -59,7 +59,9 @@ function createMockImap() {
                 on: (messageEvent, messageCallback) => {
                   if (messageEvent === 'body') {
                     setTimeout(() => {
-                      messageCallback(Buffer.from('mock email body'));
+                      // Return a mock email body that will be parsed
+                      const mockEmailContent = `From: sender@test.com\r\nTo: recipient@test.com\r\nSubject: Mock Email Subject\r\n\r\nThis is a mock email body for testing purposes.`;
+                      messageCallback(Buffer.from(mockEmailContent));
                     }, 5);
                   } else if (messageEvent === 'attributes') {
                     setTimeout(() => {
@@ -91,6 +93,10 @@ function createMockImap() {
           }
         }
       };
+
+      // Store the fetch emitter so we can trigger events manually in tests
+      this.lastFetchEmitter = fetchEmitter;
+      return fetchEmitter;
     };
 
     // Simulate closing connection
@@ -106,6 +112,11 @@ function createMockImap() {
       this.events[event] = callback;
     };
 
+    this.on = (event, callback) => {
+      if (!this.events) this.events = {};
+      this.events[event] = callback;
+    };
+
     // Additional IMAP methods that might be used
     this.addFlags = (source, flags, callback) => {
       setTimeout(() => callback(null), 5);
@@ -113,6 +124,15 @@ function createMockImap() {
 
     this.removeFlags = (source, flags, callback) => {
       setTimeout(() => callback(null), 5);
+    };
+
+    // Helper method to trigger the email processing flow
+    this.simulateNewEmail = (emailData = {}) => {
+      if (this.events && this.events.mail) {
+        setTimeout(() => {
+          this.events.mail(1); // Simulate 1 new email
+        }, 10);
+      }
     };
 
     return this;
@@ -242,7 +262,7 @@ function createMockNodeRED(options = {}) {
 }
 
 /**
- * Set up module mocks for require() calls
+ * Enhanced module mocks setup with better email simulation
  */
 function setupModuleMocks() {
   const mockModules = {
@@ -382,7 +402,7 @@ const testFlows = {
 };
 
 /**
- * Utility functions for test assertions
+ * Utility functions for test assertions and email simulation
  */
 const testUtils = {
   /**
