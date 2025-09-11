@@ -43,6 +43,9 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm ci
 
+      - name: Run tests
+        run: npm test
+        
       - name: 'Prepare Version'
         if: "!startsWith(github.ref_name, 'renovate')"
         run: ci_tools prepare-version --allow-dirty-workdir
