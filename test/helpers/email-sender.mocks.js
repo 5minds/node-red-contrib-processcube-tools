@@ -1,4 +1,5 @@
-// Helper functions and mocks for email-sender tests (Mocha/Chai compatible)
+// Helper functions and mocks for email-sender tests
+const { EventEmitter } = require('events');
 const nodemailer = require('nodemailer');
 const originalCreateTransport = nodemailer.createTransport;
 
@@ -37,15 +38,16 @@ function getValidConfig() {
     };
 }
 
-// Custom mock node to replace Sinon spies
+// Custom mock node
 function getMockNode() {
-    const mock = {
+    // Create an EventEmitter instance to get the .on and .emit methods
+    const mock = Object.assign(new EventEmitter(), {
         status: () => {},
         error: () => {},
         warn: () => {},
         log: () => {},
         send: () => {}
-    };
+    });
 
     mock.status = (...args) => {
         mock.status.called = true;
@@ -72,7 +74,7 @@ function getMockNode() {
     return mock;
 }
 
-// Custom mock transporter to replace Sinon stubs
+// Custom mock transporter
 function mockTransporterSendMail(info, errorMsg = null) {
     mockNodemailer();
     nodemailer.createTransport = () => {

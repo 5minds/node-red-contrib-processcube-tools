@@ -22,13 +22,16 @@ describe('E-Mail Sender Node Unit Tests', function () {
     beforeEach(function () {
         // ARRANGE: Set up a new, clean mock environment for each test
         RED = createMockNodeRED();
-        node = getMockNode();
+        // The mock node now correctly inherits from EventEmitter
+        node = Object.assign(getMockNode(), new EventEmitter());
         config = getValidConfig();
 
-        // Overwrite the createNode mock to return our specific node instance
-        RED.nodes.createNode = () => node;
-
-        // Initialize the node for testing
+        // Correctly mock the registration process.
+        RED.nodes.registerType = function (type, constructor) {
+            RED.nodes.lastRegisteredType = type;
+            // The real constructor is saved here, which is what your test needs.
+            RED.nodes.lastRegisteredConstructor = constructor;
+        };
         emailSender(RED);
     });
 
@@ -66,9 +69,10 @@ describe('E-Mail Sender Node Unit Tests', function () {
     describe('Node Instantiation', function() {
         it('should handle node instantiation with valid config', function() {
             // ARRANGE: The node and config are set up in beforeEach
+            const MyNodeConstructor = RED.nodes.lastRegisteredConstructor;
 
             // ACT: The node is initialized
-            const createdNode = RED.nodes.createNode(node, config);
+            const createdNode = new MyNodeConstructor(config);
 
             // ASSERT: Verify that the node is created without errors
             createdNode.should.be.an('object');
