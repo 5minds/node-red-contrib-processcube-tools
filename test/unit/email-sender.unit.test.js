@@ -1,5 +1,4 @@
 const { expect } = require('chai');
-
 const {
     createMockNodeRED,
     setupModuleMocks,
@@ -50,22 +49,40 @@ describe('E-Mail Sender Node Unit Tests', function () {
 
     describe('Node Instantiation', function() {
         it('should handle node instantiation with valid config', function() {
-        // ARRANGE: Track node creation
-        let createdNode = null;
-        const mockRED = createMockNodeRED({
-            onHandler: function(event, callback) {
-            createdNode = this;
-            }
+            // ARRANGE: Track node creation
+            let createdNode = null;
+            const mockRED = createMockNodeRED({
+                onHandler: function(event, callback) {
+                createdNode = this;
+                }
+            });
+
+            // ACT: Register and create node instance
+            emailSenderNode(mockRED);
+            new mockRED.nodes.lastRegisteredConstructor(emailSenderConfigs.valid);
+
+            // ASSERT: Verify node was created with correct properties
+            expect(createdNode).to.exist;
+            expect(createdNode).to.have.property('name', emailSenderConfigs.valid.name);
+            expect(createdNode).to.have.property('id', emailSenderConfigs.valid.id);
         });
 
-        // ACT: Register and create node instance
-        emailSenderNode(mockRED);
-        new mockRED.nodes.lastRegisteredConstructor(emailSenderConfigs.valid);
+        it('should handle minimal config', function() {
+            // ARRANGE: Use minimal test config
+            let createdNode = null;
+            const mockRED = createMockNodeRED({
+                onHandler: function(event, callback) {
+                createdNode = this;
+                }
+            });
 
-        // ASSERT: Verify node was created with correct properties
-        expect(createdNode).to.exist;
-        expect(createdNode).to.have.property('name', emailSenderConfigs.valid.name);
-        expect(createdNode).to.have.property('id', emailSenderConfigs.valid.id);
+            // ACT: Register and create node with minimal config
+            emailSenderNode(mockRED);
+            new mockRED.nodes.lastRegisteredConstructor(emailSenderConfigs.minimal);
+
+            // ASSERT: Verify node creation
+            expect(createdNode).to.exist;
+            expect(createdNode).to.have.property('id', emailSenderConfigs.minimal.id);
         });
     });
 
