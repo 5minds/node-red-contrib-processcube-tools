@@ -18,7 +18,7 @@ module.exports = function(RED) {
             const bcc = RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || "";
             const subject = RED.util.evaluateNodeProperty(config.subject, config.subjectType, node, msg) || msg.topic || "Message from Node-RED";
             const htmlContent = RED.util.evaluateNodeProperty(config.htmlContent, config.htmlContentType, node, msg);
-            const attachments = RED.util.evaluateNodeProperty(config.attachments, config.attachmentsType, node, msg);
+            const attachments = safeEvaluatePropertyAttachment(config, node, msg);
 
             // Retrieve and evaluate SMTP configuration values
             const host = RED.util.evaluateNodeProperty(config.host, config.hostType, node, msg);
@@ -111,4 +111,17 @@ module.exports = function(RED) {
     }
 
     RED.nodes.registerType("email-sender", EmailSenderNode);
+
+    function safeEvaluatePropertyAttachment(config, node, msg) {
+        if (config.attachments && config.attachments.trim() !== '') {
+            try {
+                return RED.util.evaluateNodeProperty(config.attachments, config.attachmentsType, node, msg);
+            } catch (e) {
+                node.error("Failed to evaluate attachments property: " + e.message, msg);
+                return null;
+            }
+        }
+
+        return null;
+    }
 };
