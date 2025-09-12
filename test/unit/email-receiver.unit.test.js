@@ -1,4 +1,4 @@
-const should = require('should');
+const { expect } = require('chai');
 const {
   setupModuleMocks,
   testConfigs,
@@ -32,7 +32,7 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
 
   describe('Module Export', function() {
     it('should export a function', function() {
-      emailReceiverNode.should.be.type('function');
+      expect(emailReceiverNode).to.be.a('function');
     });
   });
 
@@ -45,8 +45,8 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       emailReceiverNode(mockRED);
 
       // ASSERT: Verify registration
-      mockRED.nodes.lastRegisteredType.should.equal('email-receiver');
-      mockRED.nodes.lastRegisteredConstructor.should.be.type('function');
+      expect(mockRED.nodes.lastRegisteredType).to.equal('email-receiver');
+      expect(mockRED.nodes.lastRegisteredConstructor).to.be.a('function');
     });
   });
 
@@ -65,9 +65,9 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       new mockRED.nodes.lastRegisteredConstructor(testConfigs.valid);
 
       // ASSERT: Verify node was created with correct properties
-      should.exist(createdNode);
-      createdNode.should.have.property('name', testConfigs.valid.name);
-      createdNode.should.have.property('id', testConfigs.valid.id);
+      expect(createdNode).to.exist;
+      expect(createdNode).to.have.property('name', testConfigs.valid.name);
+      expect(createdNode).to.have.property('id', testConfigs.valid.id);
     });
 
     it('should handle minimal config', function() {
@@ -84,8 +84,8 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       new mockRED.nodes.lastRegisteredConstructor(testConfigs.minimal);
 
       // ASSERT: Verify node creation
-      should.exist(createdNode);
-      createdNode.should.have.property('id', testConfigs.minimal.id);
+      expect(createdNode).to.exist;
+      expect(createdNode).to.have.property('id', testConfigs.minimal.id);
     });
   });
 
@@ -108,8 +108,8 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
       await testUtils.wait(50);
 
       // ASSERT: Should handle array folders without error
-      should.exist(nodeInstance);
-      nodeInstance.should.have.property('name', testConfigs.arrayFolders.name);
+      expect(nodeInstance).to.exist;
+      expect(nodeInstance).to.have.property('name', testConfigs.arrayFolders.name);
     });
   });
 
@@ -124,7 +124,7 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
         },
         errorHandler: function(err) {
           // ASSERT: Should receive appropriate error message
-          err.should.containEql("The 'folders' property must be an array of strings.");
+          expect(err).to.include("The 'folders' property must be an array of strings.");
           done();
         }
       });
@@ -157,13 +157,13 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
         statusHandler: function(status) {
           statusCalled = true;
           if (status.fill) {
-            status.fill.should.equal('red');
+            expect(status.fill).to.equal('red');
           }
         },
         errorHandler: function(err) {
           // ASSERT: Should receive config error
-          err.should.containEql('Missing required IMAP config');
-          statusCalled.should.be.true();
+          expect(err).to.include('Missing required IMAP config');
+          expect(statusCalled).to.be.true;
           done();
         }
       });
@@ -208,7 +208,7 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
         },
         errorHandler: function(err) {
           // Also accept errors as valid completion
-          should.exist(err);
+          expect(err).to.exist;
           completeDone();
         }
       });
@@ -280,13 +280,13 @@ describe('Email Receiver Node - Unit Tests with Helpers', function() {
         },
         errorHandler: function(err) {
           // ASSERT: Should handle connection errors gracefully
-          should.exist(err);
+          expect(err).to.exist;
           done();
         },
         statusHandler: function(status) {
           if (status.fill === 'red') {
             // Connection failed status
-            status.text.should.containEql('error');
+            expect(status.text).to.include('error');
           }
         }
       });
