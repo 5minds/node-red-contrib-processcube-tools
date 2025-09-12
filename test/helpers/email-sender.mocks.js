@@ -1,7 +1,8 @@
 // Helper functions and mocks for email-sender tests (Mocha/Chai compatible)
-
 const nodemailer = require('nodemailer');
-const sinon = require('sinon');
+const originalCreateTransport = nodemailer.createTransport;
+
+let mockTransport;
 
 function getValidConfig() {
     return {
@@ -36,47 +37,79 @@ function getValidConfig() {
     };
 }
 
+// Custom mock node to replace Sinon spies
 function getMockNode() {
-    return {
-        status: sinon.spy(),
-        error: sinon.spy(),
-        warn: sinon.spy(),
-        log: sinon.spy(),
-        send: sinon.spy()
+    const mock = {
+        status: () => {},
+        error: () => {},
+        warn: () => {},
+        log: () => {},
+        send: () => {}
+    };
+
+    mock.status = (...args) => {
+        mock.status.called = true;
+        mock.status.args = args;
+    };
+    mock.status.called = false;
+    mock.status.args = [];
+    mock.status.calledWith = (expectedArgs) => {
+        return mock.status.called && JSON.stringify(mock.status.args) === JSON.stringify(expectedArgs);
+    };
+
+    mock.send = (...args) => {
+        mock.send.called = true;
+        mock.send.args = args;
+        mock.send.callCount++;
+    };
+    mock.send.called = false;
+    mock.send.args = [];
+    mock.send.callCount = 0;
+    mock.send.calledWith = (expectedArgs) => {
+        return mock.send.called && JSON.stringify(mock.send.args) === JSON.stringify([expectedArgs]);
+    };
+
+    return mock;
+}
+
+// Custom mock transporter to replace Sinon stubs
+function mockTransporterSendMail(info, errorMsg = null) {
+    mockNodemailer();
+    nodemailer.createTransport = () => {
+        return {
+            sendMail: (mailOptions, callback) => {
+                mockTransport = { mailOptions };
+                if (errorMsg) {
+                    callback(errorMsg, null);
+                } else {
+                    callback(null, info);
+                }
+            }
+        };
     };
 }
 
-function getMockMsg() {
-    return {};
-}
-
-/**
- * Mocks the nodemailer.createTransport method to control the sendMail response.
- * @param {object} info - The info object to return on success, e.g., { accepted: [], rejected: [], pending: [] }.
- * @param {Error} error - The error object to return on failure.
- */
-function mockTransporterSendMail(info = null, error = null) {
-    return sinon.stub(nodemailer, 'createTransport').returns({
-        sendMail: (mailOptions, callback) => {
-            if (error) {
-                callback(error, null);
-            } else {
-                callback(null, info);
-            }
-        }
-    });
+// Sets up a full module mock for nodemailer
+function mockNodemailer() {
+    nodemailer.createTransport = () => {
+        throw new Error("nodemailer.createTransport should be mocked by mockTransporterSendMail");
+    };
 }
 
 function restoreTransporterMock() {
-    if (nodemailer.createTransport.restore) {
-        nodemailer.createTransport.restore();
-    }
+    nodemailer.createTransport = originalCreateTransport;
+}
+
+function getMockTransport() {
+    return mockTransport;
 }
 
 module.exports = {
     getValidConfig,
     getMockNode,
-    getMockMsg,
+    getMockMsg: () => ({}),
     mockTransporterSendMail,
-    restoreTransporterMock
+    restoreTransporterMock,
+    getMockTransport,
+    mockNodemailer
 };

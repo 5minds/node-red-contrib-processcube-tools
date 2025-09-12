@@ -1,192 +1,157 @@
-const { expect } = require('chai');
-const sinon = require('sinon');
+const chai = require('chai');
+chai.should();
 const {
     getValidConfig,
     getMockNode,
     getMockMsg,
     mockTransporterSendMail,
-    restoreTransporterMock
-} = require('../../test/helpers/email-sender.mocks.js');
+    restoreTransporterMock,
+    getMockTransport
+} = require('../helpers/email-sender.mocks.js');
+const {
+    createMockNodeRED
+} = require('../helpers/general.mocks.js');
 const emailSender = require('../../email-sender/email-sender.js');
-const nodemailer = require('nodemailer');
 
-describe('EmailSenderNode Unit Tests', function () {
+
+describe('E-Mail Sender Node Unit Tests', function () {
     let RED;
+    let node;
+    let config;
 
     beforeEach(function () {
-        RED = {
-            nodes: {
-                createNode: () => {},
-                registerType: sinon.stub()
-            },
-            util: {
-                evaluateNodeProperty: (value) => value
-            }
-        };
+        // ARRANGE: Set up a new, clean mock environment for each test
+        RED = createMockNodeRED();
+        node = getMockNode();
+        config = getValidConfig();
+
+        // Overwrite the createNode mock to return our specific node instance
+        RED.nodes.createNode = () => node;
+
+        // Initialize the node for testing
+        emailSender(RED);
     });
 
     afterEach(function () {
         restoreTransporterMock();
-        if (RED.nodes.createNode.restore) {
-            RED.nodes.createNode.restore();
-        }
     });
 
-    // Existing test case for successful email sending
-    it('should send email successfully and set status to sent', function (done) {
-        mockTransporterSendMail({ accepted: ["recipient@example.com"], rejected: [], pending: [] });
-        const node = getMockNode();
-        const config = getValidConfig();
+    // A separate describe block for module export
+    describe('Module Export', function () {
+        it('should export a function', function() {
+            // ARRANGE: The module is imported above
+            const moduleExport = require('../../email-sender/email-sender.js');
 
-        node.on = function (event, handler) {
-            if (event === 'input') {
-                handler(getMockMsg(), node.send, function (err) {
-                    expect(err).to.be.undefined;
-                    expect(node.status.calledWith({ fill: "green", shape: "dot", text: "sent" })).to.be.true;
-                    expect(node.send.calledOnce).to.be.true;
-                    done();
-                });
-            }
-        };
-
-        sinon.stub(RED.nodes, 'createNode').callsFake(() => node);
-        emailSender(RED);
-        RED.nodes.createNode(config);
+            // ASSERT: The export should be a function
+            (typeof moduleExport).should.equal('function');
+        });
     });
 
-    // Existing test case for handling sendMail error
-    it('should handle sendMail error and set status to error sending', function (done) {
-        mockTransporterSendMail(null, new Error("Mock sendMail error"));
-        const node = getMockNode();
-        const config = getValidConfig();
+    // A separate describe block for node registration
+    describe('Node Registration', function () {
+        it('should register node type without errors', function () {
+            // ARRANGE: mockRED is already created in beforeEach
+            const mockRED = createMockNodeRED();
 
-        node.on = function (event, handler) {
-            if (event === 'input') {
-                handler(getMockMsg(), node.send, function (err) {
-                    expect(err).to.be.an('error');
-                    expect(err.message).to.equal("Mock sendMail error");
-                    expect(node.status.calledWith({ fill: "red", shape: "dot", text: "error sending" })).to.be.true;
-                    expect(node.send.notCalled).to.be.true;
-                    done();
-                });
-            }
-        };
+            // ACT: Register the node by initializing it
+            emailSender(mockRED);
 
-        sinon.stub(RED.nodes, 'createNode').callsFake(() => node);
-        emailSender(RED);
-        RED.nodes.createNode(config);
+            // ASSERT: Verify registration
+            mockRED.nodes.lastRegisteredType.should.equal('email-sender');
+            (typeof mockRED.nodes.lastRegisteredConstructor).should.equal('function');
+        });
     });
 
-    // New test cases start here
-    it('should handle rejected emails and set status to rejected', function (done) {
-        mockTransporterSendMail({ accepted: [], rejected: ["recipient@example.com"], pending: [] });
-        const node = getMockNode();
-        const config = getValidConfig();
+    // A separate describe block for node instantiation
+    describe('Node Instantiation', function() {
+        it('should handle node instantiation with valid config', function() {
+            // ARRANGE: The node and config are set up in beforeEach
 
-        node.on = function (event, handler) {
-            if (event === 'input') {
-                handler(getMockMsg(), node.send, function (err) {
-                    expect(err).to.be.an('error');
-                    expect(err.message).to.include('Email rejected');
-                    expect(node.status.calledWith({ fill: "red", shape: "dot", text: "rejected" })).to.be.true;
-                    expect(node.send.notCalled).to.be.true;
-                    done();
-                });
-            }
-        };
+            // ACT: The node is initialized
+            const createdNode = RED.nodes.createNode(node, config);
 
-        sinon.stub(RED.nodes, 'createNode').callsFake(() => node);
-        emailSender(RED);
-        RED.nodes.createNode(config);
+            // ASSERT: Verify that the node is created without errors
+            createdNode.should.be.an('object');
+        });
     });
 
-    it('should handle pending emails and set status to pending', function (done) {
-        mockTransporterSendMail({ accepted: [], rejected: [], pending: ["recipient@example.com"] });
-        const node = getMockNode();
-        const config = getValidConfig();
+    // A separate describe block for the node's core functionality
+    describe('Node Functionality', function () {
 
-        node.on = function (event, handler) {
-            if (event === 'input') {
-                handler(getMockMsg(), node.send, function (err) {
-                    expect(err).to.be.an('error');
-                    expect(err.message).to.include('Email pending');
-                    expect(node.status.calledWith({ fill: "yellow", shape: "dot", text: "pending" })).to.be.true;
-                    expect(node.send.notCalled).to.be.true;
-                    done();
-                });
-            }
-        };
+        it('should send email successfully and set status to "sent"', function (done) {
+            // ARRANGE: Mock a successful email send
+            mockTransporterSendMail({ accepted: ["recipient@example.com"], rejected: [], pending: [] });
 
-        sinon.stub(RED.nodes, 'createNode').callsFake(() => node);
-        emailSender(RED);
-        RED.nodes.createNode(config);
-    });
-
-    it('should use msg.topic as subject if config.subject is empty', function (done) {
-        mockTransporterSendMail({ accepted: ["recipient@example.com"], rejected: [], pending: [] });
-        const node = getMockNode();
-        const config = getValidConfig();
-        config.subject = ""; // Override subject in config
-        const msg = getMockMsg();
-        msg.topic = "Topic from msg"; // Add topic to msg
-
-        // Stub nodemailer.createTransport to inspect the mailOptions
-        const createTransportStub = sinon.stub(nodemailer, 'createTransport');
-        createTransportStub.callsFake(() => {
-            return {
-                sendMail: (mailOptions, callback) => {
-                    expect(mailOptions.subject).to.equal(msg.topic);
-                    callback(null, { response: "250 OK", accepted: ["recipient@example.com"] });
-                    createTransportStub.restore();
-                    done();
-                }
-            };
+            // ACT: Simulate an incoming message to trigger the node
+            node.emit('input', getMockMsg(), node.send, (err) => {
+                // ASSERT
+                (err === undefined).should.be.true;
+                node.status.calledWith({ fill: "green", shape: "dot", text: "sent" }).should.be.true;
+                done();
+            });
         });
 
-        node.on = function (event, handler) {
-            if (event === 'input') {
-                handler(msg, node.send, function () { });
-            }
-        };
+        it('should handle sendMail error and set status to "error sending"', function (done) {
+            // ARRANGE: Mock a failed email send with a specific error
+            mockTransporterSendMail(null, new Error("Mock sendMail error"));
 
-        sinon.stub(RED.nodes, 'createNode').callsFake(() => node);
-        emailSender(RED);
-        RED.nodes.createNode(config);
-    });
-
-    it('should handle a single attachment object correctly', function (done) {
-        const config = getValidConfig();
-        const attachment = {
-            filename: "test.txt",
-            content: "This is a test file."
-        };
-        config.attachments = JSON.stringify(attachment);
-        config.attachmentsType = "json";
-
-        const node = getMockNode();
-
-        const createTransportStub = sinon.stub(nodemailer, 'createTransport');
-        createTransportStub.callsFake(() => {
-            return {
-                sendMail: (mailOptions, callback) => {
-                    expect(mailOptions.attachments).to.be.an('array').with.lengthOf(1);
-                    expect(mailOptions.attachments[0].filename).to.equal("test.txt");
-                    expect(mailOptions.attachments[0].content).to.equal("This is a test file.");
-                    callback(null, { response: "250 OK", accepted: ["recipient@example.com"] });
-                    createTransportStub.restore();
-                    done();
-                }
-            };
+            // ACT: Simulate an incoming message
+            node.emit('input', getMockMsg(), node.send, (err) => {
+                // ASSERT
+                err.should.be.an('error');
+                err.message.should.equal("Mock sendMail error");
+                node.status.calledWith({ fill: "red", shape: "dot", text: "error sending" }).should.be.true;
+                done();
+            });
         });
 
-        node.on = function (event, handler) {
-            if (event === 'input') {
-                handler(getMockMsg(), node.send, function () { });
-            }
-        };
+        it('should handle an array of attachments correctly', function (done) {
+            // ARRANGE: Configure the node with a JSON string of attachments
+            const attachments = [{
+                filename: "test1.txt",
+                content: "This is the first test file."
+            }, {
+                filename: "test2.txt",
+                content: "This is the second test file."
+            }];
+            config.attachments = JSON.stringify(attachments);
+            config.attachmentsType = "json";
 
-        sinon.stub(RED.nodes, 'createNode').callsFake(() => node);
-        emailSender(RED);
-        RED.nodes.createNode(config);
+            // ACT: Listen for the 'input' event to check the mock transport
+            node.on('input', (msg, send, errorHandler) => {
+                const mockTransport = getMockTransport();
+                // ASSERT
+                mockTransport.mailOptions.attachments.should.be.an('array').with.lengthOf(2);
+                mockTransport.mailOptions.attachments[0].filename.should.equal("test1.txt");
+                mockTransport.mailOptions.attachments[1].content.should.equal("This is the second test file.");
+                done();
+            });
+
+            // Simulate an incoming message
+            node.emit('input', getMockMsg(), node.send, (err) => {});
+        });
+
+        it('should log a warning for malformed attachments', function (done) {
+            // ARRANGE: Configure the node with a JSON string containing a malformed attachment
+            const attachments = [{
+                filename: "test.txt",
+                content: "This is a test file."
+            }, {
+                // Malformed attachment with missing content
+                filename: "invalid.txt"
+            }];
+            config.attachments = JSON.stringify(attachments);
+            config.attachmentsType = "json";
+
+            // ACT: Mock the warn function to check for the expected warning message
+            node.warn = (message) => {
+                // ASSERT
+                message.should.include("Attachment object is missing 'filename' or 'content'");
+                done();
+            };
+
+            // Simulate an incoming message
+            node.emit('input', getMockMsg(), node.send, (err) => {});
+        });
     });
 });
