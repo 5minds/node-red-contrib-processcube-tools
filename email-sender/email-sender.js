@@ -17,8 +17,8 @@ module.exports = function(RED) {
             const cc = RED.util.evaluateNodeProperty(config.cc, config.ccType, node, msg) || "";
             const bcc = RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || "";
             const subject = RED.util.evaluateNodeProperty(config.subject, config.subjectType, node, msg) || msg.topic || "Message from Node-RED";
-            const attachments = RED.util.evaluateNodeProperty(config.attachments, config.attachmentsType, node, msg);
             const htmlContent = RED.util.evaluateNodeProperty(config.htmlContent, config.htmlContentType, node, msg);
+            const attachments = RED.util.evaluateNodeProperty(config.attachments, config.attachmentsType, node, msg);
 
             // Retrieve and evaluate SMTP configuration values
             const host = RED.util.evaluateNodeProperty(config.host, config.hostType, node, msg);

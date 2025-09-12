@@ -17,10 +17,10 @@
             bccType: { value: "str" },
             subject: { value: "", required: true, validate: RED.validators.typedInput("subjectType") },
             subjectType: { value: "str" },
-            attachments: { value: "" },
-            attachmentsType: { value: "msg" },
             htmlContent: { value: "", required: true, validate: RED.validators.typedInput("htmlContentType") },
             htmlContentType: { value: "str" },
+            attachments: { value: "", required: false },
+            attachmentsType: { value: "msg" },
 
             // SMTP-Fields
             host: { value: "", required: true, validate: RED.validators.typedInput("hostType") },
@@ -74,15 +74,15 @@
                 types: ['str', 'msg', 'flow', 'global', 'env'],
                 typeField: '#node-input-subjectType'
             });
-            $('#node-input-attachments').typedInput({
-                default: 'msg',
-                types: ['msg', 'flow', 'global'],
-                typeField: '#node-input-attachmentsType'
-            });
             $('#node-input-htmlContent').typedInput({
                 default: 'str',
                 types: ['str', 'msg', 'flow', 'global', 'json'],
                 typeField: '#node-input-htmlContentType'
+            });
+            $('#node-input-attachments').typedInput({
+                default: 'msg',
+                types: ['msg', 'flow', 'global'],
+                typeField: '#node-input-attachmentsType'
             });
 
             // SMTP Fields
@@ -158,14 +158,14 @@
         <input type="hidden" id="node-input-subjectType">
     </div>
     <div class="form-row">
-        <label for="node-input-attachments"><i class="fa fa-paperclip"></i> Attachments</label>
-        <input type="text" id="node-input-attachments">
-        <input type="hidden" id="node-input-attachmentsType">
-    </div>
-    <div class="form-row">
         <label for="node-input-htmlContent"><i class="fa fa-file-code-o"></i> HTML Content</label>
         <input type="text" id="node-input-htmlContent">
         <input type="hidden" id="node-input-htmlContentType">
+    </div>
+    <div class="form-row">
+        <label for="node-input-attachments"><i class="fa fa-paperclip"></i> Attachments</label>
+        <input type="text" id="node-input-attachments">
+        <input type="hidden" id="node-input-attachmentsType">
     </div>
 
     <h3>SMTP Configuration</h3>
@@ -227,11 +227,12 @@
         <dt>Subject <span class="property-type">string | variable</span></dt>
         <dd>The subject line of the email.</dd>
 
+        <dt>HTML Content <span class="property-type">string | variable</span></dt>
+        <dd>The HTML body of the email.</dd>
+
         <dt>Attachments <span class="property-type">array | variable</span></dt>
         <dd>A list of file attachments. This should be a variable containing an array of attachment objects.</dd>
 
-        <dt>HTML Content <span class="property-type">string | variable</span></dt>
-        <dd>The HTML body of the email.</dd>
     </dl>
 
     <h4>SMTP Configuration</h4>
