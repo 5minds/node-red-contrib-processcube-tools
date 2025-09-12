@@ -83,7 +83,20 @@ module.exports = function(RED) {
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     node.status({ fill: "red", shape: "dot", text: "error sending" });
-                    done(error);
+                    if (
+                        error.message &&
+                        error.message.includes("SSL routines") &&
+                        error.message.includes("wrong version number")
+                    ) {
+                        // Improved error message for SSL/TLS issues
+                        done(new Error(
+                            "SSL/TLS connection failed: Wrong version number. " +
+                            "This usually means the wrong port or security settings are used. " +
+                            "For SMTP: use port 587 with secure=false (STARTTLS) or port 465 with secure=true (SSL/TLS)."
+                        ));
+                    } else {
+                        done(error);
+                    }
                 } else {
                     node.log('Email sent: ' + info.response);
                     msg.payload = info;
