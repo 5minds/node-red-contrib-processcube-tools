@@ -1,13 +1,10 @@
 const { expect } = require('chai');
 const {
+  createMockNodeRED,
   setupModuleMocks,
   testConfigs,
   testUtils
 } = require('../helpers/email-receiver.mocks.js');
-const {
-    createMockNodeRED
-} = require('../helpers/general.mocks.js');
-
 
 describe('Email Receiver Node - Unit Tests with Helpers', function() {
   this.timeout(10000);

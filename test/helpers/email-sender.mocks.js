@@ -38,6 +38,56 @@ function getValidConfig() {
     };
 }
 
+/**
+ * Create mock Node-RED object for unit testing
+ */
+function createMockNodeRED(options = {}) {
+  const mockRED = {
+    nodes: {
+      registerType: function(type, constructor) {
+        // Store registration for verification in tests
+        this.lastRegisteredType = type;
+        this.lastRegisteredConstructor = constructor;
+      },
+    },
+    util: {
+      evaluateNodeProperty: function(value, type, node, msg, callback) {
+        if (type === 'json') {
+          try {
+            // Simulate parsing a JSON string into an object
+            return JSON.parse(JSON.stringify(value));
+          } catch (e) {
+            if (callback) {
+              callback(e, null);
+            }
+            return null;
+          }
+        }
+
+        // Simple mock implementation
+        if (callback) {
+          callback(null, value);
+        }
+        return value;
+      },
+      encrypt: function(value) {
+        return 'encrypted:' + value;
+      },
+      decrypt: function(value) {
+        return value.replace('encrypted:', '');
+      }
+    },
+    log: {
+      info: options.logInfo || function() {},
+      warn: options.logWarn || function() {},
+      error: options.logError || function() {},
+      debug: options.logDebug || function() {}
+    }
+  };
+
+  return mockRED;
+}
+
 // Custom mock node
 function getMockNode() {
     // Create an EventEmitter instance to get the .on and .emit methods
@@ -107,6 +157,7 @@ function getMockTransport() {
 }
 
 module.exports = {
+    createMockNodeRED,
     getValidConfig,
     getMockNode,
     getMockMsg: () => ({}),

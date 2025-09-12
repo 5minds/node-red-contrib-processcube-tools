@@ -1,6 +1,7 @@
 const chai = require('chai');
 chai.should();
 const {
+    createMockNodeRED,
     getValidConfig,
     getMockNode,
     getMockMsg,
@@ -8,10 +9,8 @@ const {
     restoreTransporterMock,
     getMockTransport
 } = require('../helpers/email-sender.mocks.js');
-const {
-    createMockNodeRED
-} = require('../helpers/general.mocks.js');
 const emailSender = require('../../email-sender/email-sender.js');
+const { EventEmitter } = require('events');
 
 
 describe('E-Mail Sender Node Unit Tests', function () {
