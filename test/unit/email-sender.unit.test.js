@@ -1,80 +1,71 @@
-const chai = require('chai');
-chai.should();
+const { expect } = require('chai');
+
 const {
     createMockNodeRED,
-    getValidConfig,
-    getMockNode,
-    getMockMsg,
-    mockTransporterSendMail,
-    restoreTransporterMock,
-    getMockTransport
+    setupModuleMocks,
+    emailSenderConfigs
 } = require('../helpers/email-sender.mocks.js');
-const emailSender = require('../../email-sender/email-sender.js');
-const { EventEmitter } = require('events');
-
 
 describe('E-Mail Sender Node Unit Tests', function () {
-    let RED;
-    let node;
-    let config;
+    this.timeout(10000);
 
-    beforeEach(function () {
-        // ARRANGE: Set up a new, clean mock environment for each test
-        RED = createMockNodeRED();
-        // The mock node now correctly inherits from EventEmitter
-        node = Object.assign(getMockNode(), new EventEmitter());
-        config = getValidConfig();
+    let emailSenderNode;
+    let cleanupMocks;
 
-        // Correctly mock the registration process.
-        RED.nodes.registerType = function (type, constructor) {
-            RED.nodes.lastRegisteredType = type;
-            // The real constructor is saved here, which is what your test needs.
-            RED.nodes.lastRegisteredConstructor = constructor;
-        };
-        emailSender(RED);
+    before(function() {
+        // Set up module mocks using helper
+        cleanupMocks = setupModuleMocks();
+
+        // Load the node with mocked dependencies
+        emailSenderNode = require('../../email-sender/email-sender.js');
     });
 
-    afterEach(function () {
-        restoreTransporterMock();
+    after(function() {
+        // Clean up mocks
+        if (cleanupMocks) {
+        cleanupMocks();
+        }
     });
 
     // A separate describe block for module export
-    describe('Module Export', function () {
+    describe('Module Export', function() {
         it('should export a function', function() {
-            // ARRANGE: The module is imported above
-            const moduleExport = require('../../email-sender/email-sender.js');
-
-            // ASSERT: The export should be a function
-            (typeof moduleExport).should.equal('function');
+        expect(emailSenderNode).to.be.a('function');
         });
     });
 
-    // A separate describe block for node registration
-    describe('Node Registration', function () {
-        it('should register node type without errors', function () {
-            // ARRANGE: mockRED is already created in beforeEach
-            const mockRED = createMockNodeRED();
+    describe('Node Registration', function() {
+        it('should register node type without errors', function() {
+        // ARRANGE: Create mock Node-RED with tracking
+        const mockRED = createMockNodeRED();
 
-            // ACT: Register the node by initializing it
-            emailSender(mockRED);
+        // ACT: Register the node
+        emailSenderNode(mockRED);
 
-            // ASSERT: Verify registration
-            mockRED.nodes.lastRegisteredType.should.equal('email-sender');
-            (typeof mockRED.nodes.lastRegisteredConstructor).should.equal('function');
+        // ASSERT: Verify registration
+        expect(mockRED.nodes.lastRegisteredType).to.equal('email-sender');
+        expect(mockRED.nodes.lastRegisteredConstructor).to.be.a('function');
         });
     });
 
-    // A separate describe block for node instantiation
     describe('Node Instantiation', function() {
         it('should handle node instantiation with valid config', function() {
-            // ARRANGE: The node and config are set up in beforeEach
-            const MyNodeConstructor = RED.nodes.lastRegisteredConstructor;
+        // ARRANGE: Track node creation
+        let createdNode = null;
+        const mockRED = createMockNodeRED({
+            onHandler: function(event, callback) {
+            createdNode = this;
+            }
+        });
 
-            // ACT: The node is initialized
-            const createdNode = new MyNodeConstructor(config);
+        // ACT: Register and create node instance
+        emailSenderNode(mockRED);
+        new mockRED.nodes.lastRegisteredConstructor(emailSenderConfigs.valid);
 
-            // ASSERT: Verify that the node is created without errors
-            createdNode.should.be.an('object');
+        // ASSERT: Verify node was created with correct properties
+        expect(createdNode).to.exist;
+        expect(createdNode).to.have.property('name', emailSenderConfigs.valid.name);
+        expect(createdNode).to.have.property('id', emailSenderConfigs.valid.id);
         });
     });
 
