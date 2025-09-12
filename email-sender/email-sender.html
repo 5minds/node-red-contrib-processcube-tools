@@ -40,7 +40,7 @@
         outputs: 1,
         icon: "font-awesome/fa-paper-plane",
         label: function() {
-            return this.name || "Email Sender";
+            return this.name || "E-Mail Sender";
         },
         oneditprepare: function() {
             // Mail Fields
@@ -232,7 +232,6 @@
 
         <dt>Attachments <span class="property-type">array | variable</span></dt>
         <dd>A list of file attachments. This should be a variable containing an array of attachment objects.</dd>
-
     </dl>
 
     <h4>SMTP Configuration</h4>
@@ -255,4 +254,13 @@
         <dt>Reject Unauthorized <span class="property-type">boolean | variable</span></dt>
         <dd>If <code>true</code>, the server's certificate is rejected if it's not authorized by a trusted CA.</dd>
     </dl>
+
+    <h3>Usage</h3>
+    <p>Inject a message to trigger the node and send an email.<br>
+    Credentials and other properties can be provided via message properties, flow/global context, or environment variables.<br>
+    The node supports sending HTML emails and attachments.</p>
+
+    <h3>Tips</h3>
+    <p><b>HTML Content Creation:</b><br>
+    To generate or format HTML content for your email, you can use a <b>template node</b> before the email-sender node. This allows you to create dynamic and customized email bodies.</p>
 </script>
