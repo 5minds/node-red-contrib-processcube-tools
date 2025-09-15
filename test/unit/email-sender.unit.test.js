@@ -286,12 +286,13 @@ describe('E-Mail Sender Node Unit Tests', function () {
             }, 100);
         });
 
-        it('should log a warning for malformed attachments', function (done) {
-            let warningLogged = false;
-            let emailSent = false;
+        it('should throw error for malformed attachments', function (done) {
+            let errorHandlerCalled = false;
+            let redStatusSet = false;
 
             function checkDone() {
-                if (warningLogged && emailSent) {
+                console.log('Check done - Error:', errorHandlerCalled, 'Status:', redStatusSet);
+                if (errorHandlerCalled && redStatusSet) {
                     done();
                 }
             }
@@ -323,19 +324,15 @@ describe('E-Mail Sender Node Unit Tests', function () {
                     }
                 },
                 statusHandler: function (status) {
-                    if (status.fill === 'green') {
-                        emailSent = true;
+                    if (status.fill === 'red') {
+                        redStatusSet = true;
                         checkDone();
                     }
                 },
                 errorHandler: function (err) {
-                    done(err || new Error('Unexpected error handler called'));
-                },
-                logWarn: function (msg) {
-                    expect(msg).to.equal(
-                        "Attachment object is missing 'filename' or 'content' property and will be ignored.",
-                    );
-                    warningLogged = true;
+                    console.log('Error received:', err);
+                    expect(err).to.equal("Attachment object is missing 'filename' or 'content' property.");
+                    errorHandlerCalled = true;
                     checkDone();
                 },
             });

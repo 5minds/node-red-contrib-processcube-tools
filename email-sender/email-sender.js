@@ -71,9 +71,9 @@ module.exports = function (RED) {
                                 content: attachment.content,
                             });
                         } else {
-                            node.warn(
-                                "Attachment object is missing 'filename' or 'content' property and will be ignored.",
-                            );
+                            node.status({ fill: 'red', shape: 'dot', text: 'attachment error' });
+                            node.error("Attachment object is missing 'filename' or 'content' property.");
+                            return;
                         }
                     } catch (e) {
                         node.error('Failed to process attachment: ' + e.message);
