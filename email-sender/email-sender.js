@@ -1,22 +1,33 @@
-module.exports = function(RED) {
-    "use strict";
-    const nodemailer = require("nodemailer");
+module.exports = function (RED) {
+    'use strict';
+    const nodemailer = require('nodemailer');
 
     function EmailSenderNode(config) {
         RED.nodes.createNode(this, config);
         var node = this;
 
-        node.on('input', function(msg, send, done) {
-            send = send || function() { node.send.apply(node, arguments); };
-            done = done || function(err) { if (err) node.error(err, msg); };
+        node.on('input', function (msg, send, done) {
+            send =
+                send ||
+                function () {
+                    node.send.apply(node, arguments);
+                };
+            done =
+                done ||
+                function (err) {
+                    if (err) node.error(err, msg);
+                };
 
             // Retrieve and evaluate mail configuration values
             const sender = RED.util.evaluateNodeProperty(config.sender, config.senderType, node, msg);
             const address = RED.util.evaluateNodeProperty(config.address, config.addressType, node, msg);
             const to = RED.util.evaluateNodeProperty(config.to, config.toType, node, msg);
-            const cc = RED.util.evaluateNodeProperty(config.cc, config.ccType, node, msg) || "";
-            const bcc = RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || "";
-            const subject = RED.util.evaluateNodeProperty(config.subject, config.subjectType, node, msg) || msg.topic || "Message from Node-RED";
+            const cc = RED.util.evaluateNodeProperty(config.cc, config.ccType, node, msg) || '';
+            const bcc = RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || '';
+            const subject =
+                RED.util.evaluateNodeProperty(config.subject, config.subjectType, node, msg) ||
+                msg.topic ||
+                'Message from Node-RED';
             const htmlContent = RED.util.evaluateNodeProperty(config.htmlContent, config.htmlContentType, node, msg);
             const attachments = safeEvaluatePropertyAttachment(config, node, msg);
 
@@ -26,7 +37,12 @@ module.exports = function(RED) {
             const user = RED.util.evaluateNodeProperty(config.user, config.userType, node, msg);
             const password = RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg);
             const secure = RED.util.evaluateNodeProperty(config.secure, config.secureType, node, msg);
-            const rejectUnauthorized = RED.util.evaluateNodeProperty(config.rejectUnauthorized, config.rejectUnauthorizedType, node, msg);
+            const rejectUnauthorized = RED.util.evaluateNodeProperty(
+                config.rejectUnauthorized,
+                config.rejectUnauthorizedType,
+                node,
+                msg,
+            );
 
             // Handle attachments and format them for Nodemailer
             let processedAttachments = [];
@@ -40,13 +56,15 @@ module.exports = function(RED) {
                         if (attachment.filename && attachment.content) {
                             processedAttachments.push({
                                 filename: attachment.filename,
-                                content: attachment.content
+                                content: attachment.content,
                             });
                         } else {
-                            node.warn("Attachment object is missing 'filename' or 'content' property and will be ignored.");
+                            node.warn(
+                                "Attachment object is missing 'filename' or 'content' property and will be ignored.",
+                            );
                         }
                     } catch (e) {
-                        node.error("Failed to process attachment: " + e.message);
+                        node.error('Failed to process attachment: ' + e.message);
                     }
                 }
             }
@@ -58,42 +76,44 @@ module.exports = function(RED) {
                 secure: secure,
                 auth: {
                     user: user,
-                    pass: password
+                    pass: password,
                 },
                 tls: {
-                    rejectUnauthorized: rejectUnauthorized
-                }
+                    rejectUnauthorized: rejectUnauthorized,
+                },
             });
 
             // Create email object
             const mailOptions = {
                 from: {
                     name: sender,
-                    address: address
+                    address: address,
                 },
                 to: to,
                 cc: cc,
                 bcc: bcc,
                 subject: subject,
                 html: Buffer.from(htmlContent, 'utf-8'),
-                attachments: processedAttachments
+                attachments: processedAttachments,
             };
 
             // Send email
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    node.status({ fill: "red", shape: "dot", text: "error sending" });
+                    node.status({ fill: 'red', shape: 'dot', text: 'error sending' });
                     if (
                         error.message &&
-                        error.message.includes("SSL routines") &&
-                        error.message.includes("wrong version number")
+                        error.message.includes('SSL routines') &&
+                        error.message.includes('wrong version number')
                     ) {
                         // Improved error message for SSL/TLS issues
-                        done(new Error(
-                            "SSL/TLS connection failed: Wrong version number. " +
-                            "This usually means the wrong port or security settings are used. " +
-                            "For SMTP: use port 587 with secure=false (STARTTLS) or port 465 with secure=true (SSL/TLS)."
-                        ));
+                        done(
+                            new Error(
+                                'SSL/TLS connection failed: Wrong version number. ' +
+                                    'This usually means the wrong port or security settings are used. ' +
+                                    'For SMTP: use port 587 with secure=false (STARTTLS) or port 465 with secure=true (SSL/TLS).',
+                            ),
+                        );
                     } else {
                         done(error);
                     }
@@ -103,19 +123,19 @@ module.exports = function(RED) {
 
                     if (msg.payload.accepted && msg.payload.accepted.length > 0) {
                         msg.payload = msg.input;
-                        node.status({ fill: "green", shape: "dot", text: "sent" });
+                        node.status({ fill: 'green', shape: 'dot', text: 'sent' });
                         send(msg);
                         done();
                     } else if (msg.payload.rejected && msg.payload.rejected.length > 0) {
                         msg.error = { result: msg.payload.rejected };
-                        node.status({ fill: "red", shape: "dot", text: "rejected" });
+                        node.status({ fill: 'red', shape: 'dot', text: 'rejected' });
                         done(new Error('Email rejected: ' + msg.payload.rejected.join(', ')));
                     } else if (msg.payload.pending && msg.payload.pending.length > 0) {
                         msg.error = { result: msg.payload.pending };
-                        node.status({ fill: "yellow", shape: "dot", text: "pending" });
+                        node.status({ fill: 'yellow', shape: 'dot', text: 'pending' });
                         done(new Error('Email pending: ' + msg.payload.pending.join(', ')));
                     } else {
-                        node.status({ fill: "red", shape: "dot", text: "unknown error" });
+                        node.status({ fill: 'red', shape: 'dot', text: 'unknown error' });
                         done(new Error('Unknown error while sending email.'));
                     }
                 }
@@ -123,14 +143,14 @@ module.exports = function(RED) {
         });
     }
 
-    RED.nodes.registerType("email-sender", EmailSenderNode);
+    RED.nodes.registerType('email-sender', EmailSenderNode);
 
     function safeEvaluatePropertyAttachment(config, node, msg) {
         if (config.attachments && config.attachments.trim() !== '') {
             try {
                 return RED.util.evaluateNodeProperty(config.attachments, config.attachmentsType, node, msg);
             } catch (e) {
-                node.error("Failed to evaluate attachments property: " + e.message, msg);
+                node.error('Failed to evaluate attachments property: ' + e.message, msg);
                 return null;
             }
         }

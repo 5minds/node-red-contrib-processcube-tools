@@ -6,7 +6,7 @@ const {
     getMockMsg,
     mockTransporterSendMail,
     restoreTransporterMock,
-    mockNodemailer
+    mockNodemailer,
 } = require('../../test/helpers/email-sender.mocks.js');
 
 describe('EmailSenderNode Integration Tests', function () {
@@ -16,8 +16,8 @@ describe('EmailSenderNode Integration Tests', function () {
         RED = {
             nodes: { createNode: () => {} },
             util: {
-                evaluateNodeProperty: (value) => value
-            }
+                evaluateNodeProperty: (value) => value,
+            },
         };
         // This is a direct mock of the `emailSender` module's nodemailer dependency.
         // It's a way to directly control the behavior of the external `nodemailer` module.
@@ -25,7 +25,7 @@ describe('EmailSenderNode Integration Tests', function () {
         // We will directly inject our mock into the module's scope.
         Object.defineProperty(emailSender, 'nodemailer', {
             value: mockNodemailer,
-            writable: true
+            writable: true,
         });
     });
 
@@ -34,7 +34,7 @@ describe('EmailSenderNode Integration Tests', function () {
     });
 
     it('should handle rejected emails and set status to rejected', function (done) {
-        mockTransporterSendMail({ accepted: [], rejected: ["recipient@example.com"], pending: [] });
+        mockTransporterSendMail({ accepted: [], rejected: ['recipient@example.com'], pending: [] });
         const node = getMockNode();
         const config = getValidConfig();
 
@@ -43,7 +43,7 @@ describe('EmailSenderNode Integration Tests', function () {
                 handler(getMockMsg(), node.send, function (err) {
                     expect(err).to.be.an('error');
                     expect(err.message).to.include('Email rejected');
-                    expect(node.status.history[0]).to.deep.equal({ fill: "red", shape: "dot", text: "rejected" });
+                    expect(node.status.history[0]).to.deep.equal({ fill: 'red', shape: 'dot', text: 'rejected' });
                     expect(node.send.notCalled()).to.be.true;
                     done();
                 });
@@ -64,7 +64,7 @@ describe('EmailSenderNode Integration Tests', function () {
     });
 
     it('should handle pending emails and set status to pending', function (done) {
-        mockTransporterSendMail({ accepted: [], rejected: [], pending: ["recipient@example.com"] });
+        mockTransporterSendMail({ accepted: [], rejected: [], pending: ['recipient@example.com'] });
         const node = getMockNode();
         const config = getValidConfig();
 
@@ -73,7 +73,7 @@ describe('EmailSenderNode Integration Tests', function () {
                 handler(getMockMsg(), node.send, function (err) {
                     expect(err).to.be.an('error');
                     expect(err.message).to.include('Email pending');
-                    expect(node.status.history[0]).to.deep.equal({ fill: "yellow", shape: "dot", text: "pending" });
+                    expect(node.status.history[0]).to.deep.equal({ fill: 'yellow', shape: 'dot', text: 'pending' });
                     expect(node.send.notCalled()).to.be.true;
                     done();
                 });
@@ -96,9 +96,9 @@ describe('EmailSenderNode Integration Tests', function () {
     it('should use msg.topic as subject if config.subject is empty', function (done) {
         const node = getMockNode();
         const config = getValidConfig();
-        config.subject = "";
+        config.subject = '';
         const msg = getMockMsg();
-        msg.topic = "Topic from msg";
+        msg.topic = 'Topic from msg';
 
         // Mock nodemailer directly within the test to check arguments
         const createTransportMock = () => {
@@ -106,12 +106,12 @@ describe('EmailSenderNode Integration Tests', function () {
                 sendMail: (mailOptions, callback) => {
                     try {
                         expect(mailOptions.subject).to.equal(msg.topic);
-                        callback(null, { response: "250 OK", accepted: ["recipient@example.com"] });
+                        callback(null, { response: '250 OK', accepted: ['recipient@example.com'] });
                         done();
                     } catch (e) {
                         done(e);
                     }
-                }
+                },
             };
         };
         emailSender(RED);
@@ -120,13 +120,13 @@ describe('EmailSenderNode Integration Tests', function () {
 
         node.on = function (event, handler) {
             if (event === 'input') {
-                handler(msg, node.send, function () { });
+                handler(msg, node.send, function () {});
             }
         };
 
         Object.defineProperty(emailSender, 'nodemailer', {
             value: { createTransport: createTransportMock },
-            writable: true
+            writable: true,
         });
 
         RED.nodes.createNode(config);
@@ -136,11 +136,11 @@ describe('EmailSenderNode Integration Tests', function () {
     it('should handle a single attachment object correctly', function (done) {
         const config = getValidConfig();
         const attachment = {
-            filename: "test.txt",
-            content: "This is a test file."
+            filename: 'test.txt',
+            content: 'This is a test file.',
         };
         config.attachments = JSON.stringify(attachment);
-        config.attachmentsType = "json";
+        config.attachmentsType = 'json';
         const node = getMockNode();
 
         const createTransportMock = () => {
@@ -148,14 +148,14 @@ describe('EmailSenderNode Integration Tests', function () {
                 sendMail: (mailOptions, callback) => {
                     try {
                         expect(mailOptions.attachments).to.be.an('array').with.lengthOf(1);
-                        expect(mailOptions.attachments[0].filename).to.equal("test.txt");
-                        expect(mailOptions.attachments[0].content).to.equal("This is a test file.");
-                        callback(null, { response: "250 OK", accepted: ["recipient@example.com"] });
+                        expect(mailOptions.attachments[0].filename).to.equal('test.txt');
+                        expect(mailOptions.attachments[0].content).to.equal('This is a test file.');
+                        callback(null, { response: '250 OK', accepted: ['recipient@example.com'] });
                         done();
                     } catch (e) {
                         done(e);
                     }
-                }
+                },
             };
         };
         emailSender(RED);
@@ -164,13 +164,13 @@ describe('EmailSenderNode Integration Tests', function () {
 
         node.on = function (event, handler) {
             if (event === 'input') {
-                handler(getMockMsg(), node.send, function () { });
+                handler(getMockMsg(), node.send, function () {});
             }
         };
 
         Object.defineProperty(emailSender, 'nodemailer', {
             value: { createTransport: createTransportMock },
-            writable: true
+            writable: true,
         });
 
         RED.nodes.createNode(config);
@@ -187,8 +187,8 @@ describe('EmailSenderNode Integration Tests', function () {
             if (event === 'input') {
                 handler(getMockMsg(), node.send, function (err) {
                     expect(err).to.be.an('error');
-                    expect(err.message).to.include("SSL/TLS connection failed");
-                    expect(node.status.history[0]).to.deep.equal({ fill: "red", shape: "dot", text: "error sending" });
+                    expect(err.message).to.include('SSL/TLS connection failed');
+                    expect(node.status.history[0]).to.deep.equal({ fill: 'red', shape: 'dot', text: 'error sending' });
                     done();
                 });
             }
@@ -208,16 +208,16 @@ describe('EmailSenderNode Integration Tests', function () {
     });
 
     it('should handle an empty attachments string without error', function (done) {
-        mockTransporterSendMail({ accepted: ["recipient@example.com"], rejected: [], pending: [] });
+        mockTransporterSendMail({ accepted: ['recipient@example.com'], rejected: [], pending: [] });
         const node = getMockNode();
         const config = getValidConfig();
-        config.attachments = "";
+        config.attachments = '';
 
         node.on = function (event, handler) {
             if (event === 'input') {
                 handler(getMockMsg(), node.send, function (err) {
                     expect(err).to.be.undefined;
-                    expect(node.status.history[0]).to.deep.equal({ fill: "green", shape: "dot", text: "sent" });
+                    expect(node.status.history[0]).to.deep.equal({ fill: 'green', shape: 'dot', text: 'sent' });
                     expect(node.send.calledOnce()).to.be.true;
                     done();
                 });
@@ -238,11 +238,11 @@ describe('EmailSenderNode Integration Tests', function () {
     });
 
     it('should pass the original message to the next node on success', function (done) {
-        mockTransporterSendMail({ accepted: ["recipient@example.com"], rejected: [], pending: [] });
+        mockTransporterSendMail({ accepted: ['recipient@example.com'], rejected: [], pending: [] });
         const node = getMockNode();
         const config = getValidConfig();
         const originalMsg = getMockMsg();
-        originalMsg.payload = { test: "data" };
+        originalMsg.payload = { test: 'data' };
 
         node.on = function (event, handler) {
             if (event === 'input') {
