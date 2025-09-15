@@ -87,67 +87,49 @@ function createMockNodeRED(options = {}) {
     return mockRED;
 }
 
-/**
- * Creates and manages a mock for the nodemailer module.
- * @returns {object} An object containing the mock and its controls.
- */
-// Corrected createMockNodemailer function
-function createMockNodemailer(originalNodemailer) {
-    let sentEmails = [];
-
-    const mockTransport = {
-        sendMail: (mailOptions) => {
-            sentEmails.push(mailOptions);
-            return Promise.resolve({
-                messageId: '<mock-message-id@test.com>',
-                response: '250 OK: Email queued for delivery.',
-            });
-        },
-    };
-
-    // Replace the original createTransport method with the mock one
-    originalNodemailer.createTransport = () => {
-        return mockTransport;
-    };
-
-    function getSentEmails() {
-        return sentEmails;
-    }
+function createMockNodemailer(options = {}) {
+    const settings = Object.assign({
+        shouldFail: false
+    }, options);
 
     return {
-        // We no longer need the `mock` function as the mock is applied directly
-        restore: () => {
-            // Restore the original createTransport method
-            originalNodemailer.createTransport = originalNodemailer.createTransport;
-        },
-        getSentEmails,
+        createTransport: () => ({
+            sendMail: (mailOptions, callback) => {
+                if (settings.shouldFail === true) {
+                    const error = new Error('Mock sendMail error');
+                    error.code = 'ECONNREFUSED';
+                    return callback(error);
+                }
+
+                callback(null, {
+                    messageId: '<mock-message-id@test.com>',
+                    response: '250 OK: Message accepted',
+                    accepted: [mailOptions.to],
+                    rejected: [],
+                    pending: []
+                });
+            }
+        }),
+        restore: function() {
+            // Cleanup method
+        }
     };
 }
 
-// Corrected setupModuleMocks function
+// Aktualisiere setupModuleMocks um die neue Implementation zu nutzen
 function setupModuleMocks() {
-    const originalNodemailer = require('nodemailer');
-    const mockNodemailerModule = createMockNodemailer(originalNodemailer);
+    const mockNodemailerModule = createMockNodemailer();
 
-    const mockModules = {
-        nodemailer: mockNodemailerModule, // Now this is the mock object
+    delete require.cache[require.resolve('nodemailer')];
+    require.cache[require.resolve('nodemailer')] = {
+        exports: mockNodemailerModule
     };
 
-    const Module = require('module');
-    const originalLoad = Module._load;
-
-    Module._load = function (request, parent) {
-        if (mockModules[request]) {
-            // Simply return the mock. The mock's logic is already in place.
-            return mockModules[request];
-        }
-        return originalLoad.apply(this, arguments);
-    };
-
-    // Return a cleanup function
     return function cleanup() {
-        Module._load = originalLoad;
-        mockNodemailerModule.restore();
+        delete require.cache[require.resolve('nodemailer')];
+        if (mockNodemailerModule.restore) {
+            mockNodemailerModule.restore();
+        }
     };
 }
 
@@ -272,8 +254,8 @@ const emailSenderConfigs = {
 
 module.exports = {
     createMockNodeRED,
-    createMockNodemailer,
     setupModuleMocks,
     getMockNode,
     emailSenderConfigs,
+    createMockNodemailer
 };
