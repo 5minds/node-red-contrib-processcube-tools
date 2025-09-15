@@ -91,6 +91,10 @@ function createMockNodemailer(options = {}) {
     const settings = Object.assign(
         {
             shouldFail: false,
+            // New options for different email statuses
+            rejectedEmails: [], // Array of emails to mark as rejected
+            pendingEmails: [],  // Array of emails to mark as pending
+            acceptedEmails: [], // Array of emails to mark as accepted (overrides default)
         },
         options,
     );
@@ -107,12 +111,44 @@ function createMockNodemailer(options = {}) {
                     error.code = 'ECONNREFUSED';
                     return callback(error);
                 }
+
+                // Determine email status based on configuration
+                const toEmail = Array.isArray(mailOptions.to) ? mailOptions.to[0] : mailOptions.to;
+                let accepted = [];
+                let rejected = [];
+                let pending = [];
+
+                if (settings.rejectedEmails.length > 0 || settings.pendingEmails.length > 0 || settings.acceptedEmails.length > 0) {
+                    // Use explicit configuration
+                    if (settings.rejectedEmails.includes(toEmail)) {
+                        rejected = [toEmail];
+                    } else if (settings.pendingEmails.includes(toEmail)) {
+                        pending = [toEmail];
+                    } else if (settings.acceptedEmails.includes(toEmail)) {
+                        accepted = [toEmail];
+                    } else {
+                        // Default behavior - accept if not explicitly configured
+                        accepted = [toEmail];
+                    }
+                } else {
+                    // Original behavior - accept all emails (backwards compatibility)
+                    accepted = [mailOptions.to];
+                }
+
+                // Set appropriate response message based on status
+                let responseMessage = '250 OK: Message accepted';
+                if (rejected.length > 0) {
+                    responseMessage = '550 Mailbox unavailable';
+                } else if (pending.length > 0) {
+                    responseMessage = '451 Requested action aborted: local error';
+                }
+
                 callback(null, {
                     messageId: '<mock-message-id@test.com>',
-                    response: '250 OK: Message accepted',
-                    accepted: [mailOptions.to],
-                    rejected: [],
-                    pending: [],
+                    response: responseMessage,
+                    accepted: accepted,
+                    rejected: rejected,
+                    pending: pending,
                 });
             },
         }),
@@ -258,10 +294,71 @@ const emailSenderConfigs = {
     },
 };
 
+/**
+ * Create test flows for Node-RED integration tests
+ */
+const testFlows = {
+    single: [emailSenderConfigs.valid],
+
+    withHelper: [emailSenderConfigs.valid, { id: 'h1', type: 'helper' }],
+
+    connected: [
+        { ...emailSenderConfigs.valid, wires: [['h1']] },
+        { id: 'h1', type: 'helper' },
+    ],
+
+    multiOutput: [
+        { ...emailSenderConfigs.valid, wires: [['h1', 'h2']] },
+        { id: 'h1', type: 'helper' },
+        { id: 'h2', type: 'helper' },
+    ],
+};
+
+/**
+ * Utility functions for test assertions and email simulation
+ */
+const testUtils = {
+    /**
+     * Wait for a specified amount of time
+     */
+    wait: (ms = 100) => new Promise((resolve) => setTimeout(resolve, ms)),
+
+    /**
+     * Create a promise that resolves when a node receives a message
+     */
+    waitForMessage: (node, timeout = 1000) => {
+        return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => {
+                reject(new Error('Timeout waiting for message'));
+            }, timeout);
+
+            node.on('input', (msg) => {
+                clearTimeout(timer);
+                resolve(msg);
+            });
+        });
+    },
+    /**
+     * Verify that a message has expected properties
+     */
+    verifyMessage: (msg, expectedProps = {}) => {
+        const should = require('should');
+        should.exist(msg);
+
+        Object.keys(expectedProps).forEach((prop) => {
+            if (expectedProps[prop] !== undefined) {
+                msg.should.have.property(prop, expectedProps[prop]);
+            }
+        });
+    },
+};
+
 module.exports = {
     createMockNodeRED,
     setupModuleMocks,
     getMockNode,
     emailSenderConfigs,
     createMockNodemailer,
+    testFlows,
+    testUtils,
 };
