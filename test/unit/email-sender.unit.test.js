@@ -1,5 +1,10 @@
 const { expect } = require('chai');
-const { createMockNodeRED, setupModuleMocks, emailSenderConfigs, createMockNodemailer } = require('../helpers/email-sender.mocks.js');
+const {
+    createMockNodeRED,
+    setupModuleMocks,
+    emailSenderConfigs,
+    createMockNodemailer,
+} = require('../helpers/email-sender.mocks.js');
 
 describe('E-Mail Sender Node Unit Tests', function () {
     this.timeout(10000);
@@ -83,12 +88,12 @@ describe('E-Mail Sender Node Unit Tests', function () {
     });
 
     describe('Node Functionality', function () {
-        beforeEach(function() {
+        beforeEach(function () {
             // Clear the module cache BEFORE requiring anything
             delete require.cache[require.resolve('nodemailer')];
         });
 
-        afterEach(function() {
+        afterEach(function () {
             delete require.cache[require.resolve('nodemailer')];
         });
 
@@ -101,17 +106,17 @@ describe('E-Mail Sender Node Unit Tests', function () {
             // Mock the nodemailer module
             delete require.cache[require.resolve('nodemailer')];
             require.cache[require.resolve('nodemailer')] = {
-                exports: mockNodemailer
+                exports: mockNodemailer,
             };
 
             // ARRANGE: Create mock Node-RED environment
             const mockRED = createMockNodeRED({
-                onHandler: function(event, callback) {
+                onHandler: function (event, callback) {
                     if (event === 'input') {
                         this.inputCallback = callback;
                     }
                 },
-                statusHandler: function(status) {
+                statusHandler: function (status) {
                     if (status.fill === 'green') {
                         expect(status.text).to.include('sent');
                         expect(status.shape).to.equal('dot');
@@ -119,9 +124,9 @@ describe('E-Mail Sender Node Unit Tests', function () {
                         done();
                     }
                 },
-                errorHandler: function(err) {
+                errorHandler: function (err) {
                     done(err || new Error('Unexpected error handler called'));
-                }
+                },
             });
 
             // ACT: Initialize the email sender node
@@ -132,8 +137,8 @@ describe('E-Mail Sender Node Unit Tests', function () {
             const nodeInstance = new nodeConstructor(emailSenderConfigs.valid);
 
             nodeInstance.inputCallback({
-                payload: "test",
-                topic: "test message"
+                payload: 'test',
+                topic: 'test message',
             });
         });
 
@@ -157,28 +162,28 @@ describe('E-Mail Sender Node Unit Tests', function () {
             // Mock the nodemailer module
             delete require.cache[require.resolve('nodemailer')];
             require.cache[require.resolve('nodemailer')] = {
-                exports: mockNodemailer
+                exports: mockNodemailer,
             };
 
             const mockRED = createMockNodeRED({
-                onHandler: function(event, callback) {
+                onHandler: function (event, callback) {
                     if (event === 'input') {
                         this.inputCallback = callback;
                     }
                 },
-                statusHandler: function(status) {
+                statusHandler: function (status) {
                     console.log('Status received:', status);
                     if (status.fill === 'red' && status.text === 'error sending') {
                         redStatusSet = true;
                         checkDone();
                     }
                 },
-                errorHandler: function(err) {
+                errorHandler: function (err) {
                     console.log('Error received:', err);
                     expect(err.message).to.equal('Mock sendMail error');
                     errorHandlerCalled = true;
                     checkDone();
-                }
+                },
             });
 
             const emailSenderNode = require('../../email-sender/email-sender.js');
@@ -188,8 +193,8 @@ describe('E-Mail Sender Node Unit Tests', function () {
             const nodeInstance = new nodeConstructor(emailSenderConfigs.valid);
 
             nodeInstance.inputCallback({
-                payload: "test",
-                topic: "test message"
+                payload: 'test',
+                topic: 'test message',
             });
         });
 
@@ -209,12 +214,12 @@ describe('E-Mail Sender Node Unit Tests', function () {
             const attachments = [
                 {
                     filename: 'test1.txt',
-                    content: 'This is the first test file.'
+                    content: 'This is the first test file.',
                 },
                 {
                     filename: 'test2.txt',
-                    content: 'This is the second test file.'
-                }
+                    content: 'This is the second test file.',
+                },
             ];
             console.log('Test attachments configured');
 
@@ -227,25 +232,25 @@ describe('E-Mail Sender Node Unit Tests', function () {
                     attachmentsChecked = true;
                     console.log('Attachments checked successfully');
                     checkDone();
-                }
+                },
             });
             console.log('Mock nodemailer created');
 
             // Mock the nodemailer module
             delete require.cache[require.resolve('nodemailer')];
             require.cache[require.resolve('nodemailer')] = {
-                exports: mockNodemailer
+                exports: mockNodemailer,
             };
             console.log('Nodemailer mock installed');
 
             const mockRED = createMockNodeRED({
-                onHandler: function(event, callback) {
+                onHandler: function (event, callback) {
                     console.log('onHandler called with event:', event);
                     if (event === 'input') {
                         this.inputCallback = callback;
                     }
                 },
-                statusHandler: function(status) {
+                statusHandler: function (status) {
                     console.log('statusHandler called with status:', status);
                     if (status.fill === 'green') {
                         expect(status.text).to.include('sent');
@@ -255,17 +260,17 @@ describe('E-Mail Sender Node Unit Tests', function () {
                         checkDone();
                     }
                 },
-                errorHandler: function(err) {
+                errorHandler: function (err) {
                     console.log('errorHandler called with:', err);
                     done(err || new Error('Unexpected error handler called'));
-                }
+                },
             });
 
             const emailSenderNode = require('../../email-sender/email-sender.js');
             emailSenderNode(mockRED);
             console.log('Email sender node initialized');
 
-            const config = {...emailSenderConfigs.valid};
+            const config = { ...emailSenderConfigs.valid };
             config.attachments = JSON.stringify(attachments);
             config.attachmentsType = 'json';
 
@@ -273,11 +278,12 @@ describe('E-Mail Sender Node Unit Tests', function () {
             const nodeInstance = new nodeConstructor(config);
             console.log('Node instance created');
 
-            nodeInstance.inputCallback({
-                payload: "test",
-                topic: "test message"
-            });
-            console.log('Input callback triggered');
+            setTimeout(() => {
+                nodeInstance.inputCallback({
+                    payload: 'test',
+                    topic: 'test message',
+                });
+            }, 100);
         });
 
         it('should log a warning for malformed attachments', function (done) {
@@ -294,12 +300,12 @@ describe('E-Mail Sender Node Unit Tests', function () {
             const malformedAttachments = [
                 {
                     filename: 'test.txt',
-                    content: 'This is a test file.'
+                    content: 'This is a test file.',
                 },
                 {
                     // Malformed attachment with missing content
-                    filename: 'invalid.txt'
-                }
+                    filename: 'invalid.txt',
+                },
             ];
 
             const mockNodemailer = createMockNodemailer();
@@ -307,35 +313,37 @@ describe('E-Mail Sender Node Unit Tests', function () {
             // Mock the nodemailer module
             delete require.cache[require.resolve('nodemailer')];
             require.cache[require.resolve('nodemailer')] = {
-                exports: mockNodemailer
+                exports: mockNodemailer,
             };
 
             const mockRED = createMockNodeRED({
-                onHandler: function(event, callback) {
+                onHandler: function (event, callback) {
                     if (event === 'input') {
                         this.inputCallback = callback;
                     }
                 },
-                statusHandler: function(status) {
+                statusHandler: function (status) {
                     if (status.fill === 'green') {
                         emailSent = true;
                         checkDone();
                     }
                 },
-                errorHandler: function(err) {
+                errorHandler: function (err) {
                     done(err || new Error('Unexpected error handler called'));
                 },
-                logWarn: function(msg) {
-                    expect(msg).to.equal("Attachment object is missing 'filename' or 'content' property and will be ignored.");
+                logWarn: function (msg) {
+                    expect(msg).to.equal(
+                        "Attachment object is missing 'filename' or 'content' property and will be ignored.",
+                    );
                     warningLogged = true;
                     checkDone();
-                }
+                },
             });
 
             const emailSenderNode = require('../../email-sender/email-sender.js');
             emailSenderNode(mockRED);
 
-            const config = {...emailSenderConfigs.valid};
+            const config = { ...emailSenderConfigs.valid };
             config.attachments = JSON.stringify(malformedAttachments);
             config.attachmentsType = 'json';
 
@@ -343,8 +351,8 @@ describe('E-Mail Sender Node Unit Tests', function () {
             const nodeInstance = new nodeConstructor(config);
 
             nodeInstance.inputCallback({
-                payload: "test",
-                topic: "test message"
+                payload: 'test',
+                topic: 'test message',
             });
         });
     });

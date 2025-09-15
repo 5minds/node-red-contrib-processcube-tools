@@ -46,9 +46,21 @@ module.exports = function (RED) {
 
             // Handle attachments and format them for Nodemailer
             let processedAttachments = [];
-            if (attachments) {
+
+            let parsedAttachments = config.attachments;
+
+            if (config.attachmentsType === 'json' && typeof parsedAttachments === 'string') {
+                try {
+                    parsedAttachments = JSON.parse(parsedAttachments);
+                } catch (e) {
+                    node.error('Failed to parse attachments JSON: ' + e.message);
+                    return;
+                }
+            }
+
+            if (parsedAttachments) {
                 // Check if it's a single attachment or an array
-                const attachmentArray = Array.isArray(attachments) ? attachments : [attachments];
+                const attachmentArray = Array.isArray(parsedAttachments) ? parsedAttachments : [parsedAttachments];
 
                 for (const attachment of attachmentArray) {
                     try {

@@ -88,31 +88,37 @@ function createMockNodeRED(options = {}) {
 }
 
 function createMockNodemailer(options = {}) {
-    const settings = Object.assign({
-        shouldFail: false
-    }, options);
+    const settings = Object.assign(
+        {
+            shouldFail: false,
+        },
+        options,
+    );
 
     return {
         createTransport: () => ({
             sendMail: (mailOptions, callback) => {
+                if (settings.onSendMail) {
+                    settings.onSendMail(mailOptions);
+                }
+
                 if (settings.shouldFail === true) {
                     const error = new Error('Mock sendMail error');
                     error.code = 'ECONNREFUSED';
                     return callback(error);
                 }
-
                 callback(null, {
                     messageId: '<mock-message-id@test.com>',
                     response: '250 OK: Message accepted',
                     accepted: [mailOptions.to],
                     rejected: [],
-                    pending: []
+                    pending: [],
                 });
-            }
+            },
         }),
-        restore: function() {
+        restore: function () {
             // Cleanup method
-        }
+        },
     };
 }
 
@@ -122,7 +128,7 @@ function setupModuleMocks() {
 
     delete require.cache[require.resolve('nodemailer')];
     require.cache[require.resolve('nodemailer')] = {
-        exports: mockNodemailerModule
+        exports: mockNodemailerModule,
     };
 
     return function cleanup() {
@@ -257,5 +263,5 @@ module.exports = {
     setupModuleMocks,
     getMockNode,
     emailSenderConfigs,
-    createMockNodemailer
+    createMockNodemailer,
 };
