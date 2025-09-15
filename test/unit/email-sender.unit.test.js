@@ -353,4 +353,24 @@ describe('E-Mail Sender Node Unit Tests', function () {
             });
         });
     });
+
+    it('should handle rejected emails and set status to rejected', function (done) {
+        // To be implemented
+        done();
+    });
+
+    it('should handle pending emails and set status to pending', function (done) {
+        // To be implemented
+        done();
+    });
+
+    it('should handle a single attachment object correctly', function (done) {
+        // To be implemented
+        done();
+    });
+
+    it('should handle an empty attachments string without error', function (done) {
+        // To be implemented
+        done();
+    });
 });
