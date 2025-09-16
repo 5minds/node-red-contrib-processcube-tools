@@ -1,4 +1,4 @@
-module.exports = function(RED) {
+module.exports = function (RED) {
     const Imap = require('node-imap');
     const mailparser = require('mailparser');
 
@@ -6,7 +6,7 @@ module.exports = function(RED) {
         RED.nodes.createNode(this, config);
         const node = this;
 
-        node.on('input', function(msg) {
+        node.on('input', function (msg) {
             // Retrieve and validate configuration values
             const imap_host = RED.util.evaluateNodeProperty(config.host, config.hostType, node, msg);
             const imap_port = RED.util.evaluateNodeProperty(config.port, config.portType, node, msg);
@@ -29,20 +29,31 @@ module.exports = function(RED) {
 
             const finalConfig = {
                 host: imap_host,
-                port: (typeof imap_port === 'string') ? parseInt(imap_port, 10) : imap_port,
+                port: typeof imap_port === 'string' ? parseInt(imap_port, 10) : imap_port,
                 tls: imap_tls,
                 user: imap_user,
                 password: imap_password,
-                folders: (Array.isArray(imap_folder)) ? imap_folder : imap_folder.split(',').map(f => f.trim()).filter(f => f.length > 0),
+                folders: Array.isArray(imap_folder)
+                    ? imap_folder
+                    : imap_folder
+                          .split(',')
+                          .map((f) => f.trim())
+                          .filter((f) => f.length > 0),
                 markSeen: imap_markSeen,
                 connTimeout: msg.imap_connTimeout || 10000,
                 authTimeout: msg.imap_authTimeout || 5000,
                 keepalive: msg.imap_keepalive !== undefined ? msg.imap_keepalive : true,
                 autotls: msg.imap_autotls || 'never',
-                tlsOptions: msg.imap_tlsOptions || { rejectUnauthorized: false }
+                tlsOptions: msg.imap_tlsOptions || { rejectUnauthorized: false },
             };
 
-            if (!finalConfig.user || !finalConfig.password || !finalConfig.port || !finalConfig.host || !finalConfig.folders) {
+            if (
+                !finalConfig.user ||
+                !finalConfig.password ||
+                !finalConfig.port ||
+                !finalConfig.host ||
+                !finalConfig.folders
+            ) {
                 const missingFields = [];
                 if (!finalConfig.user) missingFields.push('user');
                 if (!finalConfig.password) missingFields.push('password');
@@ -56,20 +67,23 @@ module.exports = function(RED) {
                 return;
             }
 
-            const fetchEmails = ({
-                host,
-                port,
-                tls,
-                user,
-                password,
-                folders,
-                markSeen = true,
-                connTimeout = 10000,
-                authTimeout = 5000,
-                keepalive = true,
-                autotls = 'never',
-                tlsOptions = { rejectUnauthorized: false }
-            }, onMail) => {
+            const fetchEmails = (
+                {
+                    host,
+                    port,
+                    tls,
+                    user,
+                    password,
+                    folders,
+                    markSeen = true,
+                    connTimeout = 10000,
+                    authTimeout = 5000,
+                    keepalive = true,
+                    autotls = 'never',
+                    tlsOptions = { rejectUnauthorized: false },
+                },
+                onMail,
+            ) => {
                 const imap = new Imap({
                     user,
                     password,
@@ -80,7 +94,7 @@ module.exports = function(RED) {
                     authTimeout,
                     keepalive,
                     autotls,
-                    tlsOptions
+                    tlsOptions,
                 });
 
                 const state = {
@@ -106,13 +120,13 @@ module.exports = function(RED) {
                         node.status({
                             fill: 'red',
                             shape: 'dot',
-                            text: `Done, ${state.totalMails} mails from ${state.successes}/${state.totalFolders} folders. ${state.failures} failed.`
+                            text: `Done, ${state.totalMails} mails from ${state.successes}/${state.totalFolders} folders. ${state.failures} failed.`,
                         });
                     } else {
                         node.status({
                             fill: 'green',
                             shape: 'dot',
-                            text: `Done, fetched ${state.totalMails} mails from ${folders.join(', ')}.`
+                            text: `Done, fetched ${state.totalMails} mails from ${folders.join(', ')}.`,
                         });
                     }
                     if (imap && imap.state !== 'disconnected') {
@@ -149,8 +163,8 @@ module.exports = function(RED) {
 
                             const fetch = imap.fetch(results, { bodies: '' });
 
-                            fetch.on('message', msg => {
-                                msg.on('body', stream => {
+                            fetch.on('message', (msg) => {
+                                msg.on('body', (stream) => {
                                     mailparser.simpleParser(stream, (err, parsed) => {
                                         if (err) {
                                             node.error(`Parse error for email from folder "${folder}": ${err.message}`);
@@ -165,7 +179,7 @@ module.exports = function(RED) {
                                             date: parsed.date,
                                             folder,
                                             header: parsed.headers,
-                                            attachments: parsed.attachments.map(att => ({
+                                            attachments: parsed.attachments.map((att) => ({
                                                 contentType: att.contentType,
                                                 fileName: att.filename,
                                                 transferEncoding: att.transferEncoding,
@@ -174,15 +188,15 @@ module.exports = function(RED) {
                                                 contentId: att.cid,
                                                 checksum: att.checksum,
                                                 length: att.size,
-                                                content: att.content
-                                            }))
+                                                content: att.content,
+                                            })),
                                         };
                                         onMail(outMsg);
                                     });
                                 });
                             });
 
-                            fetch.once('error', err => {
+                            fetch.once('error', (err) => {
                                 node.error(`Fetch error in folder "${folder}": ${err.message}`);
                             });
 
@@ -210,7 +224,7 @@ module.exports = function(RED) {
                     startNextFolder();
                 });
 
-                imap.once('error', err => {
+                imap.once('error', (err) => {
                     finalizeSession(err);
                 });
 
@@ -222,15 +236,15 @@ module.exports = function(RED) {
                 imap.connect();
             };
 
-            fetchEmails(finalConfig, mail => {
+            fetchEmails(finalConfig, (mail) => {
                 node.send(mail);
             });
         });
     }
 
-    RED.nodes.registerType("email-receiver", EmailReceiverNode, {
+    RED.nodes.registerType('email-receiver', EmailReceiverNode, {
         credentials: {
-            password: { type: "password" }
-        }
+            password: { type: 'password' },
+        },
     });
 };
