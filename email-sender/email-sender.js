@@ -24,6 +24,7 @@ module.exports = function (RED) {
             const to = RED.util.evaluateNodeProperty(config.to, config.toType, node, msg);
             const cc = RED.util.evaluateNodeProperty(config.cc, config.ccType, node, msg) || '';
             const bcc = RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || '';
+            const replyTo = RED.util.evaluateNodeProperty(config.replyTo, config.replyToType, node, msg) || '';
             const subject =
                 RED.util.evaluateNodeProperty(config.subject, config.subjectType, node, msg) ||
                 msg.topic ||
@@ -104,6 +105,7 @@ module.exports = function (RED) {
                 to: to,
                 cc: cc,
                 bcc: bcc,
+                replyTo: replyTo,
                 subject: subject,
                 html: Buffer.from(htmlContent, 'utf-8'),
                 attachments: processedAttachments,

@@ -538,6 +538,8 @@
         "ccType": "str",
         "bcc": "",
         "bccType": "str",
+        "replyTo": "reply@example.nr",
+        "replyToType": "str",
         "subject": "Test",
         "subjectType": "str",
         "htmlContent": "payload",

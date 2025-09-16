@@ -19,6 +19,8 @@
             ccType: { value: 'str' },
             bcc: { value: '', validate: RED.validators.typedInput('bccType') },
             bccType: { value: 'str' },
+            replyTo: { value: '', validate: RED.validators.typedInput('replyToType') },
+            replyToType: { value: 'str' },
             subject: { value: '', required: true, validate: RED.validators.typedInput('subjectType') },
             subjectType: { value: 'str' },
             htmlContent: { value: '', required: true, validate: RED.validators.typedInput('htmlContentType') },
@@ -76,6 +78,11 @@
                 default: 'str',
                 types: ['str', 'msg', 'flow', 'global', 'env'],
                 typeField: '#node-input-bccType',
+            });
+            $('#node-input-replyTo').typedInput({
+                default: 'str',
+                types: ['str', 'msg', 'flow', 'global', 'env'],
+                typeField: '#node-input-replyToType',
             });
             $('#node-input-subject').typedInput({
                 default: 'str',
@@ -161,6 +168,11 @@
         <input type="hidden" id="node-input-bccType" />
     </div>
     <div class="form-row">
+        <label for="node-input-replyTo"><i class="fa fa-mail-reply"></i> Reply To</label>
+        <input type="text" id="node-input-replyTo" />
+        <input type="hidden" id="node-input-replyToType" />
+    </div>
+    <div class="form-row">
         <label for="node-input-subject"><i class="fa fa-info-circle"></i> Subject</label>
         <input type="text" id="node-input-subject" />
         <input type="hidden" id="node-input-subjectType" />
@@ -238,6 +250,10 @@
 
         <dt>BCC <span class="property-type">string | variable</span></dt>
         <dd>Addresses to be blind-carbon-copied on the email.</dd>
+
+        <dt>Reply To <span class="property-type">string | variable</span></dt>
+        <dd>Address that is being set as the that will be set, if the user presses the reply button.
+            Can be different than the email, that has sent the email.</dd>
 
         <dt>Subject <span class="property-type">string | variable</span></dt>
         <dd>The subject line of the email.</dd>
