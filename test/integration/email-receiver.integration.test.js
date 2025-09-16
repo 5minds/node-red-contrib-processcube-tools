@@ -9,7 +9,7 @@ const {
     testUtils,
 } = require('../helpers/email-receiver.mocks.js');
 
-describe('Email Receiver Node - Integration Tests with Helpers', function () {
+describe('E-Mail Receiver Node - Integration Tests', function () {
     // Set a reasonable timeout for integration tests
     this.timeout(10000);
 

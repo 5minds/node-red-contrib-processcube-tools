@@ -6,7 +6,7 @@ const {
     createMockNodemailer,
 } = require('../helpers/email-sender.mocks.js');
 
-describe('E-Mail Sender Node Unit Tests', function () {
+describe('E-Mail Sender Node - Unit Tests', function () {
     this.timeout(10000);
 
     let emailSenderNode;

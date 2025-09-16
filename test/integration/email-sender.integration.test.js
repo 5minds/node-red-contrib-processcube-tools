@@ -1,16 +1,13 @@
 const { expect } = require('chai');
 const helper = require('node-red-node-test-helper');
-const emailSender = require('../../email-sender/email-sender.js');
 const {
-    createMockNodemailer,
     setupModuleMocks,
-    getMockNode,
     emailSenderConfigs,
     testFlows,
     testUtils,
 } = require('../../test/helpers/email-sender.mocks.js');
 
-describe('EmailSenderNode Integration Tests', function () {
+describe('E-Mail Sender Node - Integration Tests', function () {
     // Set a reasonable timeout for integration tests
     this.timeout(10000);
 
