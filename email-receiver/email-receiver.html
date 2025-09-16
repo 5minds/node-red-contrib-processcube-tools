@@ -1,0 +1,219 @@
+<script type="text/javascript">
+    RED.nodes.registerType('email-receiver', {
+        category: 'ProcessCube Tools',
+        color: '#02AFD6',
+        defaults: {
+            name: { value: '' },
+            host: { value: '', required: true, validate: RED.validators.typedInput('hostType') },
+            hostType: { value: 'str' },
+            port: { value: '', required: true, validate: RED.validators.typedInput('portType') },
+            portType: { value: 'num' },
+            tls: { value: true, required: true, validate: RED.validators.typedInput('tlsType') },
+            tlsType: { value: 'bool' },
+            user: { value: '', required: true, validate: RED.validators.typedInput('userType') },
+            userType: { value: 'str' },
+            password: { value: '', required: true, type: 'password' },
+            passwordType: { value: 'env', required: true },
+            folder: { value: '', required: true, validate: RED.validators.typedInput('folderType') },
+            folderType: { value: 'json' },
+            markseen: { value: true, validate: RED.validators.typedInput('markseenType') },
+            markseenType: { value: 'bool' },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: 'font-awesome/fa-inbox',
+        label: function () {
+            return this.name || 'E-Mail Receiver';
+        },
+        oneditprepare: function () {
+            $('#node-input-host').typedInput({
+                default: 'str',
+                types: ['str', 'msg', 'flow', 'global', 'env'],
+                typeField: '#node-input-hostType',
+            });
+
+            $('#node-input-port').typedInput({
+                default: 'num',
+                types: ['num', 'msg', 'flow', 'global', 'env'],
+                typeField: '#node-input-portType',
+            });
+
+            $('#node-input-tls').typedInput({
+                default: 'bool',
+                types: ['bool', 'msg', 'flow', 'global', 'env'],
+                typeField: '#node-input-tlsType',
+            });
+
+            $('#node-input-user').typedInput({
+                default: 'str',
+                types: ['str', 'msg', 'flow', 'global', 'env'],
+                typeField: '#node-input-userType',
+            });
+
+            $('#node-input-password').typedInput({
+                default: 'env',
+                types: ['msg', 'flow', 'global', 'env'],
+                typeField: '#node-input-passwordType',
+            });
+
+            $('#node-input-folder').typedInput({
+                default: 'json',
+                types: ['msg', 'flow', 'global', 'json', 'jsonata', 'env'],
+                typeField: '#node-input-folderType',
+            });
+
+            $('#node-input-markseen').typedInput({
+                default: 'bool',
+                types: ['bool', 'msg', 'flow', 'global', 'env'],
+                typeField: '#node-input-markseenType',
+            });
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="email-receiver">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-host"><i class="fa fa-server"></i> IMAP Host</label>
+        <input type="text" id="node-input-host" placeholder="imap.gmail.com" />
+        <input type="hidden" id="node-input-hostType" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-port"><i class="fa fa-terminal"></i> Port</label>
+        <input type="text" id="node-input-port" placeholder="993" />
+        <input type="hidden" id="node-input-portType" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-tls"><i class="fa fa-lock"></i> Use TLS</label>
+        <input type="text" id="node-input-tls" />
+        <input type="hidden" id="node-input-tlsType" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-user"><i class="fa fa-user"></i> User</label>
+        <input type="text" id="node-input-user" />
+        <input type="hidden" id="node-input-userType" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" />
+        <input type="hidden" id="node-input-passwordType" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-folder"><i class="fa fa-folder-open"></i> Folder(s)</label>
+        <input type="text" id="node-input-folder" placeholder="[INBOX]" />
+        <input type="hidden" id="node-input-folderType" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-markseen"><i class="fa fa-eye"></i> Mark as seen</label>
+        <input type="text" id="node-input-markseen" />
+        <input type="hidden" id="node-input-markseenType" />
+    </div>
+</script>
+
+<script type="text/html" data-help-name="email-receiver">
+    <p>
+        A Node-RED node that fetches unseen emails from a specified IMAP server. Each fetched email is sent as a
+        separate message on the output.
+    </p>
+
+    <p>
+        All fields can be configured as a <strong>string</strong>, from a <strong>message property (msg)</strong>,
+        <strong>flow</strong> or <strong>global</strong> context, or an <strong>environment variable</strong>.
+    </p>
+
+    <p>
+        <strong>Security Tip:</strong> It's a best practice to avoid storing sensitive information like passwords
+        directly in your Node-RED flow. This prevents them from being exposed in your flow file. Instead, use an
+        <strong>environment variable</strong>. You can define these variables in a <code>.env</code> file, which is
+        especially useful when deploying your application with Docker.
+    </p>
+
+    <p>A <code>.env</code> file should look like this:</p>
+    <pre>
+    EMAIL_SEND_PORT=123
+    EMAIL_SEND_HOST=smtp.gmail.com
+    EMAIL_SEND_USER=myTestMail@company.com
+    EMAIL_SEND_PASSWORD=mySecretPassword
+    </pre
+    >
+
+    <p>
+        To ensure Docker loads these variables from the <code>.env</code> file, you need to add the following line to
+        your <code>docker-compose.yaml</code> file:
+    </p>
+    <pre>
+    services:
+    your_service_name:
+    ...
+    env_file:
+    - .env
+    </pre
+    >
+
+    <p>
+        In your flow, you can then access the password using the environment variable <code>EMAIL_SEND_PASSWORD</code>.
+    </p>
+
+    Inputs
+    <dl class="message-properties">
+        <dt>payload</dt>
+        <dd>
+            The node is triggered by any incoming message. The node's configuration can be overridden by properties of
+            the incoming <code>msg</code> object.
+        </dd>
+    </dl>
+
+    Outputs
+    <dl class="message-properties">
+        <dt>
+            payload
+            <span class="property-type">string</span>
+        </dt>
+        <dd>The text body of the email.</dd>
+    </dl>
+
+    Optional Message Properties
+    <p>
+        You can override default settings by passing the following properties in the incoming <code>msg</code> object:
+    </p>
+    <dl class="message-properties">
+        <dt>
+            msg.imap_connTimeout
+            <span class="property-type">number</span>
+        </dt>
+        <dd>The connection timeout in milliseconds (default: 10000).</dd>
+        <dt>
+            msg.imap_authTimeout
+            <span class="property-type">number</span>
+        </dt>
+        <dd>The authentication timeout in milliseconds (default: 5000).</dd>
+        <dt>
+            msg.imap_keepalive
+            <span class="property-type">boolean</span>
+        </dt>
+        <dd>
+            If set to <code>true</code>, a periodic NOOP command is sent to keep the connection alive (default:
+            <code>true</code>).
+        </dd>
+        <dt>
+            msg.imap_autotls
+            <span class="property-type">string</span>
+        </dt>
+        <dd>Controls STARTTLS behavior. Set to <code>never</code> to disable it (default: <code>never</code>).</dd>
+        <dt>
+            msg.imap_tlsOptions
+            <span class="property-type">object</span>
+        </dt>
+        <dd>An object containing TLS options for the connection.</dd>
+    </dl>
+</script>

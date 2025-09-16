@@ -8,6 +8,22 @@
         "env": []
     },
     {
+        "id": "ea83acb4b5051be5",
+        "type": "tab",
+        "label": "Email receiver",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "efcace170d0f887c",
+        "type": "tab",
+        "label": "Email sender",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "fd4bdf33d0253f6a",
         "type": "processcube-html-to-text",
         "z": "4a5484c44fd92283",
@@ -60,5 +76,513 @@
         "x": 560,
         "y": 180,
         "wires": []
+    },
+    {
+        "id": "bb3bd11a802bd671",
+        "type": "inject",
+        "z": "ea83acb4b5051be5",
+        "name": "Preset msg, global and flow with a password from the env",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 280,
+        "y": 120,
+        "wires": [
+            [
+                "40951f130640e822",
+                "5a6a5f9d1c4fd4fc",
+                "931dd8be9290213e"
+            ]
+        ]
+    },
+    {
+        "id": "40951f130640e822",
+        "type": "change",
+        "z": "ea83acb4b5051be5",
+        "name": "Set user and password to msg.payload",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload.user",
+                "pt": "msg",
+                "to": "EMAIL_SEND_USER",
+                "tot": "env",
+                "dc": true
+            },
+            {
+                "t": "set",
+                "p": "payload.password",
+                "pt": "msg",
+                "to": "EMAIL_SEND_PASSWORD",
+                "tot": "env",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 740,
+        "y": 80,
+        "wires": [
+            [
+                "11c54cb89dee1026"
+            ]
+        ]
+    },
+    {
+        "id": "5a6a5f9d1c4fd4fc",
+        "type": "change",
+        "z": "ea83acb4b5051be5",
+        "name": "Set global user and password",
+        "rules": [
+            {
+                "t": "set",
+                "p": "user",
+                "pt": "global",
+                "to": "EMAIL_SEND_USER",
+                "tot": "env",
+                "dc": true
+            },
+            {
+                "t": "set",
+                "p": "password",
+                "pt": "global",
+                "to": "EMAIL_SEND_PASSWORD",
+                "tot": "env",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 710,
+        "y": 160,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d902b06948353c07",
+        "type": "inject",
+        "z": "ea83acb4b5051be5",
+        "name": "Test the Email receiver node for flow and global",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 260,
+        "y": 360,
+        "wires": [
+            [
+                "38057e937d452056",
+                "4597104b5f3d48be",
+                "73b10f832fff4e8a"
+            ]
+        ]
+    },
+    {
+        "id": "11c54cb89dee1026",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via msg",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": "993",
+        "portType": "num",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "payload.user",
+        "userType": "msg",
+        "password": "payload.password",
+        "passwordType": "msg",
+        "folder": "[\"stoelting/serviceline\"]",
+        "folderType": "json",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 1040,
+        "y": 80,
+        "wires": [
+            [
+                "0de3b977ad96591b"
+            ]
+        ]
+    },
+    {
+        "id": "0de3b977ad96591b",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver msg output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1310,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "38057e937d452056",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via flow",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": "993",
+        "portType": "num",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "user",
+        "userType": "flow",
+        "password": "password",
+        "passwordType": "flow",
+        "folder": "[\"stoelting/serviceline\"]",
+        "folderType": "json",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 660,
+        "y": 320,
+        "wires": [
+            [
+                "85122d6c840dd054"
+            ]
+        ]
+    },
+    {
+        "id": "85122d6c840dd054",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver flow output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "4597104b5f3d48be",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via global",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": "993",
+        "portType": "num",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "user",
+        "userType": "global",
+        "password": "password",
+        "passwordType": "global",
+        "folder": "[\"stoelting/serviceline\"]",
+        "folderType": "json",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 650,
+        "y": 380,
+        "wires": [
+            [
+                "734fff9822cbb1d9"
+            ]
+        ]
+    },
+    {
+        "id": "734fff9822cbb1d9",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver flow output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "73b10f832fff4e8a",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via env",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": "993",
+        "portType": "num",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "user",
+        "userType": "global",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "folder": "[\"stoelting/serviceline\", \"Inbox\"]",
+        "folderType": "json",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 640,
+        "y": 440,
+        "wires": [
+            [
+                "4572ad36fe686399"
+            ]
+        ]
+    },
+    {
+        "id": "4572ad36fe686399",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver env output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "931dd8be9290213e",
+        "type": "change",
+        "z": "ea83acb4b5051be5",
+        "name": "Set flow user and password",
+        "rules": [
+            {
+                "t": "set",
+                "p": "user",
+                "pt": "flow",
+                "to": "EMAIL_SEND_USER",
+                "tot": "env",
+                "dc": true
+            },
+            {
+                "t": "set",
+                "p": "password",
+                "pt": "flow",
+                "to": "EMAIL_SEND_PASSWORD",
+                "tot": "env",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 700,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7be89384c1b95ac1",
+        "type": "inject",
+        "z": "efcace170d0f887c",
+        "name": "Simple test of the email-sender node",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 120,
+        "wires": [
+            [
+                "9f7dfdb7f34fa92b"
+            ]
+        ]
+    },
+    {
+        "id": "c246681d350609e4",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "Test email sent",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1060,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "9f7dfdb7f34fa92b",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "sender": "Diana",
+        "senderType": "str",
+        "address": "EMAIL_SEND_USER",
+        "addressType": "env",
+        "to": "diana.stefan@5minds.de",
+        "toType": "str",
+        "cc": "",
+        "ccType": "str",
+        "bcc": "",
+        "bccType": "str",
+        "subject": "Test",
+        "subjectType": "str",
+        "htmlContent": "test",
+        "htmlContentType": "str",
+        "attachments": "",
+        "attachmentsType": "msg",
+        "host": "smtp.gmail.com",
+        "hostType": "str",
+        "port": "587",
+        "portType": "num",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "secure": "false",
+        "secureType": "bool",
+        "rejectUnauthorized": "true",
+        "rejectUnauthorizedType": "bool",
+        "x": 810,
+        "y": 120,
+        "wires": [
+            [
+                "c246681d350609e4"
+            ]
+        ]
+    },
+    {
+        "id": "3118cbba246ded32",
+        "type": "inject",
+        "z": "efcace170d0f887c",
+        "name": "Extended test of the email-sender node",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "processInstanceId",
+                "v": "123test",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"antwort\":\"Dies ist eine Beispielantwort\",\"status\":\"Done\",\"auftraggeber\":\"Test Auftraggeber\",\"betreff\":\"Erweiterter Test\"}",
+        "payloadType": "json",
+        "x": 230,
+        "y": 200,
+        "wires": [
+            [
+                "656565ebd3cce9f9"
+            ]
+        ]
+    },
+    {
+        "id": "ce437747f85cb8ee",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "Extended test email sent",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1090,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "88331a67651650d8",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "sender": "Diana",
+        "senderType": "str",
+        "address": "EMAIL_SEND_USER",
+        "addressType": "env",
+        "to": "diana.stefan@5minds.de",
+        "toType": "str",
+        "cc": "",
+        "ccType": "str",
+        "bcc": "",
+        "bccType": "str",
+        "replyTo": "reply@example.nr",
+        "replyToType": "str",
+        "subject": "Test",
+        "subjectType": "str",
+        "htmlContent": "payload",
+        "htmlContentType": "msg",
+        "attachments": "",
+        "attachmentsType": "msg",
+        "host": "smtp.gmail.com",
+        "hostType": "str",
+        "port": "587",
+        "portType": "num",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "secure": "false",
+        "secureType": "bool",
+        "rejectUnauthorized": "true",
+        "rejectUnauthorizedType": "bool",
+        "x": 810,
+        "y": 200,
+        "wires": [
+            [
+                "ce437747f85cb8ee"
+            ]
+        ]
+    },
+    {
+        "id": "656565ebd3cce9f9",
+        "type": "template",
+        "z": "efcace170d0f887c",
+        "name": "HTML content template",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\\\"de\\\">\n    <head>\n        <meta charset=\\\"UTF-8\\\">\n        <title>Ticket-Statusänderung</title>\n        </head>\n        <body style=\\\"font-family: Arial, sans-serif;\\\">\n            <h2>Statusaktualisierung für Ihr Ticket</h2>\n            <p>Hallo {{payload.auftraggeber}},</p>\n            <p>der Status Ihres Tickets <strong>{{processInstanceId}}</strong> hat sich geändert.</p>\n            <p><strong>Neuer Status:</strong> {{payload.status}}</p>\n            <p><strong>Betreff:</strong> {{payload.betreff}}</p>\n            \n            {{#payload.antwort}}\n            <p><strong>Antwort vom Kundenservice:</strong></p>\n            <p style=\\\"background-color: #f4f4f4; padding: 10px; border-left: 4px solid #007ACC;\\\">\n                {{payload.antwort}}\n            </p>\n                {{/payload.antwort}}\n                \n            <hr>\n            <p style=\\\"font-size: 0.9em;\\\">\n                Dies ist eine automatisch generierte Nachricht. Bitte antworten Sie nicht auf diese E-Mail.\n            </p>\n            <p>Mit freundlichen Grüßen,<br>\n            Ihr Support-Team</p>\n        </body>\n</html>",
+        "output": "str",
+        "x": 570,
+        "y": 200,
+        "wires": [
+            [
+                "88331a67651650d8"
+            ]
+        ]
     }
 ]
