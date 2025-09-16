@@ -346,7 +346,7 @@ describe('E-Mail Sender Node Unit Tests', function () {
             // ARRANGE: Configure mock to simulate rejected emails
             const mockOptions = {
                 rejectedEmails: ['recipient@example.com'],
-                acceptedEmails: [] // Ensure no emails are accepted
+                acceptedEmails: [], // Ensure no emails are accepted
             };
 
             const mockNodemailer = createMockNodemailer(mockOptions);
@@ -401,7 +401,7 @@ describe('E-Mail Sender Node Unit Tests', function () {
             // ARRANGE: Configure mock to simulate pending emails
             const mockOptions = {
                 pendingEmails: ['recipient@example.com'],
-                acceptedEmails: [] // Ensure no emails are accepted
+                acceptedEmails: [], // Ensure no emails are accepted
             };
 
             const mockNodemailer = createMockNodemailer(mockOptions);

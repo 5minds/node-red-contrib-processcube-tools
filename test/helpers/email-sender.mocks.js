@@ -93,7 +93,7 @@ function createMockNodemailer(options = {}) {
             shouldFail: false,
             // New options for different email statuses
             rejectedEmails: [], // Array of emails to mark as rejected
-            pendingEmails: [],  // Array of emails to mark as pending
+            pendingEmails: [], // Array of emails to mark as pending
             acceptedEmails: [], // Array of emails to mark as accepted (overrides default)
         },
         options,
@@ -118,7 +118,11 @@ function createMockNodemailer(options = {}) {
                 let rejected = [];
                 let pending = [];
 
-                if (settings.rejectedEmails.length > 0 || settings.pendingEmails.length > 0 || settings.acceptedEmails.length > 0) {
+                if (
+                    settings.rejectedEmails.length > 0 ||
+                    settings.pendingEmails.length > 0 ||
+                    settings.acceptedEmails.length > 0
+                ) {
                     // Use explicit configuration
                     if (settings.rejectedEmails.includes(toEmail)) {
                         rejected = [toEmail];
