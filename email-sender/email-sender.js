@@ -157,8 +157,6 @@ module.exports = function (RED) {
         });
     }
 
-    RED.nodes.registerType('email-sender', EmailSenderNode);
-
     function safeEvaluatePropertyAttachment(config, node, msg) {
         if (config.attachments && config.attachments.trim() !== '') {
             try {
@@ -171,4 +169,10 @@ module.exports = function (RED) {
 
         return null;
     }
+
+    RED.nodes.registerType('email-sender', EmailSenderNode, {
+        credentials: {
+            password: { type: 'password' },
+        },
+    });
 };
