@@ -4,6 +4,7 @@
     "license": "MIT",
     "description": "Node-RED tools nodes for ProcessCube",
     "scripts": {
+        "build": "tsc -p tsconfig.json",
         "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
         "test": "mocha test/unit/ test/integration"
     },
@@ -36,9 +37,9 @@
     "node-red": {
         "version": ">=3.1.9",
         "nodes": {
-            "EmailReceiver": "email-receiver/email-receiver.js",
-            "EmailSender": "email-sender/email-sender.js",
-            "HtmlToText": "processcube-html-to-text/processcube-html-to-text.js"
+            "EmailReceiver": "/dist/email-receiver/email-receiver.js",
+            "EmailSender": "/dist/email-sender/email-sender.js",
+            "HtmlToText": "/dist/processcube-html-to-text/processcube-html-to-text.js"
         },
         "examples": "examples"
     },
