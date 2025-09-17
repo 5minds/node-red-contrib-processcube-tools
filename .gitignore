@@ -6,6 +6,7 @@ node_modules
 .processcube/nodered/tmp/
 processcube/nodered/.config*
 .processcube/nodered/.*
+postgres
 
 # Logs
 logs

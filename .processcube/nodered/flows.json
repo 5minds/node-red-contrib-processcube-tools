@@ -16,6 +16,37 @@
         "env": []
     },
     {
+        "id": "4902f3ca9af6dabb",
+        "type": "tab",
+        "label": "File storage",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "cae119e5cf0605c7",
+        "type": "group",
+        "z": "4902f3ca9af6dabb",
+        "style": {
+            "stroke": "#999999",
+            "stroke-opacity": "1",
+            "fill": "none",
+            "fill-opacity": "1",
+            "label": true,
+            "label-position": "nw",
+            "color": "#a4a4a4"
+        },
+        "nodes": [
+            "bc23935965b25f46",
+            "7185a89803f145ea",
+            "8768fe6d1967e757"
+        ],
+        "x": 134,
+        "y": 159,
+        "w": 512,
+        "h": 162
+    },
+    {
         "id": "fd4bdf33d0253f6a",
         "type": "processcube-html-to-text",
         "z": "4a5484c44fd92283",
@@ -390,5 +421,79 @@
         "wires": [
             []
         ]
+    },
+    {
+        "id": "bc23935965b25f46",
+        "type": "file-storage",
+        "z": "4902f3ca9af6dabb",
+        "g": "cae119e5cf0605c7",
+        "name": "",
+        "provider": "pg",
+        "baseDir": "/data",
+        "pgConnectionString": "postgres://postgres:postgres@localhost:5432/postgres",
+        "pgSchema": "public",
+        "pgTable": "files",
+        "outputAs": "buffer",
+        "defaultAction": "store",
+        "x": 550,
+        "y": 200,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7185a89803f145ea",
+        "type": "inject",
+        "z": "4902f3ca9af6dabb",
+        "g": "cae119e5cf0605c7",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "action",
+                "v": "store",
+                "vt": "str"
+            },
+            {
+                "p": "file",
+                "v": "{\"filename\": \"test.pdf\"}",
+                "vt": "json"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "[68,105,101,115,32,105,115,116,32,109,101,105,110,32,66,117,102,102,101,114]",
+        "payloadType": "bin",
+        "x": 230,
+        "y": 200,
+        "wires": [
+            [
+                "bc23935965b25f46",
+                "8768fe6d1967e757"
+            ]
+        ]
+    },
+    {
+        "id": "8768fe6d1967e757",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "cae119e5cf0605c7",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 520,
+        "y": 280,
+        "wires": []
     }
 ]

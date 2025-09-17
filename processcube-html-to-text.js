@@ -1,5 +1,4 @@
 module.exports = function (RED) {
-
     const { compile } = require('html-to-text');
 
     function ProcesscubeHtmlToText(config) {
@@ -12,9 +11,7 @@ module.exports = function (RED) {
         };
         const compiledConvert = compile(options); // options passed here
 
-
         node.on('input', async function (msg) {
-
             msg.payload = compiledConvert(msg.payload);
 
             node.send(msg);

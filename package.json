@@ -37,7 +37,8 @@
         "version": ">=3.1.9",
         "nodes": {
             "EmailReceiver": "email-receiver/email-receiver.js",
-            "HtmlToText": "processcube-html-to-text.js"
+            "HtmlToText": "processcube-html-to-text.js",
+            "FileStorage": "file-storage/file-storage.js"
         },
         "examples": "examples"
     },
@@ -45,6 +46,8 @@
         "html-to-text": "^9.0.5",
         "mailparser": "^3.6.8",
         "node-imap": "^0.9.6",
+        "pg": "^8.16.3",
+        "pg-large-object": "^2.0.0",
         "utf7": "^1.0.2"
     },
     "devDependencies": {

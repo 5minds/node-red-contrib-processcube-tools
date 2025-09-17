@@ -1,0 +1,97 @@
+<script type="text/javascript">
+    RED.nodes.registerType('file-storage', {
+        category: 'ProcessCube Tools',
+        color: '#02AFD6',
+        defaults: {
+            name: { value: '' },
+            provider: { value: 'fs' },
+            baseDir: { value: '' },
+            pgConnectionString: { value: '' },
+            pgSchema: { value: 'public' },
+            pgTable: { value: 'files' },
+            outputAs: { value: 'stream' },
+            defaultAction: { value: 'store' },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: 'file.png',
+        label: function () {
+            return this.name || 'file-storage';
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="file-storage">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="file-storage" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-provider"><i class="fa fa-database"></i> Provider</label>
+        <select id="node-input-provider">
+            <option value="fs">Filesystem</option>
+            <option value="pg">PostgreSQL</option>
+        </select>
+    </div>
+    <div class="form-row">
+        <label for="node-input-outputAs"><i class="fa fa-share-square-o"></i> Output</label>
+        <select id="node-input-outputAs">
+            <option value="stream">Stream</option>
+            <option value="buffer">Buffer</option>
+            <option value="path">Path (nur FS)</option>
+        </select>
+    </div>
+    <hr />
+    <div class="form-tips">Filesystem</div>
+    <div class="form-row">
+        <label for="node-input-baseDir"><i class="fa fa-folder-open"></i> Base Dir</label>
+        <input type="text" id="node-input-baseDir" placeholder="/data/files" />
+    </div>
+    <hr />
+    <div class="form-tips">PostgreSQL</div>
+    <div class="form-row">
+        <label for="node-input-pgConnectionString"><i class="fa fa-plug"></i> Connection</label>
+        <input type="text" id="node-input-pgConnectionString" placeholder="postgres://user:pass@host:5432/db" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-pgSchema"><i class="fa fa-sitemap"></i> Schema</label>
+        <input type="text" id="node-input-pgSchema" placeholder="public" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-pgTable"><i class="fa fa-table"></i> Tabelle</label>
+        <input type="text" id="node-input-pgTable" placeholder="files" />
+    </div>
+    <hr />
+    <div class="form-row">
+        <label for="node-input-defaultAction"><i class="fa fa-cog"></i> Default Action</label>
+        <select id="node-input-defaultAction">
+            <option value="store">store</option>
+            <option value="get">get</option>
+            <option value="delete">delete</option>
+        </select>
+    </div>
+</script>
+
+<script type="text/html" data-help-name="file-storage">
+    <p>
+        File-Storage-Node zum Speichern/Abrufen/Löschen von Dateien inkl. Metadaten. Provider: Filesystem (Datei + JSON)
+        oder PostgreSQL (Large Objects + Metadaten-Tabelle).
+    </p>
+    <h3>Input</h3>
+    <pre>
+  msg.action = "store" | "get" | "delete"
+  msg.payload = Buffer | Readable | String (bei store)
+  msg.file = {
+    id?: string (bei get/delete),
+    filename?: string,
+    contentType?: string,
+    metadata?: object
+  }
+  </pre
+    >
+    <h3>Output</h3>
+    <p>
+        Bei <code>store</code>: <code>msg.payload</code> enthält Metadaten inkl. <code>id</code>. Bei <code>get</code>:
+        <code>msg.payload</code> ist Stream/Buffer/Pfad (je nach Option), Metadaten in <code>msg.file</code>.
+    </p>
+</script>
