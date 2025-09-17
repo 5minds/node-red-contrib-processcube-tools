@@ -255,7 +255,7 @@
 
     <h4>Mail Configuration</h4>
     <dl class="message-properties">
-        <dt>Name <span class="property-type">string</span></dt>
+        <dt>Name <i>(Optional)</i> <span class="property-type">string</span></dt>
         <dd>A descriptive name for the node.</dd>
         <dt>Sender <span class="property-type">string | variable</span></dt>
         <dd>The name displayed as the sender to the recipient.</dd>
@@ -263,17 +263,17 @@
         <dd>The email address from which the email is sent.</dd>
         <dt>To <span class="property-type">string | variable</span></dt>
         <dd>The primary recipient(s) of the email. For multiple recipients, separate addresses with a comma.</dd>
-        <dt>CC <span class="property-type">string | variable</span></dt>
+        <dt>CC <i>(Optional)</i> <span class="property-type">string | variable</span></dt>
         <dd>Carbon copy recipient(s). Multiple addresses should be separated by commas.</dd>
-        <dt>BCC <span class="property-type">string | variable</span></dt>
+        <dt>BCC <i>(Optional)</i> <span class="property-type">string | variable</span></dt>
         <dd>Blind carbon copy recipient(s). Multiple addresses should be separated by commas.</dd>
-        <dt>Reply To <span class="property-type">string | variable</span></dt>
+        <dt>Reply To <i>(Optional)</i> <span class="property-type">string | variable</span></dt>
         <dd>The email address that is pre-filled when the recipient replies to the email.</dd>
         <dt>Subject <span class="property-type">string | variable</span></dt>
         <dd>The subject line of the email.</dd>
         <dt>HTML Content <span class="property-type">string | variable</span></dt>
         <dd>The full HTML body of the email.</dd>
-        <dt>Attachments <span class="property-type">array | variable</span></dt>
+        <dt>Attachments <i>(Optional)</i> <span class="property-type">array | variable</span></dt>
         <dd>A list of file attachments. This field should be an array of attachment objects. Each object must contain <code>filename</code>, <code>content</code> (the file's data), and optionally <code>contentType</code>.</dd>
     </dl>
 
@@ -297,7 +297,7 @@
     <ul>
         <li><b>Dynamic Content</b>: You can use a <b>Template node</b> before the <b>email-sender</b> node to generate dynamic HTML content for your emails, using <code>msg</code> properties to fill in placeholders.</li>
         <li><b>Testing</b>: When testing, use a free service like <a href="https://mailtrap.io" target="_blank">Mailtrap</a> to avoid sending real emails. This allows you to inspect the email and its content without cluttering your inbox.</li>
-        <li><b>Troubleshooting</b>: If you encounter a <code>Missing required IMAP config</code> error, double-check that all required fields (<code>Sender</code>, <code>Address</code>, <code>To</code>, <code>Subject</code>, <code>HTML Content</code>, <code>Host</code>, <code>Port</code>, <code>User</code>, and <code>Password</code>) are correctly configured and have values.</li>
+        <li><b>Troubleshooting</b>: If you encounter a <code>Missing required IMAP config</code> error, double-check that all required fields are correctly configured and have values.</li>
     </ul>
 
     <h3>Example</h3>
