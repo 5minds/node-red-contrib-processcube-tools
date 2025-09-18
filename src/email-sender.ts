@@ -48,7 +48,7 @@ module.exports = function (RED) {
             // Handle attachments and format them for Nodemailer
             let processedAttachments = [];
 
-            let parsedAttachments = config.attachments;
+            let parsedAttachments = attachments;
 
             if (config.attachmentsType === 'json' && typeof parsedAttachments === 'string') {
                 try {
