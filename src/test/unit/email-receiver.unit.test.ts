@@ -1,22 +1,21 @@
-const { expect } = require('chai');
-const { createMockNodeRED, setupModuleMocks, testConfigs, testUtils } = require('../helpers/email-receiver.mocks.js');
+import { expect } from 'chai';
+// Import your types and mock helpers.
+import type { Node, NodeMessageInFlow, NodeDef } from 'node-red';
+import { createMockNodeRED, setupModuleMocks, testConfigs, testUtils } from '..helpers/email-receiver.mocks';
+import type { TestConfig, MockRED } from '../helpers/email-receiver.mocks';
+import emailReceiverNode from '../../email-receiver/email-receiver';
+
 
 describe('E-Mail Receiver Node - Unit Tests', function () {
     this.timeout(10000);
 
-    let emailReceiverNode;
-    let cleanupMocks;
+    let cleanupMocks: Function;
 
     before(function () {
-        // Set up module mocks using helper
         cleanupMocks = setupModuleMocks();
-
-        // Load the node with mocked dependencies
-        emailReceiverNode = require('../../email-receiver/email-receiver.js');
     });
 
     after(function () {
-        // Clean up mocks
         if (cleanupMocks) {
             cleanupMocks();
         }
@@ -45,16 +44,16 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
     describe('Node Instantiation', function () {
         it('should handle node instantiation with valid config', function () {
             // ARRANGE: Track node creation
-            let createdNode = null;
+            let createdNode:  Node | null = null;
             const mockRED = createMockNodeRED({
-                onHandler: function (event, callback) {
+                onHandler: function (this: Node, event: string, callback: Function) {
                     createdNode = this;
                 },
             });
 
             // ACT: Register and create node instance
             emailReceiverNode(mockRED);
-            new mockRED.nodes.lastRegisteredConstructor(testConfigs.valid);
+            new mockRED.nodes.lastRegisteredConstructor(testConfigs.valid as NodeDef);
 
             // ASSERT: Verify node was created with correct properties
             expect(createdNode).to.exist;
@@ -64,9 +63,9 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
         it('should handle minimal config', function () {
             // ARRANGE: Use minimal test config
-            let createdNode = null;
+            let createdNode: Node | null = null;
             const mockRED = createMockNodeRED({
-                onHandler: function (event, callback) {
+                onHandler: function (this: Node, event: string, callback: Function) {
                     createdNode = this;
                 },
             });
@@ -84,9 +83,9 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
     describe('Folder Configuration', function () {
         it('should handle array of folders', async function () {
             // ARRANGE: Set up message tracking
-            let sentMessage = null;
+            let sentMessage: NodeMessageInFlow | null = null;
             const mockRED = createMockNodeRED({
-                sendHandler: function (msg) {
+                sendHandler: function (this: Node, msg: NodeMessageInFlow) {
                     sentMessage = msg;
                 },
             });
@@ -106,12 +105,12 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
     });
 
     describe('Error Handling', function () {
-        it('should call node.error for invalid folder type', function (done) {
+        it('should call node.error for invalid folder type', function (done: Mocha.Done) {
             // ARRANGE: Set up error tracking
             const mockRED = createMockNodeRED({
-                onHandler: function (event, callback) {
+                onHandler: function (this: Node, event: string, callback: Function)
                     if (event === 'input') {
-                        this.inputCallback = callback;
+                        (this as any).inputCallback = callback;
                     }
                 },
                 errorHandler: function (err) {
@@ -141,9 +140,9 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             // ARRANGE: Set up error and status tracking
             let statusCalled = false;
             const mockRED = createMockNodeRED({
-                onHandler: function (event, callback) {
+                onHandler: function (this: Node, event: string, callback: Function)
                     if (event === 'input') {
-                        this.inputCallback = callback;
+                        (this as any).inputCallback = callback;
                     }
                 },
                 statusHandler: function (status) {
@@ -188,9 +187,9 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             };
 
             const mockRED = createMockNodeRED({
-                onHandler: function (event, callback) {
+                onHandler: function (this: Node, event: string, callback: Function)
                     if (event === 'input') {
-                        this.inputCallback = callback;
+                        (this as any).inputCallback = callback;
                     }
                 },
                 statusHandler: function (status) {
@@ -233,9 +232,9 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         it('should handle connection success', function (done) {
             // ARRANGE: Set up connection tracking
             const mockRED = createMockNodeRED({
-                onHandler: function (event, callback) {
+                onHandler: function (this: Node, event: string, callback: Function)
                     if (event === 'input') {
-                        this.inputCallback = callback;
+                        (this as any).inputCallback = callback;
                     }
                 },
                 statusHandler: function (status) {
@@ -264,10 +263,10 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         it('should handle connection errors', function (done) {
             // ARRANGE: Set up error tracking
             const mockRED = createMockNodeRED({
-                onHandler: function (event, callback) {
+                onHandler: function (this: Node, event: string, callback: Function)
                     if (event === 'input') {
                         // Store the callback on the node instance
-                        this.inputCallback = callback;
+                        (this as any).inputCallback = callback;
                     }
                 },
                 errorHandler: function (err) {
