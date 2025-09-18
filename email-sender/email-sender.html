@@ -206,7 +206,7 @@
     </div>
     <div class="form-row">
         <label for="node-input-password"><i class="fa fa-lock"></i> Password</label>
-        <input type="password" id="node-input-password" />
+        <input type="text" id="node-input-password" />
         <input type="hidden" id="node-input-passwordType" />
     </div>
     <div class="form-row">
@@ -222,85 +222,111 @@
 </script>
 
 <script type="text/html" data-help-name="email-sender">
+    <p>A custom Node-RED node that simplifies sending emails using an SMTP server.</p>
+
+    <h3>Description</h3>
     <p>
-        A custom node to send emails using an SMTP server. The configuration for each field can be sourced from a fixed
-        value, or from a <code>msg</code>, <code>flow</code>, <code>global</code>, or <code>env</code> variable.
+        The <b>email-sender</b> node is designed to send emails from your Node-RED flows. It supports a wide range of
+        features, including sending HTML content, adding attachments, and using flexible configurations for all email
+        and SMTP settings. All fields are <b>typed inputs</b>, meaning you can pull values from different sources like
+        <code>msg</code> properties, <code>flow</code>/<code>global</code> context, or environment variables.
     </p>
+
+    <h3>Inputs</h3>
+    <p>
+        This node accepts a message (<code>msg</code>) as input. The node is triggered when it receives a message. The
+        properties of the incoming message can be used to set the email's configuration fields.
+    </p>
+
+    <h3>Outputs</h3>
+    <p>This node sends one message upon successful execution.</p>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">any</span></dt>
+        <dd>The <code>payload</code> of the original message is passed through to the next node.</dd>
+        <dt>topic <span class="property-type">string</span></dt>
+        <dd>The <code>topic</code> of the original message is passed through to the next node.</dd>
+    </dl>
+    <p>The node's status will be updated to show whether the email was sent successfully.</p>
 
     <h3>Configuration</h3>
     <p>
-        Every field on the configuration panel is a <b>typed input</b>. Use the dropdown menu next to each field to
-        select the source of its value. Note that <b>Sender</b>, <b>Address</b>, <b>To</b>, <b>Subject</b>, and
-        <b>HTML Content</b> are required fields and must be configured before the node can be deployed.
+        All configuration fields are <b>typed inputs</b>, allowing you to set a <b>static value</b> or pull data
+        dynamically from a <b>message</b>, <b>flow</b>, <b>global</b> context, or <b>environment variable</b>.
     </p>
 
     <h4>Mail Configuration</h4>
     <dl class="message-properties">
+        <dt>Name <i>(Optional)</i> <span class="property-type">string</span></dt>
+        <dd>A descriptive name for the node.</dd>
         <dt>Sender <span class="property-type">string | variable</span></dt>
-        <dd>The name of the sender, as displayed to the recipient.</dd>
-
+        <dd>The name displayed as the sender to the recipient.</dd>
         <dt>Address <span class="property-type">string | variable</span></dt>
-        <dd>The sender's email address.</dd>
-
+        <dd>The email address from which the email is sent.</dd>
         <dt>To <span class="property-type">string | variable</span></dt>
-        <dd>The primary recipient's email address. Separate multiple addresses with a comma.</dd>
-
-        <dt>CC <span class="property-type">string | variable</span></dt>
-        <dd>Addresses to be carbon-copied on the email.</dd>
-
-        <dt>BCC <span class="property-type">string | variable</span></dt>
-        <dd>Addresses to be blind-carbon-copied on the email.</dd>
-
-        <dt>Reply To <span class="property-type">string | variable</span></dt>
-        <dd>Address that is being set as the that will be set, if the user presses the reply button.
-            Can be different than the email, that has sent the email.</dd>
-
+        <dd>The primary recipient(s) of the email. For multiple recipients, separate addresses with a comma.</dd>
+        <dt>CC <i>(Optional)</i> <span class="property-type">string | variable</span></dt>
+        <dd>Carbon copy recipient(s). Multiple addresses should be separated by commas.</dd>
+        <dt>BCC <i>(Optional)</i> <span class="property-type">string | variable</span></dt>
+        <dd>Blind carbon copy recipient(s). Multiple addresses should be separated by commas.</dd>
+        <dt>Reply To <i>(Optional)</i> <span class="property-type">string | variable</span></dt>
+        <dd>The email address that is pre-filled when the recipient replies to the email.</dd>
         <dt>Subject <span class="property-type">string | variable</span></dt>
         <dd>The subject line of the email.</dd>
-
         <dt>HTML Content <span class="property-type">string | variable</span></dt>
-        <dd>The HTML body of the email.</dd>
-
-        <dt>Attachments <span class="property-type">array | variable</span></dt>
-        <dd>A list of file attachments. This should be a variable containing an array of attachment objects.</dd>
+        <dd>The full HTML body of the email.</dd>
+        <dt>Attachments <i>(Optional)</i> <span class="property-type">array | variable</span></dt>
+        <dd>
+            A list of file attachments. This field should be an array of attachment objects. Each object must contain
+            <code>filename</code>, <code>content</code> (the file's data), and optionally <code>contentType</code>.
+        </dd>
     </dl>
 
     <h4>SMTP Configuration</h4>
     <dl class="message-properties">
         <dt>Host <span class="property-type">string | variable</span></dt>
-        <dd>The hostname or IP address of the SMTP server.</dd>
-
+        <dd>The hostname of your SMTP server (e.g., <code>smtp.gmail.com</code>).</dd>
         <dt>Port <span class="property-type">number | variable</span></dt>
-        <dd>The port number of the SMTP server.</dd>
-
+        <dd>The port number for the SMTP server (e.g., <code>587</code> or <code>465</code>).</dd>
         <dt>User <span class="property-type">string | variable</span></dt>
         <dd>The username for SMTP authentication.</dd>
-
-        <dt>Password <span class="property-type">string | variable</span></dt>
-        <dd>The password for SMTP authentication.</dd>
-
-        <dt>SSL/TLS (Secure) <span class="property-type">boolean | variable</span></dt>
+        <dt>Password <span class="property-type">password | variable</span></dt>
         <dd>
-            Use a secure connection. Set to <code>true</code> for SSL/TLS, <code>false</code> for a non-secure
-            connection.
+            The password for SMTP authentication. This is a secure field and its value will not be shown after
+            deployment.
         </dd>
-
+        <dt>SSL/TLS (Secure) <span class="property-type">boolean | variable</span></dt>
+        <dd>Enables a secure connection. Set this to <code>true</code> to use SSL/TLS encryption.</dd>
         <dt>Reject Unauthorized <span class="property-type">boolean | variable</span></dt>
-        <dd>If <code>true</code>, the server's certificate is rejected if it's not authorized by a trusted CA.</dd>
+        <dd>
+            If <code>true</code>, the server's certificate is rejected if it isn't authorized by a trusted Certificate
+            Authority (CA). Set this to <code>false</code> only if you know the server's certificate is self-signed or
+            not from a trusted CA.
+        </dd>
     </dl>
 
-    <h3>Usage</h3>
-    <p>
-        Inject a message to trigger the node and send an email.<br />
-        Credentials and other properties can be provided via message properties, flow/global context, or environment
-        variables.<br />
-        The node supports sending HTML emails and attachments.
-    </p>
+    <h3>Usage Notes</h3>
+    <ul>
+        <li>
+            <b>Dynamic Content</b>: You can use a <b>Template node</b> before the <b>email-sender</b> node to generate
+            dynamic HTML content for your emails, using <code>msg</code> properties to fill in placeholders.
+        </li>
+        <li>
+            <b>Testing</b>: When testing, use a free service like
+            <a href="https://mailtrap.io" target="_blank">Mailtrap</a> to avoid sending real emails. This allows you to
+            inspect the email and its content without cluttering your inbox.
+        </li>
+        <li>
+            <b>Troubleshooting</b>: If you encounter a <code>Missing required IMAP config</code> error, double-check
+            that all required fields are correctly configured and have values.
+        </li>
+    </ul>
 
-    <h3>Tips</h3>
+    <h3>Example</h3>
+    <p>A basic flow could look like this:</p>
+    <code>Inject Node</code> ➡️ <code>Change Node</code> ➡️ <code>email-sender Node</code>
     <p>
-        <b>HTML Content Creation:</b><br />
-        To generate or format HTML content for your email, you can use a <b>template node</b> before the email-sender
-        node. This allows you to create dynamic and customized email bodies.
+        In the <b>Change Node</b>, you can set <code>msg.payload</code> to your email's content and
+        <code>msg.topic</code> to the subject. The <b>email-sender</b> node can then be configured to use these message
+        properties as its input.
     </p>
 </script>

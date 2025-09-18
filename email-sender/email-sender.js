@@ -48,7 +48,7 @@ module.exports = function (RED) {
             // Handle attachments and format them for Nodemailer
             let processedAttachments = [];
 
-            let parsedAttachments = config.attachments;
+            let parsedAttachments = attachments;
 
             if (config.attachmentsType === 'json' && typeof parsedAttachments === 'string') {
                 try {
@@ -157,8 +157,6 @@ module.exports = function (RED) {
         });
     }
 
-    RED.nodes.registerType('email-sender', EmailSenderNode);
-
     function safeEvaluatePropertyAttachment(config, node, msg) {
         if (config.attachments && config.attachments.trim() !== '') {
             try {
@@ -171,4 +169,10 @@ module.exports = function (RED) {
 
         return null;
     }
+
+    RED.nodes.registerType('email-sender', EmailSenderNode, {
+        credentials: {
+            password: { type: 'password' },
+        },
+    });
 };
