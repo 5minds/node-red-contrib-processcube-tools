@@ -1,10 +1,10 @@
 import { Node, NodeMessageInFlow, NodeInitializer } from 'node-red';
 import Imap, { ImapMessageAttributes } from 'node-imap';
 import { simpleParser, ParsedMail, Attachment } from 'mailparser';
-import type { EmailReceiverConfig } from './interfaces/EmailReceiverConfig';
-import type { ImapConnectionConfig } from './interfaces/ImapConnectionConfig';
-import type { FetchState } from './interfaces/FetchState';
-import type { EmailReceiverMessage } from './interfaces/EmailReceiverMessage';
+import type { EmailReceiverConfig } from '../interfaces/EmailReceiverConfig';
+import type { ImapConnectionConfig } from '../interfaces/ImapConnectionConfig';
+import type { FetchState } from '../interfaces/FetchState';
+import type { EmailReceiverMessage } from '../interfaces/EmailReceiverMessage';
 
 const nodeInit: NodeInitializer = (RED: any) => {
     function EmailReceiverNode(this: Node, config: EmailReceiverConfig) {

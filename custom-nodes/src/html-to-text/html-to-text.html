@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    RED.nodes.registerType('processcube-html-to-text', {
+    RED.nodes.registerType('html-to-text', {
         category: 'ProcessCube Tools',
         color: '#02AFD6',
         defaults: {
@@ -9,12 +9,12 @@
         outputs: 1,
         icon: 'font-awesome/fa-sign-in',
         label: function () {
-            return this.name || 'processcube-html-to-text';
+            return this.name || 'html-to-text';
         },
     });
 </script>
 
-<script type="text/html" data-template-name="processcube-html-to-text">
+<script type="text/html" data-template-name="html-to-text">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name" />

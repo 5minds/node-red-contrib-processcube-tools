@@ -1,7 +1,7 @@
 module.exports = function (RED) {
     const { compile } = require('html-to-text');
 
-    function ProcesscubeHtmlToText(config) {
+    function HtmlToText(config) {
         RED.nodes.createNode(this, config);
         const node = this;
 
@@ -18,5 +18,5 @@ module.exports = function (RED) {
         });
     }
 
-    RED.nodes.registerType('processcube-html-to-text', ProcesscubeHtmlToText);
+    RED.nodes.registerType('html-to-text', HtmlToText);
 };

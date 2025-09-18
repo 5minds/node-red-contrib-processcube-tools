@@ -25,7 +25,7 @@
     },
     {
         "id": "fd4bdf33d0253f6a",
-        "type": "processcube-html-to-text",
+        "type": "html-to-text",
         "z": "4a5484c44fd92283",
         "name": "",
         "x": 350,
