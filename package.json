@@ -37,7 +37,7 @@
         "npm": ">=8.0.0"
     },
     "node-red": {
-        "version": ">=3.1.9",
+        "version": "^4.1.0",
         "nodes": {
             "EmailReceiver": "dist/email-receiver/email-receiver.js",
             "EmailSender": "dist/email-sender/email-sender.js",
@@ -57,6 +57,7 @@
         "@types/node": "^24.5.2",
         "@types/node-imap": "^0.9.3",
         "@types/node-red": "^1.3.5",
+        "@types/nodemailer": "^7.0.1",
         "chai": "^4.3.4",
         "cpx2": "^8.0.0",
         "mocha": "^11.7.2",

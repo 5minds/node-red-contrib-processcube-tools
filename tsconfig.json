@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist",
+    "rootDir": "./src",
+    "outDir": "./dist",
     //set to commonjs and node for node-red compatibility
     "module": "commonjs",
     "moduleResolution": "node",
     // set to es2021 for node-red compatibility
-    "target": "es2021",
-    "lib": ["es2021"],
+    "target": "es2018",
+    "lib": ["es2018"],
     "declaration": true,
     "skipLibCheck": true,
     "declarationDir": "dist",
@@ -17,8 +17,5 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
-  "exclude": ["**/test"],
-  "files": [
-    "src/types.d.ts"
-  ]
+  "exclude": ["**/test"]
 }
