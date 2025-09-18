@@ -6,7 +6,7 @@
     "scripts": {
         "build": "npm-run-all build:*",
         "build:ts": "tsc",
-        "build:html": "cpx2 \"./src/**/*.html\" ./dist",
+        "build:html": "cpx \"./src/**/*.html\" ./dist",
         "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
         "test": "mocha test/unit/ test/integration"
     },
@@ -39,9 +39,9 @@
     "node-red": {
         "version": ">=3.1.9",
         "nodes": {
-            "EmailReceiver": "/dist/email-receiver/email-receiver.js",
-            "EmailSender": "/dist/email-sender/email-sender.js",
-            "HtmlToText": "/dist/html-to-text/html-to-text.js"
+            "EmailReceiver": "dist/email-receiver/email-receiver.js",
+            "EmailSender": "dist/email-sender/email-sender.js",
+            "HtmlToText": "dist/html-to-text/html-to-text.js"
         },
         "examples": "examples"
     },

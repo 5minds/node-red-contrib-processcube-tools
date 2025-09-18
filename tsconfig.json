@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "rootDir": "custom-nodes/src",
-    "outDir": "./dist",
+    "rootDir": "src",
+    "outDir": "dist",
     //set to commonjs and node for node-red compatibility
     "module": "commonjs",
     "moduleResolution": "node",
@@ -10,12 +10,15 @@
     "lib": ["es2021"],
     "declaration": true,
     "skipLibCheck": true,
-    "declarationDir": "./dist",
+    "declarationDir": "dist",
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["custom-nodes/src"],
-  "exclude": ["**/test"]
+  "include": ["src"],
+  "exclude": ["**/test"],
+  "files": [
+    "src/types.d.ts"
+  ]
 }
