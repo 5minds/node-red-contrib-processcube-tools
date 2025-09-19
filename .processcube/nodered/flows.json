@@ -24,6 +24,22 @@
         "env": []
     },
     {
+        "id": "ea83acb4b5051be5",
+        "type": "tab",
+        "label": "Email receiver",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "efcace170d0f887c",
+        "type": "tab",
+        "label": "Email sender",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "fd4bdf33d0253f6a",
         "type": "processcube-html-to-text",
         "z": "4a5484c44fd92283",
@@ -582,6 +598,135 @@
         "wires": [
             [
                 "88331a67651650d8"
+            ]
+        ]
+    },
+    {
+        "id": "f12845e201b07c7b",
+        "type": "inject",
+        "z": "efcace170d0f887c",
+        "name": "Extended test with attachments",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "processInstanceId",
+                "v": "123test",
+                "vt": "str"
+            },
+            {
+                "p": "attachment.filename",
+                "v": "test.png",
+                "vt": "str"
+            },
+            {
+                "p": "attachment.content",
+                "v": "1435645213",
+                "vt": "str"
+            },
+            {
+                "p": "attachment.contentType",
+                "v": "application/png",
+                "vt": "str"
+            },
+            {
+                "p": "attachments",
+                "v": "[msg.attachment]",
+                "vt": "jsonata"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"antwort\":\"Dies ist eine Beispielantwort\",\"status\":\"Done\",\"auftraggeber\":\"Test Auftraggeber\",\"betreff\":\"Erweiterter Test\"}",
+        "payloadType": "json",
+        "x": 210,
+        "y": 280,
+        "wires": [
+            [
+                "3a0588b5257e7841"
+            ]
+        ]
+    },
+    {
+        "id": "6cadf2b77cac0e0b",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "Extended test email sent",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1090,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "c7e14035c3e1b2e0",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "sender": "Diana",
+        "senderType": "str",
+        "address": "EMAIL_SEND_USER",
+        "addressType": "env",
+        "to": "diana.stefan@5minds.de",
+        "toType": "str",
+        "cc": "",
+        "ccType": "str",
+        "bcc": "",
+        "bccType": "str",
+        "replyTo": "reply@example.nr",
+        "replyToType": "str",
+        "subject": "Test",
+        "subjectType": "str",
+        "htmlContent": "payload",
+        "htmlContentType": "msg",
+        "attachments": "attachments",
+        "attachmentsType": "msg",
+        "host": "smtp.gmail.com",
+        "hostType": "str",
+        "port": "587",
+        "portType": "num",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "secure": "false",
+        "secureType": "bool",
+        "rejectUnauthorized": "true",
+        "rejectUnauthorizedType": "bool",
+        "x": 810,
+        "y": 280,
+        "wires": [
+            [
+                "6cadf2b77cac0e0b"
+            ]
+        ]
+    },
+    {
+        "id": "3a0588b5257e7841",
+        "type": "template",
+        "z": "efcace170d0f887c",
+        "name": "HTML content template",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\\\"de\\\">\n    <head>\n        <meta charset=\\\"UTF-8\\\">\n        <title>Ticket-Statusänderung</title>\n        </head>\n        <body style=\\\"font-family: Arial, sans-serif;\\\">\n            <h2>Statusaktualisierung für Ihr Ticket</h2>\n            <p>Hallo {{payload.auftraggeber}},</p>\n            <p>der Status Ihres Tickets <strong>{{processInstanceId}}</strong> hat sich geändert.</p>\n            <p><strong>Neuer Status:</strong> {{payload.status}}</p>\n            <p><strong>Betreff:</strong> {{payload.betreff}}</p>\n            \n            {{#payload.antwort}}\n            <p><strong>Antwort vom Kundenservice:</strong></p>\n            <p style=\\\"background-color: #f4f4f4; padding: 10px; border-left: 4px solid #007ACC;\\\">\n                {{payload.antwort}}\n            </p>\n                {{/payload.antwort}}\n                \n            <hr>\n            <p style=\\\"font-size: 0.9em;\\\">\n                Dies ist eine automatisch generierte Nachricht. Bitte antworten Sie nicht auf diese E-Mail.\n            </p>\n            <p>Mit freundlichen Grüßen,<br>\n            Ihr Support-Team</p>\n        </body>\n</html>",
+        "output": "str",
+        "x": 570,
+        "y": 280,
+        "wires": [
+            [
+                "c7e14035c3e1b2e0"
             ]
         ]
     }
