@@ -6,6 +6,8 @@
     "scripts": {
         "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
         "test": "mocha test/unit/ test/integration"
+        "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
+        "test": "mocha test/unit/ test/integration"
     },
     "authors": [
         {
@@ -15,6 +17,10 @@
         {
             "name": "Robin Lenz",
             "email": "Robin.Lenz@5Minds.de"
+        },
+        {
+            "name": "Diana Stefan",
+            "email": "Diana.Stefan@5Minds.de"
         },
         {
             "name": "Diana Stefan",
@@ -39,10 +45,28 @@
             "EmailReceiver": "email-receiver/email-receiver.js",
             "EmailSender": "email-sender/email-sender.js",
             "HtmlToText": "processcube-html-to-text/processcube-html-to-text.js"
+            "EmailReceiver": "email-receiver/email-receiver.js",
+            "EmailSender": "email-sender/email-sender.js",
+            "HtmlToText": "processcube-html-to-text/processcube-html-to-text.js"
         },
         "examples": "examples"
     },
     "dependencies": {
+        "html-to-text": "^9.0.5",
+        "mailparser": "^3.6.8",
+        "node-imap": "^0.9.6",
+        "nodemailer": "^7.0.6",
+        "utf7": "^1.0.2"
+    },
+    "devDependencies": {
+        "chai": "^4.3.4",
+        "mocha": "^11.7.2",
+        "node-red": "^4.0.9",
+        "node-red-node-test-helper": "^0.3.5"
+    },
+    "overrides": {
+        "semver": ">=7.5.2",
+        "axios": ">=1.12.0"
         "html-to-text": "^9.0.5",
         "mailparser": "^3.6.8",
         "node-imap": "^0.9.6",
