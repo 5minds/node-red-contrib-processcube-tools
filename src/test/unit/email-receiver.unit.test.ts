@@ -1,8 +1,8 @@
 import { expect } from 'chai';
 // Import your types and mock helpers.
 import type { Node, NodeMessageInFlow, NodeDef } from 'node-red';
-import { createMockNodeRED, setupModuleMocks, testConfigs, testUtils } from '..helpers/email-receiver.mocks';
-import type { TestConfig, MockRED } from '../helpers/email-receiver.mocks';
+import { createMockNodeRED, setupModuleMocks, testConfigs, testUtils } from '../helpers/email-receiver.mocks';
+import type { TestConfig } from '../helpers/email-receiver.mocks';
 import emailReceiverNode from '../../email-receiver/email-receiver';
 
 
@@ -36,15 +36,15 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             emailReceiverNode(mockRED);
 
             // ASSERT: Verify registration
-            expect(mockRED.nodes.lastRegisteredType).to.equal('email-receiver');
-            expect(mockRED.nodes.lastRegisteredConstructor).to.be.a('function');
+            expect((mockRED.nodes as any).lastRegisteredType).to.equal('email-receiver');
+            expect((mockRED.nodes as any).lastRegisteredConstructor).to.be.a('function');
         });
     });
 
     describe('Node Instantiation', function () {
         it('should handle node instantiation with valid config', function () {
             // ARRANGE: Track node creation
-            let createdNode:  Node | null = null;
+            let createdNode: Node | null = null;
             const mockRED = createMockNodeRED({
                 onHandler: function (this: Node, event: string, callback: Function) {
                     createdNode = this;
@@ -53,7 +53,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             // ACT: Register and create node instance
             emailReceiverNode(mockRED);
-            new mockRED.nodes.lastRegisteredConstructor(testConfigs.valid as NodeDef);
+            new (mockRED.nodes as any).lastRegisteredConstructor(testConfigs.valid as TestConfig);
 
             // ASSERT: Verify node was created with correct properties
             expect(createdNode).to.exist;
@@ -72,7 +72,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             // ACT: Register and create node with minimal config
             emailReceiverNode(mockRED);
-            new mockRED.nodes.lastRegisteredConstructor(testConfigs.minimal);
+            new (mockRED.nodes as any).lastRegisteredConstructor(testConfigs.minimal);
 
             // ASSERT: Verify node creation
             expect(createdNode).to.exist;
@@ -92,7 +92,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             // ACT: Register node and create instance with array folders
             emailReceiverNode(mockRED);
-            const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
+            const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(testConfigs.arrayFolders);
 
             // Wait for processing
@@ -108,12 +108,12 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         it('should call node.error for invalid folder type', function (done: Mocha.Done) {
             // ARRANGE: Set up error tracking
             const mockRED = createMockNodeRED({
-                onHandler: function (this: Node, event: string, callback: Function)
+                onHandler: function (this: Node, event: string, callback: Function) {
                     if (event === 'input') {
                         (this as any).inputCallback = callback;
                     }
                 },
-                errorHandler: function (err) {
+                errorHandler: function (err: any) {
                     // ASSERT: Should receive appropriate error message
                     expect(err).to.include("The 'folders' property must be an array of strings.");
                     done();
@@ -122,14 +122,14 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             // ACT: Register node and create instance with invalid config
             emailReceiverNode(mockRED);
-            const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
+            const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(testConfigs.invalidFolderType);
 
             // Trigger the error by sending an input message
             // Use a small delay to ensure the constructor has completed
             setTimeout(() => {
-                if (nodeInstance.inputCallback) {
-                    nodeInstance.inputCallback({ payload: 'test' });
+                if ((nodeInstance as any).inputCallback) {
+                    (nodeInstance as any).inputCallback({ payload: 'test' });
                 } else {
                     done(new Error('inputCallback was not set on the node instance'));
                 }
@@ -140,18 +140,18 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             // ARRANGE: Set up error and status tracking
             let statusCalled = false;
             const mockRED = createMockNodeRED({
-                onHandler: function (this: Node, event: string, callback: Function)
+                onHandler: function (this: Node, event: string, callback: Function) {
                     if (event === 'input') {
                         (this as any).inputCallback = callback;
                     }
                 },
-                statusHandler: function (status) {
+                statusHandler: function (status: any) {
                     statusCalled = true;
                     if (status.fill) {
                         expect(status.fill).to.equal('red');
                     }
                 },
-                errorHandler: function (err) {
+                errorHandler: function (err: any) {
                     // ASSERT: Should receive config error
                     expect(err).to.include('Missing required IMAP config');
                     expect(statusCalled).to.be.true;
@@ -161,14 +161,14 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             // ACT: Register node and create instance with invalid config
             emailReceiverNode(mockRED);
-            const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
+            const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(testConfigs.invalidConfig);
 
             // Trigger the error by sending an input message
             // Use a small delay to ensure the constructor has completed
             setTimeout(() => {
-                if (nodeInstance.inputCallback) {
-                    nodeInstance.inputCallback({ payload: 'test' });
+                if ((nodeInstance as any).inputCallback) {
+                    (nodeInstance as any).inputCallback({ payload: 'test' });
                 } else {
                     done(new Error('inputCallback was not set on the node instance'));
                 }
@@ -179,25 +179,29 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             // ARRANGE: Set up connection error scenario with done() protection
             let testCompleted = false;
 
-            const completeDone = () => {
+            const completeDone = (error?: Error) => {
                 if (!testCompleted) {
                     testCompleted = true;
-                    done();
+                    if (error) {
+                        done(error);
+                    } else {
+                        done();
+                    }
                 }
             };
 
             const mockRED = createMockNodeRED({
-                onHandler: function (this: Node, event: string, callback: Function)
+                onHandler: function (this: Node, event: string, callback: Function) {
                     if (event === 'input') {
                         (this as any).inputCallback = callback;
                     }
                 },
-                statusHandler: function (status) {
+                statusHandler: function (status: any) {
                     if (status.fill === 'red' && status.text && status.text.includes('error')) {
                         completeDone(); // Success - error status was set
                     }
                 },
-                errorHandler: function (err) {
+                errorHandler: function (err: any) {
                     // Also accept errors as valid completion
                     expect(err).to.exist;
                     completeDone();
@@ -213,14 +217,14 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             // ACT: Register node and create instance with invalid config
             emailReceiverNode(mockRED);
-            const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
+            const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(badConfig);
 
             // Trigger the error by sending an input message
             // Use a small delay to ensure the constructor has completed
             setTimeout(() => {
-                if (nodeInstance.inputCallback) {
-                    nodeInstance.inputCallback({ payload: 'test' });
+                if ((nodeInstance as any).inputCallback) {
+                    (nodeInstance as any).inputCallback({ payload: 'test' });
                 } else {
                     completeDone(new Error('inputCallback was not set on the node instance'));
                 }
@@ -232,12 +236,12 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         it('should handle connection success', function (done) {
             // ARRANGE: Set up connection tracking
             const mockRED = createMockNodeRED({
-                onHandler: function (this: Node, event: string, callback: Function)
+                onHandler: function (this: Node, event: string, callback: Function) {
                     if (event === 'input') {
                         (this as any).inputCallback = callback;
                     }
                 },
-                statusHandler: function (status) {
+                statusHandler: function (status: any) {
                     // ASSERT: Check for 'connected' status and then complete the test
                     if (status.fill === 'green' && status.text === 'connected') {
                         done();
@@ -245,15 +249,15 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
                 },
             });
 
-            // ACT: Create node with config that should fail
+            // ACT: Create node with config that should succeed
             emailReceiverNode(mockRED);
-            const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
+            const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(testConfigs.valid);
 
             // Trigger the connection attempt by sending an input message
             setTimeout(() => {
-                if (nodeInstance.inputCallback) {
-                    nodeInstance.inputCallback({ payload: 'test' });
+                if ((nodeInstance as any).inputCallback) {
+                    (nodeInstance as any).inputCallback({ payload: 'test' });
                 } else {
                     done(new Error('inputCallback was not set on the node instance'));
                 }
@@ -263,18 +267,18 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         it('should handle connection errors', function (done) {
             // ARRANGE: Set up error tracking
             const mockRED = createMockNodeRED({
-                onHandler: function (this: Node, event: string, callback: Function)
+                onHandler: function (this: Node, event: string, callback: Function) {
                     if (event === 'input') {
                         // Store the callback on the node instance
                         (this as any).inputCallback = callback;
                     }
                 },
-                errorHandler: function (err) {
+                errorHandler: function (err: any) {
                     // ASSERT: Should handle connection errors gracefully
                     expect(err).to.exist;
                     done();
                 },
-                statusHandler: function (status) {
+                statusHandler: function (status: any) {
                     if (status.fill === 'red') {
                         // Connection failed status
                         expect(status.text).to.include('error');
@@ -284,7 +288,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             // ACT: Create node with config that should fail
             emailReceiverNode(mockRED);
-            const nodeConstructor = mockRED.nodes.lastRegisteredConstructor;
+            const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
 
             // Use invalid config to trigger connection error
             const invalidConfig = { ...testConfigs.valid, host: 'invalid.host.com' };
@@ -292,8 +296,8 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             // Trigger the connection attempt by sending an input message
             setTimeout(() => {
-                if (nodeInstance.inputCallback) {
-                    nodeInstance.inputCallback({ payload: 'test' });
+                if ((nodeInstance as any).inputCallback) {
+                    (nodeInstance as any).inputCallback({ payload: 'test' });
                 } else {
                     done(new Error('inputCallback was not set on the node instance'));
                 }
