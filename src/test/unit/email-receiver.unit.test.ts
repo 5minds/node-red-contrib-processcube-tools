@@ -4,6 +4,7 @@ import type { Node, NodeMessageInFlow, NodeDef } from 'node-red';
 import { createMockNodeRED, setupModuleMocks, testConfigs, testUtils } from '../helpers/email-receiver.mocks';
 import type { TestConfig } from '../helpers/email-receiver.mocks';
 import emailReceiverNode from '../../email-receiver/email-receiver';
+import type { NodeAPI } from 'node-red';
 
 
 describe('E-Mail Receiver Node - Unit Tests', function () {
@@ -33,7 +34,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             const mockRED = createMockNodeRED();
 
             // ACT: Register the node
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
 
             // ASSERT: Verify registration
             expect((mockRED.nodes as any).lastRegisteredType).to.equal('email-receiver');
@@ -52,7 +53,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             });
 
             // ACT: Register and create node instance
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
             new (mockRED.nodes as any).lastRegisteredConstructor(testConfigs.valid as TestConfig);
 
             // ASSERT: Verify node was created with correct properties
@@ -71,7 +72,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             });
 
             // ACT: Register and create node with minimal config
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
             new (mockRED.nodes as any).lastRegisteredConstructor(testConfigs.minimal);
 
             // ASSERT: Verify node creation
@@ -85,13 +86,13 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             // ARRANGE: Set up message tracking
             let sentMessage: NodeMessageInFlow | null = null;
             const mockRED = createMockNodeRED({
-                sendHandler: function (this: Node, msg: NodeMessageInFlow) {
-                    sentMessage = msg;
-                },
+                sendHandler: function (msg: any) {
+                sentMessage = msg;
+            },
             });
 
             // ACT: Register node and create instance with array folders
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
             const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(testConfigs.arrayFolders);
 
@@ -121,7 +122,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             });
 
             // ACT: Register node and create instance with invalid config
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
             const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(testConfigs.invalidFolderType);
 
@@ -160,7 +161,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             });
 
             // ACT: Register node and create instance with invalid config
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
             const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(testConfigs.invalidConfig);
 
@@ -216,7 +217,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             };
 
             // ACT: Register node and create instance with invalid config
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
             const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(badConfig);
 
@@ -250,7 +251,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             });
 
             // ACT: Create node with config that should succeed
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
             const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
             const nodeInstance = new nodeConstructor(testConfigs.valid);
 
@@ -287,7 +288,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             });
 
             // ACT: Create node with config that should fail
-            emailReceiverNode(mockRED);
+            emailReceiverNode(mockRED as unknown as NodeAPI);
             const nodeConstructor = (mockRED.nodes as any).lastRegisteredConstructor;
 
             // Use invalid config to trigger connection error

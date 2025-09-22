@@ -110,7 +110,7 @@ interface ImapMailbox {
     readOnly: boolean;
 }
 
-interface MockImap {
+interface IMockImap {
     config: ImapConfig;
     events: Record<string, Function>;
     connect: () => void;
@@ -280,10 +280,11 @@ function createMockNodeRED(options: MockNodeRedOptions = {}): MockNodeRED {
 /**
  * Mock IMAP implementation for testing
  */
-export class MockImap {
+class MockImap implements IMockImap {
   public config: ImapConfig;
   public events: Record<string, Function> = {};
   public lastFetchEmitter: ImapFetchEmitter | undefined;
+  public errorCallback?: (error: Error) => void;
 
   constructor(config: ImapConfig) {
     this.config = config;
@@ -369,7 +370,7 @@ export class MockImap {
         if (event === 'end') {
           setTimeout(() => callback(), 20);
         } else if (event === 'error') {
-          (this as any).errorCallback = callback as (error: Error) => void;
+          this.errorCallback = callback as (error: Error) => void;
         }
       },
     } as ImapFetchEmitter;
@@ -424,6 +425,13 @@ export class MockImap {
 }
 
 /**
+ * Factory function to create MockImap instances
+ */
+function createMockImap(config: ImapConfig = {}): MockImap {
+    return new MockImap(config);
+}
+
+/**
  * Mock Mailparser implementation for testing
  */
 function createMockMailparser(): MockMailparser {
@@ -460,7 +468,7 @@ function createMockMailparser(): MockMailparser {
  */
 function setupModuleMocks(): () => void {
     const mockModules: Record<string, any> = {
-        'node-imap': createMockImap(),
+        'node-imap': MockImap,
         mailparser: createMockMailparser(),
     };
 
@@ -638,6 +646,7 @@ export {
     testConfigs,
     testFlows,
     testUtils,
+    MockImap,
     // Type exports
     type NodeRedMessage,
     type NodeRedNode,
@@ -645,7 +654,7 @@ export {
     type MockNodeRedOptions,
     type MockNodeRED,
     type ImapConfig,
-    type MockImap,
+    type IMockImap,
     type ParsedEmail,
     type MockMailparser,
     type TestConfig,
