@@ -16,6 +16,30 @@
         "env": []
     },
     {
+        "id": "efcace170d0f887c",
+        "type": "tab",
+        "label": "Email sender",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "ea83acb4b5051be5",
+        "type": "tab",
+        "label": "Email receiver",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "efcace170d0f887c",
+        "type": "tab",
+        "label": "Email sender",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "4902f3ca9af6dabb",
         "type": "tab",
         "label": "File storage",
@@ -349,20 +373,20 @@
         "type": "email-receiver",
         "z": "ea83acb4b5051be5",
         "name": "Email receiver via env",
-        "host": "imap.gmail.com",
-        "hostType": "str",
-        "port": "993",
-        "portType": "num",
+        "host": "EMAIL_SEND_HOST",
+        "hostType": "env",
+        "port": "EMAIL_SEND_PORT",
+        "portType": "env",
         "tls": "true",
         "tlsType": "bool",
-        "user": "user",
-        "userType": "global",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
         "password": "EMAIL_SEND_PASSWORD",
         "passwordType": "env",
-        "folder": "[\"stoelting/serviceline\", \"Inbox\"]",
+        "folder": "[\"stoelting/personal\",\"stoelting/betrieb\"]",
         "folderType": "json",
-        "markseen": "false",
-        "markseenType": "bool",
+        "markseen": "imap_markseen",
+        "markseenType": "msg",
         "x": 640,
         "y": 440,
         "wires": [
@@ -420,6 +444,351 @@
         "y": 120,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "eee089cfd5ef3985",
+        "type": "inject",
+        "z": "ea83acb4b5051be5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "imap_markseen",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 260,
+        "y": 480,
+        "wires": [
+            [
+                "73b10f832fff4e8a"
+            ]
+        ]
+    },
+    {
+        "id": "7be89384c1b95ac1",
+        "type": "inject",
+        "z": "efcace170d0f887c",
+        "name": "Simple test of the email-sender node",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 230,
+        "y": 120,
+        "wires": [
+            [
+                "9f7dfdb7f34fa92b"
+            ]
+        ]
+    },
+    {
+        "id": "c246681d350609e4",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "Test email sent",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1060,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "9f7dfdb7f34fa92b",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "sender": "Diana",
+        "senderType": "str",
+        "address": "EMAIL_SEND_USER",
+        "addressType": "env",
+        "to": "diana.stefan@5minds.de",
+        "toType": "str",
+        "cc": "",
+        "ccType": "str",
+        "bcc": "",
+        "bccType": "str",
+        "subject": "Test",
+        "subjectType": "str",
+        "htmlContent": "test",
+        "htmlContentType": "str",
+        "attachments": "",
+        "attachmentsType": "msg",
+        "host": "smtp.gmail.com",
+        "hostType": "str",
+        "port": "587",
+        "portType": "num",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "secure": "false",
+        "secureType": "bool",
+        "rejectUnauthorized": "true",
+        "rejectUnauthorizedType": "bool",
+        "x": 810,
+        "y": 120,
+        "wires": [
+            [
+                "c246681d350609e4"
+            ]
+        ]
+    },
+    {
+        "id": "3118cbba246ded32",
+        "type": "inject",
+        "z": "efcace170d0f887c",
+        "name": "Extended test of the email-sender node",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "processInstanceId",
+                "v": "123test",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"antwort\":\"Dies ist eine Beispielantwort\",\"status\":\"Done\",\"auftraggeber\":\"Test Auftraggeber\",\"betreff\":\"Erweiterter Test\"}",
+        "payloadType": "json",
+        "x": 230,
+        "y": 200,
+        "wires": [
+            [
+                "656565ebd3cce9f9"
+            ]
+        ]
+    },
+    {
+        "id": "ce437747f85cb8ee",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "Extended test email sent",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1090,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "88331a67651650d8",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "sender": "Diana",
+        "senderType": "str",
+        "address": "EMAIL_SEND_USER",
+        "addressType": "env",
+        "to": "diana.stefan@5minds.de",
+        "toType": "str",
+        "cc": "",
+        "ccType": "str",
+        "bcc": "",
+        "bccType": "str",
+        "replyTo": "reply@example.nr",
+        "replyToType": "str",
+        "subject": "Test",
+        "subjectType": "str",
+        "htmlContent": "payload",
+        "htmlContentType": "msg",
+        "attachments": "",
+        "attachmentsType": "msg",
+        "host": "smtp.gmail.com",
+        "hostType": "str",
+        "port": "587",
+        "portType": "num",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "secure": "false",
+        "secureType": "bool",
+        "rejectUnauthorized": "true",
+        "rejectUnauthorizedType": "bool",
+        "x": 810,
+        "y": 200,
+        "wires": [
+            [
+                "ce437747f85cb8ee"
+            ]
+        ]
+    },
+    {
+        "id": "656565ebd3cce9f9",
+        "type": "template",
+        "z": "efcace170d0f887c",
+        "name": "HTML content template",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\\\"de\\\">\n    <head>\n        <meta charset=\\\"UTF-8\\\">\n        <title>Ticket-Statusänderung</title>\n        </head>\n        <body style=\\\"font-family: Arial, sans-serif;\\\">\n            <h2>Statusaktualisierung für Ihr Ticket</h2>\n            <p>Hallo {{payload.auftraggeber}},</p>\n            <p>der Status Ihres Tickets <strong>{{processInstanceId}}</strong> hat sich geändert.</p>\n            <p><strong>Neuer Status:</strong> {{payload.status}}</p>\n            <p><strong>Betreff:</strong> {{payload.betreff}}</p>\n            \n            {{#payload.antwort}}\n            <p><strong>Antwort vom Kundenservice:</strong></p>\n            <p style=\\\"background-color: #f4f4f4; padding: 10px; border-left: 4px solid #007ACC;\\\">\n                {{payload.antwort}}\n            </p>\n                {{/payload.antwort}}\n                \n            <hr>\n            <p style=\\\"font-size: 0.9em;\\\">\n                Dies ist eine automatisch generierte Nachricht. Bitte antworten Sie nicht auf diese E-Mail.\n            </p>\n            <p>Mit freundlichen Grüßen,<br>\n            Ihr Support-Team</p>\n        </body>\n</html>",
+        "output": "str",
+        "x": 570,
+        "y": 200,
+        "wires": [
+            [
+                "88331a67651650d8"
+            ]
+        ]
+    },
+    {
+        "id": "f12845e201b07c7b",
+        "type": "inject",
+        "z": "efcace170d0f887c",
+        "name": "Extended test with attachments",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "processInstanceId",
+                "v": "123test",
+                "vt": "str"
+            },
+            {
+                "p": "attachment.filename",
+                "v": "test.png",
+                "vt": "str"
+            },
+            {
+                "p": "attachment.content",
+                "v": "1435645213",
+                "vt": "str"
+            },
+            {
+                "p": "attachment.contentType",
+                "v": "application/png",
+                "vt": "str"
+            },
+            {
+                "p": "attachments",
+                "v": "[msg.attachment]",
+                "vt": "jsonata"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"antwort\":\"Dies ist eine Beispielantwort\",\"status\":\"Done\",\"auftraggeber\":\"Test Auftraggeber\",\"betreff\":\"Erweiterter Test\"}",
+        "payloadType": "json",
+        "x": 210,
+        "y": 280,
+        "wires": [
+            [
+                "3a0588b5257e7841"
+            ]
+        ]
+    },
+    {
+        "id": "6cadf2b77cac0e0b",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "Extended test email sent",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1090,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "c7e14035c3e1b2e0",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "sender": "Diana",
+        "senderType": "str",
+        "address": "EMAIL_SEND_USER",
+        "addressType": "env",
+        "to": "diana.stefan@5minds.de",
+        "toType": "str",
+        "cc": "",
+        "ccType": "str",
+        "bcc": "",
+        "bccType": "str",
+        "replyTo": "reply@example.nr",
+        "replyToType": "str",
+        "subject": "Test",
+        "subjectType": "str",
+        "htmlContent": "payload",
+        "htmlContentType": "msg",
+        "attachments": "attachments",
+        "attachmentsType": "msg",
+        "host": "smtp.gmail.com",
+        "hostType": "str",
+        "port": "587",
+        "portType": "num",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "secure": "false",
+        "secureType": "bool",
+        "rejectUnauthorized": "true",
+        "rejectUnauthorizedType": "bool",
+        "x": 810,
+        "y": 280,
+        "wires": [
+            [
+                "6cadf2b77cac0e0b"
+            ]
+        ]
+    },
+    {
+        "id": "3a0588b5257e7841",
+        "type": "template",
+        "z": "efcace170d0f887c",
+        "name": "HTML content template",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<!DOCTYPE html>\n<html lang=\\\"de\\\">\n    <head>\n        <meta charset=\\\"UTF-8\\\">\n        <title>Ticket-Statusänderung</title>\n        </head>\n        <body style=\\\"font-family: Arial, sans-serif;\\\">\n            <h2>Statusaktualisierung für Ihr Ticket</h2>\n            <p>Hallo {{payload.auftraggeber}},</p>\n            <p>der Status Ihres Tickets <strong>{{processInstanceId}}</strong> hat sich geändert.</p>\n            <p><strong>Neuer Status:</strong> {{payload.status}}</p>\n            <p><strong>Betreff:</strong> {{payload.betreff}}</p>\n            \n            {{#payload.antwort}}\n            <p><strong>Antwort vom Kundenservice:</strong></p>\n            <p style=\\\"background-color: #f4f4f4; padding: 10px; border-left: 4px solid #007ACC;\\\">\n                {{payload.antwort}}\n            </p>\n                {{/payload.antwort}}\n                \n            <hr>\n            <p style=\\\"font-size: 0.9em;\\\">\n                Dies ist eine automatisch generierte Nachricht. Bitte antworten Sie nicht auf diese E-Mail.\n            </p>\n            <p>Mit freundlichen Grüßen,<br>\n            Ihr Support-Team</p>\n        </body>\n</html>",
+        "output": "str",
+        "x": 570,
+        "y": 280,
+        "wires": [
+            [
+                "c7e14035c3e1b2e0"
+            ]
         ]
     },
     {

@@ -1,4 +1,4 @@
-const should = require('should');
+const { expect } = require('chai');
 const helper = require('node-red-node-test-helper');
 const {
     createMockImap,
@@ -9,7 +9,7 @@ const {
     testUtils,
 } = require('../helpers/email-receiver.mocks.js');
 
-describe('Email Receiver Node - Integration Tests with Helpers', function () {
+describe('E-Mail Receiver Node - Integration Tests', function () {
     // Set a reasonable timeout for integration tests
     this.timeout(10000);
 
@@ -54,9 +54,9 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                 try {
                     // ASSERT: Verify the node loaded correctly
                     const n1 = helper.getNode(testConfigs.valid.id);
-                    should.exist(n1);
-                    n1.should.have.property('name', testConfigs.valid.name);
-                    n1.should.have.property('type', 'email-receiver');
+                    expect(n1).to.exist;
+                    expect(n1).to.have.property('name', testConfigs.valid.name);
+                    expect(n1).to.have.property('type', 'email-receiver');
                     done();
                 } catch (err) {
                     done(err);
@@ -73,8 +73,8 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                 try {
                     // ASSERT: Verify the node loaded with minimal config
                     const n1 = helper.getNode(testConfigs.minimal.id);
-                    should.exist(n1);
-                    n1.should.have.property('type', 'email-receiver');
+                    expect(n1).to.exist;
+                    expect(n1).to.have.property('type', 'email-receiver');
                     done();
                 } catch (err) {
                     done(err);
@@ -91,8 +91,8 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                 try {
                     // ASSERT: Verify the node loaded with array folders
                     const n1 = helper.getNode(testConfigs.arrayFolders.id);
-                    should.exist(n1);
-                    n1.should.have.property('name', testConfigs.arrayFolders.name);
+                    expect(n1).to.exist;
+                    expect(n1).to.have.property('name', testConfigs.arrayFolders.name);
                     done();
                 } catch (err) {
                     done(err);
@@ -113,10 +113,10 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                     const h1 = helper.getNode('h1');
 
                     // ASSERT: Both nodes should exist and be connected
-                    should.exist(n1);
-                    should.exist(h1);
-                    n1.should.have.property('name', testConfigs.valid.name);
-                    h1.should.have.property('type', 'helper');
+                    expect(n1).to.exist;
+                    expect(h1).to.exist;
+                    expect(n1).to.have.property('name', testConfigs.valid.name);
+                    expect(h1).to.have.property('type', 'helper');
 
                     done();
                 } catch (err) {
@@ -137,10 +137,10 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                     const h2 = helper.getNode('h2');
 
                     // ASSERT: All nodes should exist
-                    should.exist(n1);
-                    should.exist(h1);
-                    should.exist(h2);
-                    n1.should.have.property('name', testConfigs.valid.name);
+                    expect(n1).to.exist;
+                    expect(h1).to.exist;
+                    expect(h2).to.exist;
+                    expect(n1).to.have.property('name', testConfigs.valid.name);
 
                     done();
                 } catch (err) {
@@ -159,7 +159,7 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                 helper.load(emailReceiverNode, flow, function () {
                     try {
                         const n1 = helper.getNode(testConfigs.valid.id);
-                        should.exist(n1);
+                        expect(n1).to.exist;
 
                         // Send input - this should not crash due to mocked IMAP
                         n1.receive({ payload: 'test input' });
@@ -189,8 +189,8 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                     h1.on('input', function (msg) {
                         try {
                             // ASSERT: Should receive a message with expected properties
-                            should.exist(msg);
-                            should.exist(msg.payload);
+                            expect(msg).to.exist;
+                            expect(msg.payload).to.exist;
                             done();
                         } catch (err) {
                             done(err);
@@ -238,12 +238,12 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                             .waitForMessage(h1, 1000)
                             .then((msg) => {
                                 // ASSERT: Should receive message within timeout
-                                should.exist(msg);
+                                expect(msg).to.exist;
                                 resolve();
                             })
                             .catch((err) => {
                                 // ASSERT: Should handle timeout appropriately
-                                err.message.should.containEql('Timeout waiting for message');
+                                expect(err.message).to.include('Timeout waiting for message');
                                 resolve(); // This is expected behavior for this test
                             });
 
@@ -266,10 +266,10 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
 
                     h1.on('input', function (msg) {
                         try {
-                            should.exist(msg);
-                            should.exist(msg.payload);
-                            msg.should.have.property('subject');
-                            msg.should.have.property('from');
+                            expect(msg).to.exist;
+                            expect(msg.payload).to.exist;
+                            expect(msg).to.have.property('subject');
+                            expect(msg).to.have.property('from');
                             done();
                         } catch (err) {
                             done(err);
@@ -308,7 +308,7 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
             helper.load(emailReceiverNode, flow, function () {
                 try {
                     const n1 = helper.getNode(testConfigs.invalidConfig.id);
-                    should.exist(n1);
+                    expect(n1).to.exist;
 
                     // ASSERT: Node should exist but handle invalid config appropriately
                     // Send input to trigger validation
@@ -337,8 +337,8 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                             const n1 = helper.getNode(config.id);
 
                             // ASSERT: Node should load successfully with different folder configs
-                            should.exist(n1);
-                            n1.should.have.property('name', config.name);
+                            expect(n1).to.exist;
+                            expect(n1).to.have.property('name', config.name);
 
                             helper.unload();
                             resolve();
@@ -368,12 +368,12 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
 
                 // Test openBox functionality
                 imapInstance.openBox('INBOX', false, (err, box) => {
-                    should.not.exist(err);
-                    should.exist(box);
-                    box.should.have.property('messages');
+                    expect(err).to.not.exist;
+                    expect(box).to.exist;
+                    expect(box).to.have.property('messages');
 
                     // ASSERT: Mock IMAP should work as expected
-                    readyFired.should.be.true();
+                    expect(readyFired).to.be.true;
                     done();
                 });
             });
@@ -392,11 +392,11 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
             });
 
             // ASSERT: Mock mailparser should return expected structure
-            result.should.have.property('subject', 'Integration Test Email');
-            result.should.have.property('from');
-            result.from.should.have.property('text', 'integration@test.com');
-            result.should.have.property('headers');
-            result.headers.should.be.instanceOf(Map);
+            expect(result).to.have.property('subject', 'Integration Test Email');
+            expect(result).to.have.property('from');
+            expect(result.from).to.have.property('text', 'integration@test.com');
+            expect(result).to.have.property('headers');
+            expect(result.headers).to.be.an.instanceOf(Map);
         });
     });
 
@@ -409,7 +409,7 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                 helper.load(emailReceiverNode, flow, function () {
                     try {
                         const n1 = helper.getNode(testConfigs.valid.id);
-                        should.exist(n1);
+                        expect(n1).to.exist;
 
                         // Simulate some activity
                         n1.receive({ payload: 'test' });
@@ -437,7 +437,7 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                     helper.load(emailReceiverNode, flow, function () {
                         try {
                             const n1 = helper.getNode(testConfigs.valid.id);
-                            should.exist(n1);
+                            expect(n1).to.exist;
 
                             // Quick activity simulation
                             n1.receive({ payload: `test cycle ${i}` });
@@ -484,11 +484,11 @@ describe('Email Receiver Node - Integration Tests with Helpers', function () {
                     function checkCompletion() {
                         if (receivedMessages.length >= 2) {
                             // ASSERT: Both helpers should receive messages
-                            receivedMessages.length.should.equal(2);
+                            expect(receivedMessages.length).to.equal(2);
 
                             receivedMessages.forEach((item) => {
-                                should.exist(item.msg);
-                                should.exist(item.msg.payload);
+                                expect(item.msg).to.exist;
+                                expect(item.msg.payload).to.exist;
                             });
 
                             done();
