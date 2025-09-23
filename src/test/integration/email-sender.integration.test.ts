@@ -30,7 +30,7 @@ describe('E-Mail Sender Node - Integration Tests', function () {
         cleanupMocks = setupModuleMocks();
 
         // Load the node with mocked dependencies
-        emailSenderNode = require('../../email-sender/email-sender.js');
+        emailSenderNode = require('../../email-sender/email-sender');
 
         // CRITICAL: Initialize the helper with Node-RED
         helper.init(require.resolve('node-red'));

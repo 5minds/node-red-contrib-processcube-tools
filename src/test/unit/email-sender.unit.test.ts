@@ -46,7 +46,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
         cleanupMocks = setupModuleMocks();
 
         // Load the node with mocked dependencies
-        emailSenderNode = require('../../email-sender/email-sender.js');
+        emailSenderNode = require('../../email-sender/email-sender');
     });
 
     after(function () {
@@ -161,7 +161,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             });
 
             // ACT: Initialize the email sender node
-            const emailSenderNode = require('../../email-sender/email-sender.js');
+            const emailSenderNode = require('../../email-sender/email-sender');
             emailSenderNode(mockRED);
 
             const nodeConstructor = mockRED.nodes.lastRegisteredConstructor!;
@@ -212,7 +212,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 },
             });
 
-            const emailSenderNode = require('../../email-sender/email-sender.js');
+            const emailSenderNode = require('../../email-sender/email-sender');
             emailSenderNode(mockRED);
 
             const nodeConstructor = mockRED.nodes.lastRegisteredConstructor!;
@@ -283,7 +283,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 },
             });
 
-            const emailSenderNode = require('../../email-sender/email-sender.js');
+            const emailSenderNode = require('../../email-sender/email-sender');
             emailSenderNode(mockRED);
 
             const config: EmailSenderConfig = { ...emailSenderConfigs.valid };
@@ -350,7 +350,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 },
             });
 
-            const emailSenderNode = require('../../email-sender/email-sender.js');
+            const emailSenderNode = require('../../email-sender/email-sender');
             emailSenderNode(mockRED);
 
             const config: EmailSenderConfig = { ...emailSenderConfigs.valid };
@@ -409,7 +409,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 },
             });
 
-            const emailSenderNode = require('../../email-sender/email-sender.js');
+            const emailSenderNode = require('../../email-sender/email-sender');
             emailSenderNode(mockRED);
 
             const nodeConstructor = mockRED.nodes.lastRegisteredConstructor!;
@@ -464,7 +464,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 },
             });
 
-            const emailSenderNode = require('../../email-sender/email-sender.js');
+            const emailSenderNode = require('../../email-sender/email-sender');
             emailSenderNode(mockRED);
 
             const nodeConstructor = mockRED.nodes.lastRegisteredConstructor!;
@@ -529,7 +529,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 },
             });
 
-            const emailSenderNode = require('../../email-sender/email-sender.js');
+            const emailSenderNode = require('../../email-sender/email-sender');
             emailSenderNode(mockRED);
 
             const config: EmailSenderConfig = { ...emailSenderConfigs.valid };
@@ -585,7 +585,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 },
             });
 
-            const emailSenderNode = require('../../email-sender/email-sender.js');
+            const emailSenderNode = require('../../email-sender/email-sender');
             emailSenderNode(mockRED);
 
             const config: EmailSenderConfig = { ...emailSenderConfigs.valid };

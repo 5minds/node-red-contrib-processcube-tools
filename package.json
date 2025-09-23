@@ -8,7 +8,9 @@
         "build:ts": "tsc",
         "build:html": "cpx \"./src/**/*.html\" ./dist",
         "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
-        "test": "npm run build && mocha dist/test/unit/ dist/test/integration"
+        "test": "mocha --require ts-node/register 'src/test/**/*.test.ts'",
+        "test:unit": "mocha --require ts-node/register 'src/test/unit/**/*.test.ts'",
+        "test:integration": "mocha --require ts-node/register 'src/test/integration/**/*.test.ts'"
     },
     "authors": [
         {

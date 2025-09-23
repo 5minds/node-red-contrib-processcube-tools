@@ -14,8 +14,9 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "types": ["mocha", "chai", "node"]
   },
-  "include": ["src/**/*"],
+  "include": ["test/**/*", "src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

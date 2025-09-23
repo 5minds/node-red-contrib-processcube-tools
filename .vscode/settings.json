@@ -1,0 +1,8 @@
+{
+  "mochaExplorer.files": "src/test/**/*.test.ts",
+  "mochaExplorer.require": ["ts-node/register"],
+  "mochaExplorer.timeout": 10000,
+  "mochaExplorer.env": {},
+  "mochaExplorer.cwd": "${workspaceFolder}",
+  "mochaExplorer.nodePath": "/usr/local/bin/node"
+}
