@@ -24,22 +24,6 @@
         "env": []
     },
     {
-        "id": "ea83acb4b5051be5",
-        "type": "tab",
-        "label": "Email receiver",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "efcace170d0f887c",
-        "type": "tab",
-        "label": "Email sender",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
         "id": "fd4bdf33d0253f6a",
         "type": "processcube-html-to-text",
         "z": "4a5484c44fd92283",
@@ -342,20 +326,20 @@
         "type": "email-receiver",
         "z": "ea83acb4b5051be5",
         "name": "Email receiver via env",
-        "host": "imap.gmail.com",
-        "hostType": "str",
-        "port": "993",
-        "portType": "num",
+        "host": "EMAIL_SEND_HOST",
+        "hostType": "env",
+        "port": "EMAIL_SEND_PORT",
+        "portType": "env",
         "tls": "true",
         "tlsType": "bool",
-        "user": "user",
-        "userType": "global",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
         "password": "EMAIL_SEND_PASSWORD",
         "passwordType": "env",
-        "folder": "[\"stoelting/serviceline\", \"Inbox\"]",
+        "folder": "[\"stoelting/personal\",\"stoelting/betrieb\"]",
         "folderType": "json",
-        "markseen": "false",
-        "markseenType": "bool",
+        "markseen": "imap_markseen",
+        "markseenType": "msg",
         "x": 640,
         "y": 440,
         "wires": [
@@ -413,6 +397,36 @@
         "y": 120,
         "wires": [
             []
+        ]
+    },
+    {
+        "id": "eee089cfd5ef3985",
+        "type": "inject",
+        "z": "ea83acb4b5051be5",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "imap_markseen",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 260,
+        "y": 480,
+        "wires": [
+            [
+                "73b10f832fff4e8a"
+            ]
         ]
     },
     {
