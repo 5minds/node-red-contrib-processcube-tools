@@ -10,16 +10,6 @@ import {
 } from '../../test/helpers/email-sender.mocks';
 
 // Type definitions for the integration test environment
-interface NodeRedNode {
-    id: string;
-    type: string;
-    name?: string;
-    receive: (msg: any) => void;
-    send: (msg: any) => void;
-    on: (event: string, callback: (msg: any) => void) => void;
-    [key: string]: any;
-}
-
 interface MockEmailMessage {
     payload: string;
     topic: string;
@@ -72,7 +62,7 @@ describe('E-Mail Sender Node - Integration Tests', function () {
             helper.load(emailSenderNode, flow, function () {
                 try {
                     // ASSERT: Verify the node loaded correctly
-                    const n1: NodeRedNode = helper.getNode(emailSenderConfigs.valid.id);
+                    const n1: any = helper.getNode(emailSenderConfigs.valid.id);
                     expect(n1).to.exist;
                     expect(n1).to.have.property('name', emailSenderConfigs.valid.name);
                     expect(n1).to.have.property('type', 'email-sender');
@@ -91,7 +81,7 @@ describe('E-Mail Sender Node - Integration Tests', function () {
             helper.load(emailSenderNode, flow, function () {
                 try {
                     // ASSERT: Verify the node loaded with minimal config
-                    const n1: NodeRedNode = helper.getNode(emailSenderConfigs.minimal.id);
+                    const n1: any = helper.getNode(emailSenderConfigs.minimal.id);
                     expect(n1).to.exist;
                     expect(n1).to.have.property('type', 'email-sender');
                     done();
@@ -110,8 +100,8 @@ describe('E-Mail Sender Node - Integration Tests', function () {
             // ACT: Load nodes and verify connections
             helper.load(emailSenderNode, flow, function () {
                 try {
-                    const n1: NodeRedNode = helper.getNode(emailSenderConfigs.valid.id);
-                    const h1: NodeRedNode = helper.getNode('h1');
+                    const n1: any = helper.getNode(emailSenderConfigs.valid.id);
+                    const h1: any = helper.getNode('h1');
 
                     // ASSERT: Both nodes should exist and be connected
                     expect(n1).to.exist;
@@ -133,9 +123,9 @@ describe('E-Mail Sender Node - Integration Tests', function () {
             // ACT: Load nodes
             helper.load(emailSenderNode, flow, function () {
                 try {
-                    const n1: NodeRedNode = helper.getNode(emailSenderConfigs.valid.id);
-                    const h1: NodeRedNode = helper.getNode('h1');
-                    const h2: NodeRedNode = helper.getNode('h2');
+                    const n1: any = helper.getNode(emailSenderConfigs.valid.id);
+                    const h1: any = helper.getNode('h1');
+                    const h2: any = helper.getNode('h2');
 
                     // ASSERT: All nodes should exist
                     expect(n1).to.exist;
@@ -159,7 +149,7 @@ describe('E-Mail Sender Node - Integration Tests', function () {
             return new Promise<void>((resolve, reject) => {
                 helper.load(emailSenderNode, flow, function () {
                     try {
-                        const n1: NodeRedNode = helper.getNode(emailSenderConfigs.valid.id);
+                        const n1: any = helper.getNode(emailSenderConfigs.valid.id);
                         expect(n1).to.exist;
 
                         // Send input - this should not crash due to mocked IMAP
@@ -183,8 +173,8 @@ describe('E-Mail Sender Node - Integration Tests', function () {
             // ACT: Load nodes and set up message listener
             helper.load(emailSenderNode, flow, function () {
                 try {
-                    const n1: NodeRedNode = helper.getNode(emailSenderConfigs.valid.id);
-                    const h1: NodeRedNode = helper.getNode('h1');
+                    const n1: any = helper.getNode(emailSenderConfigs.valid.id);
+                    const h1: any = helper.getNode('h1');
 
                     // Set up listener for messages from email receiver
                     h1.on('input', function (msg: any) {
@@ -231,8 +221,8 @@ describe('E-Mail Sender Node - Integration Tests', function () {
             return new Promise<void>((resolve, reject) => {
                 helper.load(emailSenderNode, flow, function () {
                     try {
-                        const n1: NodeRedNode = helper.getNode(emailSenderConfigs.valid.id);
-                        const h1: NodeRedNode = helper.getNode('h1');
+                        const n1: any = helper.getNode(emailSenderConfigs.valid.id);
+                        const h1: any = helper.getNode('h1');
 
                         // Use testUtils.waitForMessage with timeout
                         testUtils
