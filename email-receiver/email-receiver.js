@@ -2,6 +2,17 @@ module.exports = function (RED) {
     const Imap = require('node-imap');
     const mailparser = require('mailparser');
 
+    function toBoolean(val, defaultValue = false) {
+        if (typeof val === "boolean") return val;       // schon korrekt
+        if (typeof val === "number") return val !== 0;  // 0 = false, sonst true
+        if (typeof val === "string") {
+            const v = val.trim().toLowerCase();
+            if (["true", "1", "yes", "on"].includes(v)) return true;
+            if (["false", "0", "no", "off"].includes(v)) return false;
+        }
+        return defaultValue; // fallback
+    }
+
     function EmailReceiverNode(config) {
         RED.nodes.createNode(this, config);
         const node = this;
@@ -36,10 +47,10 @@ module.exports = function (RED) {
                 folders: Array.isArray(imap_folder)
                     ? imap_folder
                     : imap_folder
-                          .split(',')
-                          .map((f) => f.trim())
-                          .filter((f) => f.length > 0),
-                markSeen: imap_markSeen,
+                        .split(',')
+                        .map((f) => f.trim())
+                        .filter((f) => f.length > 0),
+                markSeen: toBoolean(imap_markSeen, true),
                 connTimeout: msg.imap_connTimeout || 10000,
                 authTimeout: msg.imap_authTimeout || 5000,
                 keepalive: msg.imap_keepalive !== undefined ? msg.imap_keepalive : true,
@@ -161,7 +172,7 @@ module.exports = function (RED) {
 
                             state.totalMails += results.length;
 
-                            const fetch = imap.fetch(results, { bodies: '' });
+                            const fetch = imap.fetch(results, { bodies: '', markSeen: markSeen });
 
                             fetch.on('message', (msg) => {
                                 msg.on('body', (stream) => {
@@ -232,8 +243,12 @@ module.exports = function (RED) {
                     node.log('IMAP connection ended.');
                 });
 
-                updateStatus('yellow', 'Connecting to IMAP...');
-                imap.connect();
+                try {
+                    updateStatus('yellow', 'Connecting to IMAP...');
+                    imap.connect();
+                } catch (err) {
+                    updateStatus('red', 'Connection error: ' + err.message);
+                } 
             };
 
             fetchEmails(finalConfig, (mail) => {
