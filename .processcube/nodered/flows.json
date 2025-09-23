@@ -24,6 +24,22 @@
         "env": []
     },
     {
+        "id": "ea83acb4b5051be5",
+        "type": "tab",
+        "label": "Email receiver",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "efcace170d0f887c",
+        "type": "tab",
+        "label": "Email sender",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "fd4bdf33d0253f6a",
         "type": "processcube-html-to-text",
         "z": "4a5484c44fd92283",
