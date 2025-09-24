@@ -24,22 +24,6 @@
         "env": []
     },
     {
-        "id": "ea83acb4b5051be5",
-        "type": "tab",
-        "label": "Email receiver",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
-        "id": "efcace170d0f887c",
-        "type": "tab",
-        "label": "Email sender",
-        "disabled": false,
-        "info": "",
-        "env": []
-    },
-    {
         "id": "fd4bdf33d0253f6a",
         "type": "processcube-html-to-text",
         "z": "4a5484c44fd92283",
@@ -344,7 +328,7 @@
         "name": "Email receiver via env",
         "host": "EMAIL_SEND_HOST",
         "hostType": "env",
-        "port": "EMAIL_SEND_PORT",
+        "port": "EMAIL_RECEIVE_PORT",
         "portType": "env",
         "tls": "true",
         "tlsType": "bool",
@@ -419,11 +403,8 @@
         "id": "eee089cfd5ef3985",
         "type": "inject",
         "z": "ea83acb4b5051be5",
-        "name": "",
+        "name": "Test markseen",
         "props": [
-            {
-                "p": "payload"
-            },
             {
                 "p": "imap_markseen",
                 "v": "true",
@@ -435,13 +416,80 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "payload": "",
-        "payloadType": "date",
-        "x": 260,
-        "y": 480,
+        "x": 160,
+        "y": 440,
         "wires": [
             [
                 "73b10f832fff4e8a"
+            ]
+        ]
+    },
+    {
+        "id": "154bba0ae1e0eb0f",
+        "type": "email-receiver",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver via env",
+        "host": "EMAIL_SEND_HOST",
+        "hostType": "env",
+        "port": "EMAIL_RECEIVE_PORT",
+        "portType": "env",
+        "tls": "true",
+        "tlsType": "bool",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "folder": "[\"stoelting/test\"]",
+        "folderType": "json",
+        "markseen": "imap_markseen",
+        "markseenType": "msg",
+        "x": 640,
+        "y": 540,
+        "wires": [
+            [
+                "3445e02c1a6fae6a"
+            ]
+        ]
+    },
+    {
+        "id": "3445e02c1a6fae6a",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email receiver env output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 930,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "3710aefa684d1144",
+        "type": "inject",
+        "z": "ea83acb4b5051be5",
+        "name": "Test markseen",
+        "props": [
+            {
+                "p": "imap_markseen",
+                "v": "true",
+                "vt": "bool"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 160,
+        "y": 540,
+        "wires": [
+            [
+                "154bba0ae1e0eb0f"
             ]
         ]
     },
