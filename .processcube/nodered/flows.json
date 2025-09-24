@@ -328,7 +328,7 @@
         "name": "Email receiver via env",
         "host": "EMAIL_SEND_HOST",
         "hostType": "env",
-        "port": "EMAIL_SEND_PORT",
+        "port": "EMAIL_RECEIVE_PORT",
         "portType": "env",
         "tls": "true",
         "tlsType": "bool",
@@ -439,7 +439,7 @@
         "userType": "env",
         "password": "EMAIL_SEND_PASSWORD",
         "passwordType": "env",
-        "folder": "[\"stoelting/personal\",\"stoelting/betrieb\"]",
+        "folder": "[\"stoelting/test\"]",
         "folderType": "json",
         "markseen": "imap_markseen",
         "markseenType": "msg",
@@ -476,7 +476,7 @@
         "props": [
             {
                 "p": "imap_markseen",
-                "v": "false",
+                "v": "true",
                 "vt": "bool"
             }
         ],
