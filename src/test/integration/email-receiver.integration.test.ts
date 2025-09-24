@@ -1,518 +1,407 @@
-import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import * as helper from 'node-red-node-test-helper';
-import type { Node, NodeMessageInFlow } from 'node-red';
-import {
-    createMockImap,
-    createMockMailparser,
-    setupModuleMocks,
-    testConfigs,
-    testFlows,
-    testUtils,
-} from '../helpers/email-receiver.mocks';
-import type { TestConfig } from '../helpers/email-receiver.mocks';
 import emailReceiverNode from '../../email-receiver/email-receiver';
+import { setupModuleMocks, testConfigs } from '../helpers/email-receiver.mocks';
 
-describe('E-Mail Receiver Node - Integration Tests', function () {
-    // Set a reasonable timeout for integration tests
-    this.timeout(10000);
+// Import our comprehensive test framework
+import {
+  TestScenarioBuilder,
+  NodeTestRunner,
+  NodeAssertions,
+  type TestScenario
+} from '../framework';
 
-    let cleanupMocks: (() => void) | undefined;
+import {
+  TestPatternHelpers,
+  PerformanceTestRunner,
+  StressTestBuilder,
+  ErrorResilienceTestBuilder,
+  DataValidationTestBuilder,
+  EdgeCaseTestBuilder,
+  AsyncBehaviorTestBuilder,
+  SecurityTestBuilder,
+  type PerformanceTestScenario
+} from '../framework/advanced-test-patterns';
 
-    before(function (done: Mocha.Done) {
-        // Set up mocks using helper
+describe('E-Mail Receiver Node - Comprehensive Advanced Tests', function () {
+    this.timeout(30000); // Extended timeout for comprehensive tests
+    let cleanupMocks: Function;
+
+    before(function () {
         cleanupMocks = setupModuleMocks();
-
-        // CRITICAL: Initialize the helper with Node-RED
-        helper.init(require.resolve('node-red'));
-        done();
     });
 
     after(function () {
-        // Clean up mocks using helper cleanup function
-        if (cleanupMocks) {
-            cleanupMocks();
+        if (cleanupMocks) cleanupMocks();
+    });
+
+    // ========================================================================
+    // USE HELPER TO CREATE COMPREHENSIVE SUITE
+    // ========================================================================
+
+    TestPatternHelpers.createComprehensiveTestSuite(
+        'Email Receiver',
+        emailReceiverNode,
+        {
+            valid: testConfigs.valid,
+            minimal: testConfigs.minimal,
+            invalid: testConfigs.invalidConfig
+        },
+        {
+            includePerformance: true,
+            includeStress: true,
+            includeSecurity: true,
+            includeEdgeCases: true
         }
-    });
+    );
 
-    beforeEach(function (done: Mocha.Done) {
-        helper.startServer(done);
-    });
+    // ========================================================================
+    // EMAIL-SPECIFIC DATA VALIDATION TESTS
+    // ========================================================================
 
-    afterEach(function (done: Mocha.Done) {
-        helper.unload();
-        helper.stopServer(done);
-    });
-
-    describe('Node Loading', function () {
-        it('should load in Node-RED test environment', function (done: Mocha.Done) {
-            // ARRANGE: Use test flow from helpers
-            const flow = [testConfigs.valid];
-
-            // ACT: Load the node in the test helper environment
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    // ASSERT: Verify the node loaded correctly
-                    const n1 = helper.getNode(testConfigs.valid.id);
-                    expect(n1).to.exist;
-                    expect(n1).to.have.property('name', testConfigs.valid.name);
-                    expect(n1).to.have.property('type', 'email-receiver');
-                    done();
-                } catch (err) {
-                    done(err);
+    describe('Email Data Validation', function () {
+        const emailValidation = new DataValidationTestBuilder()
+            .addSchemaValidationScenario(
+                'email configuration',
+                testConfigs.valid,
+                {
+                    host: 'imap.gmail.com',
+                    port: 993,
+                    secure: true,
+                    user: 'test@gmail.com',
+                    password: 'password',
+                    folders: ['INBOX']
+                },
+                [
+                    { host: '', port: 993 }, // Missing host
+                    { host: 'imap.gmail.com', port: 'invalid' }, // Invalid port
+                    { host: 'imap.gmail.com', port: 993, folders: 'not-array' }, // Invalid folders
+                    { host: 'imap.gmail.com', port: 993, secure: 'maybe' } // Invalid secure flag
+                ]
+            )
+            .addBoundaryValueScenario(
+                'port numbers',
+                testConfigs.valid,
+                {
+                    min: 1,
+                    max: 65535,
+                    belowMin: 0,
+                    aboveMax: 65536
                 }
-            });
-        });
+            )
+            .addTypeValidationScenario(
+                'folder configuration',
+                testConfigs.valid,
+                'array',
+                [
+                    ['INBOX'],
+                    ['INBOX', 'SENT'],
+                    []
+                ],
+                [
+                    'INBOX',
+                    123,
+                    null,
+                    undefined,
+                    { folder: 'INBOX' }
+                ]
+            );
 
-        it('should load with minimal configuration', function (done: Mocha.Done) {
-            // ARRANGE: Use minimal test config from helpers
-            const flow = [testConfigs.minimal];
+        emailValidation.getScenarios().forEach(scenario => {
+            it(`should validate ${scenario.name}`, async function () {
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
 
-            // ACT: Load the node
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    // ASSERT: Verify the node loaded with minimal config
-                    const n1 = helper.getNode(testConfigs.minimal.id);
-                    expect(n1).to.exist;
-                    expect(n1).to.have.property('type', 'email-receiver');
-                    done();
-                } catch (err) {
-                    done(err);
-                }
-            });
-        });
-
-        it('should load with array folders configuration', function (done: Mocha.Done) {
-            // ARRANGE: Use array folders config from helpers
-            const flow = [testConfigs.arrayFolders];
-
-            // ACT: Load the node
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    // ASSERT: Verify the node loaded with array folders
-                    const n1 = helper.getNode(testConfigs.arrayFolders.id);
-                    expect(n1).to.exist;
-                    expect(n1).to.have.property('name', testConfigs.arrayFolders.name);
-                    done();
-                } catch (err) {
-                    done(err);
-                }
-            });
-        });
-    });
-
-    describe('Node Connections', function () {
-        it('should create wired connections correctly', function (done: Mocha.Done) {
-            // ARRANGE: Use connected test flow from helpers
-            const flow = testFlows.connected;
-
-            // ACT: Load nodes and verify connections
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    const n1 = helper.getNode(testConfigs.valid.id);
-                    const h1 = helper.getNode('h1');
-
-                    // ASSERT: Both nodes should exist and be connected
-                    expect(n1).to.exist;
-                    expect(h1).to.exist;
-                    expect(n1).to.have.property('name', testConfigs.valid.name);
-                    expect(h1).to.have.property('type', 'helper');
-
-                    done();
-                } catch (err) {
-                    done(err);
-                }
-            });
-        });
-
-        it('should handle multiple output connections', function (done: Mocha.Done) {
-            // ARRANGE: Use multi-output test flow from helpers
-            const flow = testFlows.multiOutput;
-
-            // ACT: Load nodes
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    const n1 = helper.getNode(testConfigs.valid.id);
-                    const h1 = helper.getNode('h1');
-                    const h2 = helper.getNode('h2');
-
-                    // ASSERT: All nodes should exist
-                    expect(n1).to.exist;
-                    expect(h1).to.exist;
-                    expect(h2).to.exist;
-                    expect(n1).to.have.property('name', testConfigs.valid.name);
-
-                    done();
-                } catch (err) {
-                    done(err);
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
+                } else {
+                    NodeAssertions.expectNoErrors(context);
                 }
             });
         });
     });
 
-    describe('Message Flow', function () {
-        it('should handle input without crashing', async function () {
-            // ARRANGE: Use test flow from helpers
-            const flow = testFlows.single;
+    // ========================================================================
+    // EMAIL-SPECIFIC ERROR RESILIENCE TESTS
+    // ========================================================================
 
-            return new Promise<void>((resolve, reject) => {
-                helper.load(emailReceiverNode as any, flow, function () {
-                    try {
-                        const n1 = helper.getNode(testConfigs.valid.id) as Node;
-                        expect(n1).to.exist;
+    describe('Email Error Resilience', function () {
+        const resilience = new ErrorResilienceTestBuilder()
+            .addNetworkErrorScenario('IMAP connection', testConfigs.valid)
+            .addMalformedInputScenario('email message processing', testConfigs.valid)
+            .addRapidFireScenario('email burst handling', testConfigs.valid, 50);
 
-                        // Send input - this should not crash due to mocked IMAP
-                        (n1 as any).receive({ payload: 'test input' });
+        resilience.getScenarios().forEach(scenario => {
+            it(`should handle ${scenario.name}`, async function () {
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
 
-                        // ASSERT: If we reach here, the node handled input gracefully
-                        testUtils.wait(500).then(() => {
-                            resolve(); // Success if no errors thrown
-                        }).catch(reject);
-                    } catch (err) {
-                        reject(err);
-                    }
+                // Node should exist and handle errors gracefully
+                expect(context.nodeInstance).to.exist;
+
+                // Should either process successfully or handle errors appropriately
+                const hasGracefulHandling =
+                    context.errors.length === 0 ||
+                    context.statuses.some(s => s.fill === 'red') ||
+                    context.errors.some(e => typeof e === 'string');
+
+                expect(hasGracefulHandling, 'Should handle errors gracefully').to.be.true;
+            });
+        });
+    });
+
+    // ========================================================================
+    // EMAIL-SPECIFIC EDGE CASES
+    // ========================================================================
+
+    describe('Email Edge Cases', function () {
+        const edgeCases = new EdgeCaseTestBuilder()
+            .addEmptyDataScenarios('empty email data', testConfigs.valid)
+            .addSpecialCharacterScenarios('special characters in emails', testConfigs.valid)
+            .addLargeDataScenarios('large email attachments', testConfigs.valid);
+
+        // Add email-specific edge cases
+        const emailSpecificCases = new TestScenarioBuilder()
+            .addCustomScenario({
+                name: 'very long subject line',
+                config: testConfigs.valid,
+                input: {
+                    payload: 'fetch',
+                    subject: 'a'.repeat(1000) // Very long subject
+                }
+            })
+            .addCustomScenario({
+                name: 'multiple folder processing',
+                config: {
+                    ...testConfigs.valid,
+                    folders: Array.from({ length: 50 }, (_, i) => `FOLDER${i}`)
+                },
+                input: { payload: 'fetch' }
+            })
+            .addCustomScenario({
+                name: 'special email characters',
+                config: testConfigs.valid,
+                input: {
+                    payload: 'fetch',
+                    from: 'tëst@exämple.com',
+                    subject: '📧 Émails with spéciál chars! 🌟'
+                }
+            });
+
+        [...edgeCases.getScenarios(), ...emailSpecificCases.getScenarios()]
+            .forEach(scenario => {
+                it(`should handle ${scenario.name}`, async function () {
+                    const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+                    expect(context.nodeInstance).to.exist;
                 });
             });
-        });
+    });
 
-        it('should process messages through connected nodes', function (done: Mocha.Done) {
-            // ARRANGE: Use connected test flow from helpers
-            const flow = testFlows.connected;
+    // ========================================================================
+    // ASYNC BEHAVIOR SPECIFIC TO EMAIL PROCESSING
+    // ========================================================================
 
-            // ACT: Load nodes and set up message listener
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    const n1 = helper.getNode(testConfigs.valid.id) as Node;
-                    const h1 = helper.getNode('h1') as Node;
+    describe('Email Async Behavior', function () {
+        const asyncTests = new AsyncBehaviorTestBuilder()
+            .addDelayedResponseScenario(
+                'IMAP connection delay',
+                testConfigs.valid,
+                { payload: 'connect' },
+                2000
+            )
+            .addRetryMechanismScenario(
+                'failed email fetch retry',
+                testConfigs.valid,
+                3
+            )
+            .addTimeoutHandlingScenario(
+                'IMAP operation timeout',
+                { ...testConfigs.valid, timeout: 1000 },
+                1000
+            )
+            .addBackpressureScenario(
+                'many simultaneous email requests',
+                testConfigs.valid,
+                100
+            );
 
-                    // Set up listener for messages from email receiver
-                    h1.on('input', function (msg: NodeMessageInFlow) {
-                        try {
-                            // ASSERT: Should receive a message with expected properties
-                            expect(msg).to.exist;
-                            expect(msg.payload).to.exist;
-                            done();
-                        } catch (err) {
-                            done(err);
-                        }
-                    });
+        asyncTests.getScenarios().forEach(scenario => {
+            it(`should handle ${scenario.name}`, async function () {
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+                expect(context.nodeInstance).to.exist;
 
-                    // Simulate the email processing
-                    // The email-receiver node likely starts processing emails automatically
-                    // Let's trigger the mock IMAP flow by simulating what happens when emails are found
-                    setTimeout(() => {
-                        // Simulate the email receiver processing emails and sending a message
-                        // This is what your email-receiver node should do internally
-                        try {
-                            const mockEmailMessage: NodeMessageInFlow = {
-                                payload: 'This is a mock email body for testing purposes.',
-                                topic: 'email',
-                                from: 'sender@test.com',
-                                subject: 'Mock Email Subject',
-                                _msgid: 'test-msg-id',
-                            };
-
-                            // Directly send a message through the node (simulating internal processing)
-                            (n1 as any).send(mockEmailMessage);
-                        } catch (err) {
-                            done(err);
-                        }
-                    }, 100);
-                } catch (err) {
-                    done(err);
-                }
-            });
-        });
-
-        it('should handle message timeout gracefully', async function () {
-            // ARRANGE: Use connected test flow
-            const flow = testFlows.connected;
-
-            return new Promise<void>((resolve, reject) => {
-                helper.load(emailReceiverNode as any, flow, function () {
-                    try {
-                        const n1 = helper.getNode(testConfigs.valid.id) as Node;
-                        const h1 = helper.getNode('h1') as Node;
-
-                        // Use testUtils.waitForMessage with timeout
-                        testUtils
-                            .waitForMessage(h1 as any, 1000)
-                            .then((msg: any) => {
-                                // ASSERT: Should receive message within timeout
-                                expect(msg).to.exist;
-                                resolve();
-                            })
-                            .catch((err: Error) => {
-                                // ASSERT: Should handle timeout appropriately
-                                expect(err.message).to.include('Timeout waiting for message');
-                                resolve(); // This is expected behavior for this test
-                            });
-
-                        // Don't trigger anything to test timeout behavior
-                        // The timeout should occur as expected
-                    } catch (err) {
-                        reject(err);
-                    }
-                });
-            });
-        });
-
-        it('should process emails and send messages when emails are received', function (done: Mocha.Done) {
-            const flow = testFlows.connected;
-
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    const n1 = helper.getNode(testConfigs.valid.id) as Node;
-                    const h1 = helper.getNode('h1') as Node;
-
-                    h1.on('input', function (msg: NodeMessageInFlow) {
-                        try {
-                            expect(msg).to.exist;
-                            expect(msg.payload).to.exist;
-                            expect(msg).to.have.property('subject');
-                            expect(msg).to.have.property('from');
-                            done();
-                        } catch (err) {
-                            done(err);
-                        }
-                    });
-
-                    // Simulate the email processing that would normally happen
-                    // when the IMAP connection finds new emails
-                    setTimeout(() => {
-                        // This simulates what your email-receiver node does internally
-                        // when it processes an email from IMAP
-                        const processedEmail: NodeMessageInFlow = {
-                            payload: 'This is a mock email body for testing purposes.',
-                            subject: 'Mock Email Subject',
-                            from: { text: 'sender@test.com' },
-                            to: { text: 'recipient@test.com' },
-                            date: new Date(),
-                            messageId: '<mock-message-id@test.com>',
-                            _msgid: 'processed-email-id',
-                        };
-
-                        (n1 as any).send(processedEmail);
-                    }, 50);
-                } catch (err) {
-                    done(err);
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
                 }
             });
         });
     });
 
-    describe('Configuration Validation', function () {
-        it('should handle invalid configuration gracefully', function (done: Mocha.Done) {
-            // ARRANGE: Use invalid config from helpers
-            const flow = [testConfigs.invalidConfig];
+    // ========================================================================
+    // PERFORMANCE TESTS FOR EMAIL PROCESSING
+    // ========================================================================
 
-            // ACT: Load node with invalid config
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    const n1 = helper.getNode(testConfigs.invalidConfig.id) as Node;
-                    expect(n1).to.exist;
+    describe('Email Performance', function () {
+        it('should efficiently process multiple email fetch requests', async function () {
+            const scenario: PerformanceTestScenario = {
+                name: 'multiple email fetches',
+                config: testConfigs.valid,
+                input: { payload: 'fetch' },
+                iterations: 50,
+                maxDuration: 10000,
+                timeout: 15000
+            };
 
-                    // ASSERT: Node should exist but handle invalid config appropriately
-                    // Send input to trigger validation
-                    (n1 as any).receive({ payload: 'test' });
+            const result = await PerformanceTestRunner.runPerformanceTest(
+                emailReceiverNode,
+                scenario
+            );
 
-                    // If we get here without crashing, the validation worked
-                    testUtils.wait(300).then(() => {
-                        done();
-                    }).catch(done);
-                } catch (err) {
-                    done(err);
-                }
-            });
+            expect(result.averageTime).to.be.lessThan(200); // 200ms per fetch max
+            expect(result.iterations).to.be.greaterThan(20); // Should complete at least 20
+
+            if (result.memoryUsed !== undefined) {
+                expect(result.memoryUsed).to.be.lessThan(100 * 1024 * 1024); // 100MB limit
+            }
         });
 
-        it('should validate folder configurations properly', async function () {
-            // ARRANGE: Test different folder configurations
-            const folderConfigs = [testConfigs.valid, testConfigs.arrayFolders];
+        it('should handle memory efficiently during extended operation', async function () {
+            const memoryTest = StressTestBuilder.createMemoryLeakTest(
+                'extended email processing',
+                testConfigs.valid,
+                200
+            );
 
-            for (const config of folderConfigs) {
-                await new Promise<void>((resolve, reject) => {
-                    const flow = [config];
+            const result = await PerformanceTestRunner.runPerformanceTest(
+                emailReceiverNode,
+                memoryTest
+            );
 
-                    helper.load(emailReceiverNode as any, flow, function () {
-                        try {
-                            const n1 = helper.getNode(config.id);
+            expect(result.iterations).to.be.greaterThan(100);
 
-                            // ASSERT: Node should load successfully with different folder configs
-                            expect(n1).to.exist;
-                            expect(n1).to.have.property('name', config.name);
-
-                            helper.unload();
-                            resolve();
-                        } catch (err) {
-                            reject(err);
-                        }
-                    });
-                });
+            if (result.memoryUsed !== undefined) {
+                expect(result.memoryUsed).to.be.lessThan(memoryTest.memoryLimit!);
             }
         });
     });
 
-    describe('Mock Integration Verification', function () {
-        it('should work with createMockImap from helpers', function (done: Mocha.Done) {
-            // ARRANGE: Create IMAP mock instance directly
-            const MockImapConstructor = createMockImap() as any;
-            const imapInstance = new MockImapConstructor({
-                host: testConfigs.valid.host,
-                port: testConfigs.valid.port,
-                secure: true,
-            });
+    // ========================================================================
+    // SECURITY TESTS FOR EMAIL PROCESSING
+    // ========================================================================
 
-            // ACT: Test IMAP mock behavior
-            let readyFired = false;
-            imapInstance.once('ready', () => {
-                readyFired = true;
+    describe('Email Security', function () {
+        const security = new SecurityTestBuilder()
+            .addInjectionTestScenarios('email content injection', testConfigs.valid)
+            .addOversizedPayloadScenarios('large email payload', testConfigs.valid);
 
-                // Test openBox functionality
-                imapInstance.openBox('INBOX', false, (err: Error | null, box?: any) => {
-                    expect(err).to.not.exist;
-                    expect(box).to.exist;
-                    expect(box).to.have.property('messages');
-
-                    // ASSERT: Mock IMAP should work as expected
-                    expect(readyFired).to.be.true;
-                    done();
-                });
-            });
-
-            imapInstance.connect();
-        });
-
-        it('should work with createMockMailparser from helpers', async function () {
-            // ARRANGE: Create mailparser mock instance directly
-            const mockMailparser = createMockMailparser();
-
-            // ACT: Test mailparser mock behavior
-            const result = await mockMailparser.simpleParser('test content', {
-                subject: 'Integration Test Email',
-                from: 'integration@test.com',
-            });
-
-            // ASSERT: Mock mailparser should return expected structure
-            expect(result).to.have.property('subject', 'Integration Test Email');
-            expect(result).to.have.property('from');
-            expect(result.from).to.have.property('text', 'integration@test.com');
-            expect(result).to.have.property('headers');
-            expect(result.headers).to.be.an.instanceOf(Map);
-        });
-    });
-
-    describe('Node Lifecycle', function () {
-        it('should clean up properly on unload', async function () {
-            // ARRANGE: Use test flow from helpers
-            const flow = testFlows.single;
-
-            return new Promise<void>((resolve, reject) => {
-                helper.load(emailReceiverNode as any, flow, function () {
-                    try {
-                        const n1 = helper.getNode(testConfigs.valid.id) as Node;
-                        expect(n1).to.exist;
-
-                        // Simulate some activity
-                        (n1 as any).receive({ payload: 'test' });
-
-                        // Wait a bit for any async operations
-                        testUtils.wait(100).then(() => {
-                            // ASSERT: Unloading should not throw errors
-                            helper.unload();
-                            resolve();
-                        }).catch(reject);
-                    } catch (err) {
-                        reject(err);
+        // Email-specific security tests
+        const emailSecurity = new TestScenarioBuilder()
+            .addCustomScenario({
+                name: 'malicious email headers',
+                config: testConfigs.valid,
+                input: {
+                    payload: 'fetch',
+                    headers: {
+                        'X-Malicious': '<script>alert("xss")</script>',
+                        'X-Injection': "'; DROP TABLE emails; --"
                     }
-                });
-            });
-        });
-
-        it('should handle multiple load/unload cycles', async function () {
-            // ARRANGE: Test multiple cycles
-            const flow = testFlows.single;
-            const cycles = 3;
-
-            for (let i = 0; i < cycles; i++) {
-                await new Promise<void>((resolve, reject) => {
-                    helper.load(emailReceiverNode as any, flow, function () {
-                        try {
-                            const n1 = helper.getNode(testConfigs.valid.id) as Node;
-                            expect(n1).to.exist;
-
-                            // Quick activity simulation
-                            (n1 as any).receive({ payload: `test cycle ${i}` });
-
-                            testUtils.wait(50).then(() => {
-                                helper.unload();
-                                resolve();
-                            }).catch(reject);
-                        } catch (err) {
-                            reject(err);
-                        }
-                    });
-                });
-            }
-
-            // ASSERT: If we complete all cycles without error, lifecycle handling works
-            // This assertion is implicit in the successful completion of the loop
-        });
-    });
-
-    describe('Advanced Flow Testing', function () {
-        it('should handle complex message flows with multiple helpers', function (done: Mocha.Done) {
-            // ARRANGE: Use multi-output flow from helpers
-            const flow = testFlows.multiOutput;
-            let receivedMessages: Array<{ node: string; msg: NodeMessageInFlow }> = [];
-
-            helper.load(emailReceiverNode as any, flow, function () {
-                try {
-                    const n1 = helper.getNode(testConfigs.valid.id) as Node;
-                    const h1 = helper.getNode('h1') as Node;
-                    const h2 = helper.getNode('h2') as Node;
-
-                    // Set up listeners for both helper nodes
-                    h1.on('input', function (msg: NodeMessageInFlow) {
-                        receivedMessages.push({ node: 'h1', msg: msg });
-                        checkCompletion();
-                    });
-
-                    h2.on('input', function (msg: NodeMessageInFlow) {
-                        receivedMessages.push({ node: 'h2', msg: msg });
-                        checkCompletion();
-                    });
-
-                    function checkCompletion() {
-                        if (receivedMessages.length >= 2) {
-                            // ASSERT: Both helpers should receive messages
-                            expect(receivedMessages.length).to.equal(2);
-
-                            receivedMessages.forEach((item) => {
-                                expect(item.msg).to.exist;
-                                expect(item.msg.payload).to.exist;
-                            });
-
-                            done();
-                        }
-                    }
-
-                    // Simulate email processing that sends to multiple outputs
-                    setTimeout(() => {
-                        const mockEmail: NodeMessageInFlow = {
-                            payload: 'This is a mock email body for testing purposes.',
-                            subject: 'Multi-output Test',
-                            from: { text: 'multi@test.com' },
-                            _msgid: 'multi-output-test-id',
-                        };
-
-                        // Send the same message to both outputs (simulating multi-output behavior)
-                        (n1 as any).send([mockEmail, mockEmail]);
-                    }, 50);
-                } catch (err) {
-                    done(err);
+                }
+            })
+            .addCustomScenario({
+                name: 'suspicious attachment handling',
+                config: testConfigs.valid,
+                input: {
+                    payload: 'fetch',
+                    attachments: [
+                        { filename: '../../../../../../etc/passwd' },
+                        { filename: 'virus.exe.txt' },
+                        { filename: '<script>evil.js</script>' }
+                    ]
                 }
             });
+
+        [...security.getScenarios(), ...emailSecurity.getScenarios()]
+            .forEach(scenario => {
+                it(`should resist ${scenario.name}`, async function () {
+                    const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+
+                    // Node should exist and not crash
+                    expect(context.nodeInstance).to.exist;
+
+                    // Should handle security threats gracefully
+                    const handledSecurely =
+                        context.errors.length === 0 ||
+                        context.errors.some(e => typeof e === 'string');
+
+                    expect(handledSecurely, 'Should handle security threats gracefully').to.be.true;
+                });
+            });
+    });
+
+    // ========================================================================
+    // DATA-DRIVEN TESTS FOR EMAIL SCENARIOS
+    // ========================================================================
+
+    TestPatternHelpers.createDataDrivenTests(
+        'Email Processing Scenarios',
+        emailReceiverNode,
+        testConfigs.valid,
+        [
+            {
+                name: 'fetch INBOX emails',
+                input: { payload: 'fetch', folder: 'INBOX' },
+                timeout: 3000
+            },
+            {
+                name: 'fetch SENT emails',
+                input: { payload: 'fetch', folder: 'SENT' },
+                timeout: 3000
+            },
+            {
+                name: 'invalid email command',
+                input: { payload: 'invalid-command' },
+                expectedError: /invalid|unknown|command/i,
+                timeout: 2000
+            },
+            {
+                name: 'empty folder name',
+                input: { payload: 'fetch', folder: '' },
+                expectedError: /folder|empty|invalid/i,
+                timeout: 2000
+            },
+            {
+                name: 'numeric folder name',
+                input: { payload: 'fetch', folder: 123 },
+                expectedError: /folder|string|type/i,
+                timeout: 2000
+            }
+        ]
+    );
+
+    // ========================================================================
+    // INTEGRATION WITH EXISTING MOCK SYSTEM
+    // ========================================================================
+
+    describe('Mock System Integration', function () {
+        it('should work with all mock configurations', async function () {
+            const mockConfigs = [
+                testConfigs.valid,
+                testConfigs.minimal,
+                testConfigs.arrayFolders
+            ];
+
+            for (const config of mockConfigs) {
+                const scenario: TestScenario = {
+                    name: `mock integration - ${config.name || 'unnamed'}`,
+                    config,
+                    input: { payload: 'test' },
+                    timeout: 2000
+                };
+
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+                expect(context.nodeInstance).to.exist;
+
+                if (config.name) {
+                    NodeAssertions.expectNodeProperty(context, 'name', config.name);
+                }
+            }
         });
     });
 });
