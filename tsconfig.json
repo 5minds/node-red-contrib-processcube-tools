@@ -15,8 +15,9 @@
     "esModuleInterop": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["mocha", "chai", "node"]
+    "types": ["mocha", "chai", "node"],
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["test/**/*", "src/**/*"],
+  "include": ["src/test/**/*", "src/**/*"],
   "exclude": ["node_modules", "dist"]
 }

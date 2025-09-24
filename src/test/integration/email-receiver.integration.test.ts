@@ -1,3 +1,4 @@
+import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import * as helper from 'node-red-node-test-helper';
 import type { Node, NodeMessageInFlow } from 'node-red';
@@ -8,7 +9,6 @@ import {
     testConfigs,
     testFlows,
     testUtils,
-    MockImap,
 } from '../helpers/email-receiver.mocks';
 import type { TestConfig } from '../helpers/email-receiver.mocks';
 import emailReceiverNode from '../../email-receiver/email-receiver';

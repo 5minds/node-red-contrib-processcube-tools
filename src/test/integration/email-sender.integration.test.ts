@@ -1,3 +1,4 @@
+import { describe, it } from 'mocha';
 import { expect } from 'chai';
 const helper = require('node-red-node-test-helper');
 import {
@@ -5,8 +6,7 @@ import {
     emailSenderConfigs,
     testFlows,
     testUtils,
-    EmailSenderConfig,
-    TestFlows
+    EmailSenderConfig
 } from '../../test/helpers/email-sender.mocks';
 
 // Type definitions for the integration test environment
