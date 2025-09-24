@@ -467,27 +467,37 @@ function createMockMailparser(): MockMailparser {
  * Enhanced module mocks setup with better email simulation
  */
 function setupModuleMocks(): () => void {
-    const mockModules: Record<string, any> = {
-        'node-imap': MockImap,
-        mailparser: createMockMailparser(),
-    };
-
+    // Store original require function
     const Module = require('module');
-    const originalLoad = Module._load;
+    const originalRequire = Module.prototype.require;
 
-    Module._load = function (request: string, parent: any): any {
-        if (mockModules[request]) {
-            return mockModules[request];
+    // Override the require function globally
+    Module.prototype.require = function(id: string) {
+        if (id === 'node-imap') {
+            console.log('Intercepted node-imap import, returning MockImap');
+            return MockImap;
         }
-        return originalLoad.apply(this, arguments);
+        if (id === 'mailparser') {
+            return createMockMailparser();
+        }
+        return originalRequire.apply(this, arguments);
     };
 
-    // Return cleanup function
+    // Also handle dynamic imports and module resolution
+    const originalResolveFilename = Module._resolveFilename;
+    Module._resolveFilename = function(request: string, parent: any, isMain: boolean) {
+        if (request === 'node-imap') {
+            // Return the path to our mock instead
+            return __filename; // Use current file as fake path
+        }
+        return originalResolveFilename.apply(this, arguments);
+    };
+
     return function cleanup(): void {
-        Module._load = originalLoad;
+        Module.prototype.require = originalRequire;
+        Module._resolveFilename = originalResolveFilename;
     };
 }
-
 /**
  * Create test configurations for different scenarios
  */
@@ -550,7 +560,7 @@ const testConfigs: Record<string, TestConfig> = {
         id: 'test-node-4',
         type: 'email-receiver',
         name: 'Invalid Config Test',
-        host: '', // Missing host
+        host: 'invalid', // Missing host
         hostType: 'str',
         port: 993,
         portType: 'num',
