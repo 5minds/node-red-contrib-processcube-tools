@@ -1,4 +1,4 @@
-import type { Node } from 'node-red';
+import type { Node, NodeMessageInFlow } from 'node-red';
 
 export interface TestScenario {
   name: string;
@@ -18,7 +18,6 @@ export interface TestContext {
   statuses: any[];
 }
 
-
 export interface MockNodeREDOptions {
   onHandler?: (this: Node, event: string, callback: Function) => void;
   sendHandler?: (msg: any) => void;
@@ -26,23 +25,28 @@ export interface MockNodeREDOptions {
   statusHandler?: (status: any) => void;
 }
 
-interface NodeRedConfig {
-    id?: string;
-    type?: string;
-    name?: string;
-    host?: string;
-    hostType?: string;
-    port?: number;
-    portType?: string;
-    tls?: boolean;
-    tlsType?: string;
-    user?: string;
-    userType?: string;
-    password?: string;
-    passwordType?: string;
-    folder?: string | string[];
-    folderType?: string;
-    markseen?: boolean;
-    markseenType?: string;
-    wires?: string[][];
+// Integration Test Types
+export interface IntegrationTestScenario {
+  name: string;
+  flow: any[];
+  nodeId: string;
+  input?: any;
+  expectedMessages?: Array<{
+    nodeId: string;
+    expectedMsg: any;
+    timeout?: number;
+  }>;
+  timeout?: number;
+  setup?: (nodes: Record<string, Node>) => void;
+  cleanup?: () => void;
+}
+
+export interface IntegrationTestContext {
+  nodes: Record<string, Node>;
+  messages: Array<{
+    nodeId: string;
+    message: NodeMessageInFlow;
+    timestamp: number;
+  }>;
+  errors: any[];
 }

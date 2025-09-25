@@ -1,47 +1,36 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-const helper = require('node-red-node-test-helper');
+import * as helper from 'node-red-node-test-helper';
 import {
     setupModuleMocks,
     emailSenderConfigs,
     testFlows,
-    testUtils,
-    EmailSenderConfig
-} from '../../test/helpers/email-sender.mocks';
+    type EmailSenderConfig
+} from '../helpers/email-sender.mocks';
 
-// Type definitions for the integration test environment
-interface MockEmailMessage {
-    payload: string;
-    topic: string;
-    from: string;
-    subject: string;
-    [key: string]: any;
-}
+// Import our integration testing framework
+import {
+    IntegrationTestRunner,
+    IntegrationAssertions,
+    IntegrationScenarioBuilder,
+    type IntegrationTestScenario
+} from '../framework';
 
-describe('E-Mail Sender Node - Integration Tests', function () {
-    // Set a reasonable timeout for integration tests
+const emailSenderNode = require('../../email-sender/email-sender');
+
+describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
     this.timeout(10000);
-
-    let emailSenderNode: (RED: any) => void;
     let cleanupMocks: (() => void) | undefined;
 
-    beforeEach(function (done: Mocha.Done) {
-        // Set up mocks using helper
+    before(function (done: Mocha.Done) {
         cleanupMocks = setupModuleMocks();
-
-        // Load the node with mocked dependencies
-        emailSenderNode = require('../../email-sender/email-sender');
-
-        // CRITICAL: Initialize the helper with Node-RED
-        helper.init(require.resolve('node-red'));
-        done();
+        IntegrationTestRunner.initializeHelper();
+        helper.startServer(done);
     });
 
-    afterEach(function () {
-        // Clean up mocks using helper cleanup function
-        if (cleanupMocks) {
-            cleanupMocks();
-        }
+    after(function (done: Mocha.Done) {
+        if (cleanupMocks) cleanupMocks();
+        helper.stopServer(done);
     });
 
     beforeEach(function (done: Mocha.Done) {
@@ -53,197 +42,388 @@ describe('E-Mail Sender Node - Integration Tests', function () {
         helper.stopServer(done);
     });
 
-    describe('Node Loading', function () {
-        it('should load in Node-RED test environment', function (done: Mocha.Done) {
-            // ARRANGE: Use test flow from helpers
-            const flow: EmailSenderConfig[] = [emailSenderConfigs.valid];
+    // ========================================================================
+    // NODE LOADING TESTS USING FRAMEWORK
+    // ========================================================================
 
-            // ACT: Load the node in the test helper environment
-            helper.load(emailSenderNode, flow, function () {
-                try {
-                    // ASSERT: Verify the node loaded correctly
-                    const n1: any = helper.getNode(emailSenderConfigs.valid.id);
-                    expect(n1).to.exist;
-                    expect(n1).to.have.property('name', emailSenderConfigs.valid.name);
-                    expect(n1).to.have.property('type', 'email-sender');
-                    done();
-                } catch (err) {
-                    done(err);
-                }
-            });
-        });
+    describe('Node Loading (Enhanced)', function () {
+        const loadingTests = new IntegrationScenarioBuilder()
+            .addLoadingScenario('valid configuration', [emailSenderConfigs.valid], emailSenderConfigs.valid.id)
+            .addLoadingScenario('minimal configuration', [emailSenderConfigs.minimal], emailSenderConfigs.minimal.id);
 
-        it('should load with minimal configuration', function (done: Mocha.Done) {
-            // ARRANGE: Use minimal test config from helpers
-            const flow: EmailSenderConfig[] = [emailSenderConfigs.minimal];
+        loadingTests.getScenarios().forEach(scenario => {
+            it(`should load with ${scenario.name}`, async function () {
+                const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
 
-            // ACT: Load the node
-            helper.load(emailSenderNode, flow, function () {
-                try {
-                    // ASSERT: Verify the node loaded with minimal config
-                    const n1: any = helper.getNode(emailSenderConfigs.minimal.id);
-                    expect(n1).to.exist;
-                    expect(n1).to.have.property('type', 'email-sender');
-                    done();
-                } catch (err) {
-                    done(err);
+                IntegrationAssertions.expectNodeExists(context, scenario.nodeId);
+                IntegrationAssertions.expectNodeProperty(context, scenario.nodeId, 'type', 'email-sender');
+
+                const nodeConfig = scenario.flow.find(n => n.id === scenario.nodeId);
+                if (nodeConfig.name) {
+                    IntegrationAssertions.expectNodeProperty(context, scenario.nodeId, 'name', nodeConfig.name);
                 }
             });
         });
     });
 
-    describe('Node Connections', function () {
-        it('should create wired connections correctly', function (done: Mocha.Done) {
-            // ARRANGE: Use connected test flow from helpers
-            const flow = testFlows.connected;
+    // ========================================================================
+    // CONNECTION TESTS USING FRAMEWORK
+    // ========================================================================
 
-            // ACT: Load nodes and verify connections
-            helper.load(emailSenderNode, flow, function () {
-                try {
-                    const n1: any = helper.getNode(emailSenderConfigs.valid.id);
-                    const h1: any = helper.getNode('h1');
+    describe('Node Connections (Enhanced)', function () {
+        const connectionTests = new IntegrationScenarioBuilder()
+            .addConnectionScenario('simple connection', testFlows.connected, [emailSenderConfigs.valid.id, 'h1'])
+            .addConnectionScenario('multiple outputs', testFlows.multiOutput, [emailSenderConfigs.valid.id, 'h1', 'h2']);
 
-                    // ASSERT: Both nodes should exist and be connected
-                    expect(n1).to.exist;
-                    expect(h1).to.exist;
-                    expect(n1).to.have.property('name', emailSenderConfigs.valid.name);
-                    expect(h1).to.have.property('type', 'helper');
+        connectionTests.getScenarios().forEach(scenario => {
+            it(`should create ${scenario.name} correctly`, async function () {
+                const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
 
-                    done();
-                } catch (err) {
-                    done(err);
-                }
-            });
-        });
+                // Get node IDs from flow and verify they all exist
+                const nodeIds = scenario.flow.map(n => n.id);
+                IntegrationAssertions.expectAllNodesExist(context, nodeIds);
 
-        it('should handle multiple output connections', function (done: Mocha.Done) {
-            // ARRANGE: Use multi-output test flow from helpers
-            const flow = testFlows.multiOutput;
-
-            // ACT: Load nodes
-            helper.load(emailSenderNode, flow, function () {
-                try {
-                    const n1: any = helper.getNode(emailSenderConfigs.valid.id);
-                    const h1: any = helper.getNode('h1');
-                    const h2: any = helper.getNode('h2');
-
-                    // ASSERT: All nodes should exist
-                    expect(n1).to.exist;
-                    expect(h1).to.exist;
-                    expect(h2).to.exist;
-                    expect(n1).to.have.property('name', emailSenderConfigs.valid.name);
-
-                    done();
-                } catch (err) {
-                    done(err);
-                }
+                // Verify the main node has correct properties
+                IntegrationAssertions.expectNodeProperty(context, emailSenderConfigs.valid.id, 'name', emailSenderConfigs.valid.name);
             });
         });
     });
 
-    describe('Message Flow', function () {
-        it('should handle input without crashing', async function (): Promise<void> {
-            // ARRANGE: Use test flow from helpers
-            const flow = testFlows.single;
+    // ========================================================================
+    // MESSAGE FLOW TESTS USING FRAMEWORK
+    // ========================================================================
 
-            return new Promise<void>((resolve, reject) => {
-                helper.load(emailSenderNode, flow, function () {
-                    try {
-                        const n1: any = helper.getNode(emailSenderConfigs.valid.id);
-                        expect(n1).to.exist;
+    describe('Message Flow (Enhanced)', function () {
+        it('should handle input without crashing', async function () {
+            const scenario: IntegrationTestScenario = {
+                name: 'input handling',
+                flow: testFlows.single,
+                nodeId: emailSenderConfigs.valid.id,
+                input: { payload: 'test input' },
+                timeout: 2000
+            };
 
-                        // Send input - this should not crash due to mocked IMAP
-                        n1.receive({ payload: 'test input' });
-
-                        // ASSERT: If we reach here, the node handled input gracefully
-                        testUtils.wait(500).then(() => {
-                            resolve(); // Success if no errors thrown
-                        }).catch(reject);
-                    } catch (err) {
-                        reject(err);
-                    }
-                });
-            });
+            const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+            IntegrationAssertions.expectNodeExists(context, emailSenderConfigs.valid.id);
+            // Success is implicit - if we reach here, no crash occurred
         });
 
-        it('should process messages through connected nodes', function (done: Mocha.Done) {
-            // ARRANGE: Use connected test flow from helpers
-            const flow = testFlows.connected;
-
-            // ACT: Load nodes and set up message listener
-            helper.load(emailSenderNode, flow, function () {
-                try {
-                    const n1: any = helper.getNode(emailSenderConfigs.valid.id);
-                    const h1: any = helper.getNode('h1');
-
-                    // Set up listener for messages from email receiver
-                    h1.on('input', function (msg: any) {
-                        try {
-                            // ASSERT: Should receive a message with expected properties
-                            expect(msg).to.exist;
-                            expect(msg.payload).to.exist;
-                            done();
-                        } catch (err) {
-                            done(err);
-                        }
-                    });
-
-                    // Simulate the email processing
-                    // The email-sender node likely starts processing emails automatically
-                    // Let's trigger the mock IMAP flow by simulating what happens when emails are found
+        it('should process messages through connected nodes', async function () {
+            const scenario: IntegrationTestScenario = {
+                name: 'message processing',
+                flow: testFlows.connected,
+                nodeId: emailSenderConfigs.valid.id,
+                expectedMessages: [
+                    { nodeId: 'h1', expectedMsg: { payload: 'string' } }
+                ],
+                timeout: 3000,
+                setup: (nodes) => {
+                    // Simulate email sending after a short delay
                     setTimeout(() => {
-                        // Simulate the email receiver processing emails and sending a message
-                        // This is what your email-sender node should do internally
-                        try {
-                            const mockEmailMessage: MockEmailMessage = {
-                                payload: 'This is a mock email body for testing purposes.',
-                                topic: 'email',
-                                from: 'sender@test.com',
-                                subject: 'Mock Email Subject',
-                            };
-
-                            // Directly send a message through the node (simulating internal processing)
-                            n1.send(mockEmailMessage);
-                        } catch (err) {
-                            done(err);
-                        }
+                        const mockEmailMessage = {
+                            payload: 'This is a mock email body for testing purposes.',
+                            topic: 'email',
+                            from: 'sender@test.com',
+                            subject: 'Mock Email Subject',
+                            _msgid: 'test-msg-id',
+                        };
+                        (nodes[emailSenderConfigs.valid.id] as any).send(mockEmailMessage);
                     }, 100);
-                } catch (err) {
-                    done(err);
                 }
-            });
+            };
+
+            const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+            IntegrationAssertions.expectMessageReceived(context, 'h1');
         });
 
-        it('should handle message timeout gracefully', async function (): Promise<void> {
-            // ARRANGE: Use connected test flow
-            const flow = testFlows.connected;
+        it('should handle message timeout scenarios', async function () {
+            const scenario: IntegrationTestScenario = {
+                name: 'timeout handling',
+                flow: testFlows.connected,
+                nodeId: emailSenderConfigs.valid.id,
+                timeout: 1000, // Short timeout to test timeout handling
+                setup: (nodes) => {
+                    // Don't send any messages - let it timeout
+                }
+            };
 
-            return new Promise<void>((resolve, reject) => {
-                helper.load(emailSenderNode, flow, function () {
-                    try {
-                        const n1: any = helper.getNode(emailSenderConfigs.valid.id);
-                        const h1: any = helper.getNode('h1');
+            try {
+                await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+                // If we reach here, no messages were expected and timeout was handled gracefully
+            } catch (error: any) {
+                // Expected timeout behavior
+                expect(error.message).to.include('timed out');
+            }
+        });
 
-                        // Use testUtils.waitForMessage with timeout
-                        testUtils
-                            .waitForMessage(h1, 1000)
-                            .then((msg: any) => {
-                                // ASSERT: Should receive message within timeout
-                                expect(msg).to.exist;
-                                resolve();
-                            })
-                            .catch((err: Error) => {
-                                // ASSERT: Should handle timeout appropriately
-                                expect(err.message).to.include('Timeout waiting for message');
-                                resolve(); // This is expected behavior for this test
-                            });
+        it('should handle complex multi-output flows', async function () {
+            const scenario: IntegrationTestScenario = {
+                name: 'multi-output flow',
+                flow: testFlows.multiOutput,
+                nodeId: emailSenderConfigs.valid.id,
+                expectedMessages: [
+                    { nodeId: 'h1', expectedMsg: { payload: 'string' } },
+                    { nodeId: 'h2', expectedMsg: { payload: 'string' } }
+                ],
+                timeout: 3000,
+                setup: (nodes) => {
+                    setTimeout(() => {
+                        const mockEmail = {
+                            payload: 'Multi-output test email',
+                            subject: 'Multi-output Test',
+                            from: 'multi@test.com',
+                            _msgid: 'multi-output-test-id',
+                        };
+                        // Send to both outputs
+                        (nodes[emailSenderConfigs.valid.id] as any).send([mockEmail, mockEmail]);
+                    }, 50);
+                }
+            };
 
-                        // Don't trigger anything to test timeout behavior
-                        // The timeout should occur as expected
-                    } catch (err) {
-                        reject(err);
+            const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+            IntegrationAssertions.expectMessageCount(context, 'h1', 1);
+            IntegrationAssertions.expectMessageCount(context, 'h2', 1);
+        });
+    });
+
+    // ========================================================================
+    // EMAIL-SPECIFIC INTEGRATION TESTS
+    // ========================================================================
+
+    describe('Email Sending Integration', function () {
+        it('should handle successful email sending', async function () {
+            const scenario: IntegrationTestScenario = {
+                name: 'successful email sending',
+                flow: testFlows.connected,
+                nodeId: emailSenderConfigs.valid.id,
+                input: {
+                    payload: 'Test email content',
+                    topic: 'Test Subject',
+                    to: 'test@example.com'
+                },
+                expectedMessages: [
+                    { nodeId: 'h1', expectedMsg: { payload: 'string' } }
+                ],
+                timeout: 3000
+            };
+
+            const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+            IntegrationAssertions.expectMessageReceived(context, 'h1');
+
+            const receivedMessage = context.messages.find(m => m.nodeId === 'h1');
+            expect(receivedMessage).to.exist;
+        });
+
+        it('should handle email with attachments', async function () {
+            const attachmentConfig = {
+                ...emailSenderConfigs.valid,
+                attachments: JSON.stringify([
+                    { filename: 'test.txt', content: 'Test attachment content' }
+                ])
+            };
+
+            const scenario: IntegrationTestScenario = {
+                name: 'email with attachments',
+                flow: [
+                    { ...attachmentConfig, wires: [['h1']] },
+                    { id: 'h1', type: 'helper' }
+                ],
+                nodeId: attachmentConfig.id,
+                input: {
+                    payload: 'Email with attachment',
+                    topic: 'Attachment Test',
+                    to: 'test@example.com'
+                },
+                expectedMessages: [
+                    { nodeId: 'h1', expectedMsg: { payload: 'string' } }
+                ],
+                timeout: 4000
+            };
+
+            const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+            IntegrationAssertions.expectMessageReceived(context, 'h1');
+        });
+
+        it('should handle email sending errors gracefully', async function () {
+            const errorConfig = {
+                ...emailSenderConfigs.valid,
+                smtpHost: 'invalid.smtp.server',
+                shouldFail: true
+            };
+
+            const scenario: IntegrationTestScenario = {
+                name: 'email sending error',
+                flow: [
+                    { ...errorConfig, wires: [['h1']] },
+                    { id: 'h1', type: 'helper' }
+                ],
+                nodeId: errorConfig.id,
+                input: {
+                    payload: 'This should fail',
+                    topic: 'Error Test',
+                    to: 'test@example.com'
+                },
+                timeout: 3000
+            };
+
+            const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+            IntegrationAssertions.expectNodeExists(context, errorConfig.id);
+            // Should handle error gracefully without crashing the flow
+        });
+    });
+
+    // ========================================================================
+    // CONFIGURATION VALIDATION INTEGRATION
+    // ========================================================================
+
+    describe('Configuration Validation Integration', function () {
+        const validationTests = new IntegrationScenarioBuilder()
+            .addScenario({
+                name: 'minimal configuration handling',
+                flow: [emailSenderConfigs.minimal],
+                nodeId: emailSenderConfigs.minimal.id,
+                input: { payload: 'test', topic: 'test' },
+                timeout: 2000
+            })
+            .addScenario({
+                name: 'complex configuration handling',
+                flow: [{
+                    ...emailSenderConfigs.valid,
+                    attachments: JSON.stringify([
+                        { filename: 'config-test.txt', content: 'Configuration test' }
+                    ]),
+                    priority: 'high'
+                }],
+                nodeId: emailSenderConfigs.valid.id,
+                input: { payload: 'complex test', topic: 'complex' },
+                timeout: 3000
+            });
+
+        validationTests.getScenarios().forEach(scenario => {
+            it(`should handle ${scenario.name}`, async function () {
+                const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+                IntegrationAssertions.expectNodeExists(context, scenario.nodeId);
+                // Node should handle different configurations gracefully
+            });
+        });
+    });
+
+    // ========================================================================
+    // LIFECYCLE TESTS USING FRAMEWORK
+    // ========================================================================
+
+    describe('Node Lifecycle (Enhanced)', function () {
+        it('should handle multiple load/unload cycles', async function () {
+            const cycles = 3;
+
+            for (let i = 0; i < cycles; i++) {
+                const scenario: IntegrationTestScenario = {
+                    name: `lifecycle cycle ${i}`,
+                    flow: testFlows.single,
+                    nodeId: emailSenderConfigs.valid.id,
+                    input: { payload: `test cycle ${i}`, topic: `cycle ${i}` },
+                    timeout: 1000
+                };
+
+                const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+                IntegrationAssertions.expectNodeExists(context, emailSenderConfigs.valid.id);
+
+                // Clean up after each cycle
+                helper.unload();
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+        });
+
+        it('should handle rapid message processing', async function () {
+            const scenario: IntegrationTestScenario = {
+                name: 'rapid message processing',
+                flow: testFlows.connected,
+                nodeId: emailSenderConfigs.valid.id,
+                expectedMessages: [
+                    { nodeId: 'h1', expectedMsg: { payload: 'string' } }
+                ],
+                timeout: 3000,
+                setup: (nodes) => {
+                    // Send multiple messages rapidly
+                    for (let i = 0; i < 5; i++) {
+                        setTimeout(() => {
+                            const message = {
+                                payload: `Rapid message ${i}`,
+                                topic: `Rapid ${i}`,
+                                _msgid: `rapid-${i}`
+                            };
+                            (nodes[emailSenderConfigs.valid.id] as any).receive(message);
+                        }, i * 10);
                     }
-                });
+                }
+            };
+
+            const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+            IntegrationAssertions.expectMessageReceived(context, 'h1');
+        });
+    });
+
+    // ========================================================================
+    // INTEGRATION WITH DIFFERENT MESSAGE TYPES
+    // ========================================================================
+
+    describe('Message Type Integration', function () {
+        const messageTypeTests = [
+            {
+                name: 'plain text email',
+                input: {
+                    payload: 'Plain text content',
+                    topic: 'Plain Text Test',
+                    to: 'plain@test.com'
+                }
+            },
+            {
+                name: 'HTML email',
+                input: {
+                    payload: '<h1>HTML Content</h1><p>This is HTML email</p>',
+                    topic: 'HTML Test',
+                    to: 'html@test.com',
+                    html: true
+                }
+            },
+            {
+                name: 'email with custom headers',
+                input: {
+                    payload: 'Custom headers test',
+                    topic: 'Custom Headers',
+                    to: 'headers@test.com',
+                    headers: {
+                        'X-Priority': 'high',
+                        'X-Custom': 'integration-test'
+                    }
+                }
+            },
+            {
+                name: 'email with multiple recipients',
+                input: {
+                    payload: 'Multiple recipients test',
+                    topic: 'Multiple Recipients',
+                    to: 'user1@test.com,user2@test.com',
+                    cc: 'cc@test.com'
+                }
+            }
+        ];
+
+        messageTypeTests.forEach(testCase => {
+            it(`should handle ${testCase.name}`, async function () {
+                const scenario: IntegrationTestScenario = {
+                    name: testCase.name,
+                    flow: testFlows.connected,
+                    nodeId: emailSenderConfigs.valid.id,
+                    input: testCase.input,
+                    expectedMessages: [
+                        { nodeId: 'h1', expectedMsg: { payload: 'string' } }
+                    ],
+                    timeout: 3000
+                };
+
+                const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
+                IntegrationAssertions.expectMessageReceived(context, 'h1');
             });
         });
     });
