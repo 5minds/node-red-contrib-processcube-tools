@@ -12,15 +12,28 @@
             tlsType: { value: 'bool' },
             user: { value: '', required: true, validate: RED.validators.typedInput('userType') },
             userType: { value: 'str' },
-            password: { value: '', required: true, type: 'password' },
+            password: { value: '', required: true },
             passwordType: { value: 'env', required: true },
             folder: { value: '', required: true, validate: RED.validators.typedInput('folderType') },
             folderType: { value: 'json' },
             markseen: { value: true, validate: RED.validators.typedInput('markseenType') },
             markseenType: { value: 'bool' },
+            sendstatus: { value: true },
         },
         inputs: 1,
-        outputs: 1,
+        // outputs: function () {
+        //     const sendstatus = this.sendstatus === true || this.sendstatus === 'true';
+        //     return sendstatus ? 2 : 1;
+        // },
+        outputs: 2,
+        outputLabels: function (index) {
+            if (index === 0) {
+                return 'Email Message';
+            }
+            if (index === 1) {
+                return 'Status';
+            }
+        },
         icon: 'font-awesome/fa-inbox',
         label: function () {
             return this.name || 'E-Mail Receiver';
@@ -117,6 +130,15 @@
         <label for="node-input-markseen"><i class="fa fa-eye"></i> Mark as seen</label>
         <input type="text" id="node-input-markseen" />
         <input type="hidden" id="node-input-markseenType" />
+    </div>
+    <div class="form-row" style="margin-bottom: 3px;">
+        <input
+            type="checkbox"
+            checked
+            id="node-input-sendstatus"
+            style="display: inline-block; width: auto; vertical-align: top; margin-left: 5px;"
+        />
+        <label style="width:auto" for="node-input-sendstatus">Send status</label>
     </div>
 </script>
 
