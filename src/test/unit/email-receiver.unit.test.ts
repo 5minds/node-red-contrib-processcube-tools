@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
-import { setupModuleMocks, testConfigs } from '../helpers/email-receiver.mocks';
+import { createMockMailparser, MockImap, setupModuleMocks, testConfigs } from '../helpers/email-receiver.mocks';
 
 // Import our test framework
 import {
@@ -82,7 +82,13 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
         describe('IMAP Connection Handling', function () {
             it('should establish connection successfully', async function () {
+                const mockDependencies = {
+                    Imap: MockImap,
+                    MailParser: createMockMailparser()
+                };
+
                 const mockOptions: MockNodeREDOptions = {
+                    dependencies: mockDependencies,
                     statusHandler: function(status: any) {
                         console.log('📊 Status received:', JSON.stringify(status, null, 2));
                     },
@@ -95,7 +101,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
                     name: 'successful connection',
                     config: testConfigs.valid,
                     input: { payload: 'test' },
-                    expectedStatus: { fill: 'green' }, // Removed specific text requirement for now
+                    expectedStatus: { fill: 'green' },
                     timeout: 3000
                 };
 

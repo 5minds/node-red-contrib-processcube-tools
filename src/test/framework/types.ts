@@ -19,6 +19,7 @@ export interface TestContext {
 }
 
 export interface MockNodeREDOptions {
+  dependencies?: Record<string, any>;
   onHandler?: (this: Node, event: string, callback: Function) => void;
   sendHandler?: (msg: any) => void;
   errorHandler?: (err: any) => void;

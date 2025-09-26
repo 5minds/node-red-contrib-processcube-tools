@@ -110,19 +110,13 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                 return;
             }
 
-            // Check if this is a test environment and skip actual IMAP processing
-            if (process.env.NODE_ENV === 'test' || (msg as any).__test__) {
-                done();
-                return;
-            }
-
             try {
                 const imap_host = RED.util.evaluateNodeProperty(config.host, config.hostType, node, msg);
                 const imap_port = RED.util.evaluateNodeProperty(String(config.port), config.portType, node, msg);
                 const imap_tls = RED.util.evaluateNodeProperty(String(config.tls), config.tlsType, node, msg);
                 const imap_user = RED.util.evaluateNodeProperty(config.user, config.userType, node, msg);
                 const imap_password = RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg);
-
+                const imap_markSeen = RED.util.evaluateNodeProperty(String(config.markseen), config.markseenType, node, msg);
                 const imap_folder = RED.util.evaluateNodeProperty(String(config.folder), config.folderType, node, msg);
                 let folders: string[];
 
@@ -133,8 +127,6 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                 } else {
                     throw new Error("The 'folders' property must be an array of strings.");
                 }
-
-                const imap_markSeen = RED.util.evaluateNodeProperty(String(config.markseen), config.markseenType, node, msg);
 
                 const finalConfig: ImapConnectionConfig = {
                     host: imap_host as string,

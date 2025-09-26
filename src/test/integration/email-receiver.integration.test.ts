@@ -22,7 +22,7 @@ import {
   type PerformanceTestScenario
 } from '../framework/advanced-test-patterns';
 
-describe('E-Mail Receiver Node - Comprehensive Advanced Tests', function () {
+describe('E-Mail Receiver Node - Integration Tests', function () {
     this.timeout(30000); // Extended timeout for comprehensive tests
     let cleanupMocks: Function;
 
