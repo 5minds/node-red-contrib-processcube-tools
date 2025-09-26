@@ -108,8 +108,12 @@ export class NodeTestRunner {
       };
 
       try {
-        // Register the node
-        nodeConstructorFn(context.mockRED as unknown as NodeAPI);
+        // Register the node - pass dependencies as second parameter if available
+        if (mockOptions.dependencies) {
+          nodeConstructorFn(context.mockRED as unknown as NodeAPI, mockOptions.dependencies);
+        } else {
+          nodeConstructorFn(context.mockRED as unknown as NodeAPI);
+        }
 
         // Create node instance
         const NodeConstructor = (context.mockRED.nodes as any).lastRegisteredConstructor;
