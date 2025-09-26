@@ -21,9 +21,22 @@ interface EmailReceiverNodeProperties extends NodeDef {
     markseen: boolean;
     markseenType: string;
 }
+
 interface EmailReceiverNodeMessage extends NodeMessageInFlow {}
 
-const nodeInit: NodeInitializer = (RED) => {
+// Dependency injection interface
+interface Dependencies {
+    ImapClient: typeof Imap;
+    mailParser: typeof simpleParser;
+}
+
+// Default dependencies - production values
+const defaultDependencies: Dependencies = {
+    ImapClient: Imap,
+    mailParser: simpleParser,
+};
+
+const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDependencies) => {
     function EmailReceiverNode(this: Node, config: EmailReceiverNodeProperties) {
         RED.nodes.createNode(this, config);
         const node = this;
@@ -160,7 +173,8 @@ const nodeInit: NodeInitializer = (RED) => {
                     fetchConfig: ImapConnectionConfig,
                     onMail: (mail: EmailReceiverMessage) => void,
                 ) => {
-                    const imap = new Imap({
+                    // Use injected dependency instead of direct import
+                    const imap = new dependencies.ImapClient({
                         user: fetchConfig.user,
                         password: fetchConfig.password,
                         host: fetchConfig.host,
@@ -239,7 +253,8 @@ const nodeInit: NodeInitializer = (RED) => {
 
                                 fetch.on('message', (msg: Imap.ImapMessage, seqno: number) => {
                                     msg.on('body', (stream: NodeJS.ReadableStream) => {
-                                        simpleParser(stream as any, (err: Error | null, parsed: ParsedMail) => {
+                                        // Use injected dependency instead of direct import
+                                        dependencies.mailParser(stream as any, (err: Error | null, parsed: ParsedMail) => {
                                             if (err) {
                                                 node.error(`Parse error for email from folder "${folder}": ${err.message}`);
                                                 return;
@@ -336,4 +351,5 @@ const nodeInit: NodeInitializer = (RED) => {
         },
     });
 };
+
 export = nodeInit;
