@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
-import { testConfigs } from '../helpers/email-receiver.mocks';
+import { testConfigs } from '../helpers/email-receiver-test-configs';
 import { MockImap } from '../mocks/imap-mock';
 // Import our test framework
 import {

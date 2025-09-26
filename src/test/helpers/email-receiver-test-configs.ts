@@ -1,24 +1,6 @@
-/**
- * Email Receiver Node - Test Mocks and Configuration
- */
+import { TestConfig } from "../interfaces/test-config";
 
-// ============================================================================
-// TEST CONFIGURATIONS - Simplified and focused
-// ============================================================================
-export interface TestConfig {
-    id: string;
-    type: string;
-    name?: string;
-    host: string;
-    port: number;
-    user: string;
-    password: string;
-    folder: string | string[];
-    tls?: boolean;
-    markseen?: boolean;
-}
-
-export const testConfigs = {
+export const EmailReceiverTestConfigs = {
     valid: {
         id: 'test-node-1',
         type: 'email-receiver',
@@ -84,21 +66,3 @@ export const testConfigs = {
     } as TestConfig
 };
 
-// ============================================================================
-// TEST FLOWS - Simplified for integration tests
-// ============================================================================
-
-export const testFlows = {
-    single: [testConfigs.valid],
-
-    connected: [
-        { ...testConfigs.valid, wires: [['h1']] },
-        { id: 'h1', type: 'helper' }
-    ],
-
-    multiOutput: [
-        { ...testConfigs.valid, wires: [['h1', 'h2']] },
-        { id: 'h1', type: 'helper' },
-        { id: 'h2', type: 'helper' }
-    ]
-};

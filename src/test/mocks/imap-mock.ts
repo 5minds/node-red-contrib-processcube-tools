@@ -1,21 +1,5 @@
 import { EventEmitter } from 'events';
 
-interface ImapConfig {
-    host: string;
-    port: number;
-    secure?: boolean;
-    user: string;
-    password: string;
-    authTimeout?: number;
-    connTimeout?: number;
-}
-
-interface ImapMailbox {
-    messages: { total: number };
-    name: string;
-    readOnly: boolean;
-}
-
 export class MockImap extends EventEmitter {
     private config: ImapConfig;
     private isConnected = false;

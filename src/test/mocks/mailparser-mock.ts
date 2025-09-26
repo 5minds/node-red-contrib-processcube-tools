@@ -1,26 +1,5 @@
-export interface EmailData {
-    subject?: string;
-    from?: string;
-    to?: string;
-    text?: string;
-    html?: string;
-    date?: Date;
-    messageId?: string;
-    attachments?: any[];
-}
-
-export interface ParsedEmail {
-    subject?: string;
-    text?: string;
-    html?: string;
-    from?: { text: string; value: Array<{ address: string; name?: string }> };
-    to?: { text: string; value: Array<{ address: string; name?: string }> };
-    date?: Date;
-    messageId?: string;
-    headers: Map<string, string>;
-    attachments?: any[];
-}
-
+import { EmailData } from "../interfaces/email-data";
+import { ParsedEmail } from "../interfaces/parsed-email";
 
 export const MockMailParser = {
     /**

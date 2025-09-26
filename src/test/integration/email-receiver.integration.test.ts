@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
-import { testConfigs } from '../helpers/email-receiver.mocks';
+import { testConfigs } from '../helpers/email-receiver-test-configs';
 
 // Import our comprehensive test framework
 import {
@@ -23,7 +23,7 @@ import {
 } from '../framework/advanced-test-patterns';
 
 describe('E-Mail Receiver Node - Integration Tests', function () {
-    
+
     // ========================================================================
     // USE HELPER TO CREATE COMPREHENSIVE SUITE
     // ========================================================================
