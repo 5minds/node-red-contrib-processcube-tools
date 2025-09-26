@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
-import { testConfigs } from '../helpers/email-receiver-test-configs';
+import { EmailReceiverTestConfigs } from '../helpers/email-receiver-test-configs';
 import { MockImap } from '../mocks/imap-mock';
 // Import our test framework
 import {
@@ -19,7 +19,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
     // USE GENERIC TEST SUITE FOR BASIC FUNCTIONALITY
     // ========================================================================
 
-    createNodeTestSuite('Email Receiver', emailReceiverNode, testConfigs);
+    createNodeTestSuite('Email Receiver', emailReceiverNode, EmailReceiverTestConfigs);
 
     // ========================================================================
     // SPECIFIC EMAIL RECEIVER TESTS
@@ -29,17 +29,17 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
         describe('Configuration Validation', function () {
             const configTests = new TestScenarioBuilder()
-                .addValidScenario('valid configuration', testConfigs.valid)
-                .addValidScenario('minimal configuration', testConfigs.minimal)
-                .addValidScenario('array folders configuration', testConfigs.arrayFolders)
+                .addValidScenario('valid configuration', EmailReceiverTestConfigs.valid)
+                .addValidScenario('minimal configuration', EmailReceiverTestConfigs.minimal)
+                .addValidScenario('array folders configuration', EmailReceiverTestConfigs.arrayFolders)
                 .addErrorScenario(
                     'invalid folder type',
-                    testConfigs.invalidFolderType,
+                    EmailReceiverTestConfigs.invalidFolderType,
                     "The 'folders' property must be an array of strings."
                 )
                 .addErrorScenario(
                     'missing required config',
-                    testConfigs.invalidConfig,
+                    EmailReceiverTestConfigs.invalidConfig,
                     'Missing required IMAP config'
                 );
 
@@ -88,7 +88,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
                 const scenario: TestScenario = {
                     name: 'successful connection',
-                    config: testConfigs.valid,
+                    config: EmailReceiverTestConfigs.valid,
                     input: { payload: 'test' },
                     expectedStatus: { fill: 'green' },
                     timeout: 3000
@@ -103,7 +103,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
             it('should handle connection failures gracefully', async function () {
                 const invalidConfig = {
-                    ...testConfigs.valid,
+                    ...EmailReceiverTestConfigs.valid,
                     host: 'nonexistent.invalid.host.com',
                     port: 12345
                 };
@@ -134,13 +134,13 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             const processingTests = new TestScenarioBuilder()
                 .addCustomScenario({
                     name: 'single email fetch',
-                    config: testConfigs.valid,
+                    config: EmailReceiverTestConfigs.valid,
                     input: { payload: 'fetch' },
                     timeout: 5000
                 })
                 .addCustomScenario({
                     name: 'multiple folders processing',
-                    config: testConfigs.arrayFolders,
+                    config: EmailReceiverTestConfigs.arrayFolders,
                     input: { payload: 'fetch' },
                     timeout: 5000
                 });
@@ -165,7 +165,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
                 // Implementation depends on your specific error recovery logic
                 const scenario: TestScenario = {
                     name: 'error recovery',
-                    config: testConfigs.valid,
+                    config: EmailReceiverTestConfigs.valid,
                     input: { payload: 'test' },
                     timeout: 3000
                 };

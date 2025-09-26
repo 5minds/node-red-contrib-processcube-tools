@@ -1,4 +1,6 @@
 import { EventEmitter } from 'events';
+import { ImapConfig } from "../interfaces/imap-config";
+import { ImapMailbox } from '../interfaces/imap-mailbox';
 
 export class MockImap extends EventEmitter {
     private config: ImapConfig;

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
-import { testConfigs } from '../helpers/email-receiver-test-configs';
+import { EmailReceiverTestConfigs } from '../helpers/email-receiver-test-configs';
 
 // Import our comprehensive test framework
 import {
@@ -32,9 +32,9 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
         'Email Receiver',
         emailReceiverNode,
         {
-            valid: testConfigs.valid,
-            minimal: testConfigs.minimal,
-            invalid: testConfigs.invalidConfig
+            valid: EmailReceiverTestConfigs.valid,
+            minimal: EmailReceiverTestConfigs.minimal,
+            invalid: EmailReceiverTestConfigs.invalidConfig
         },
         {
             includePerformance: true,
@@ -52,7 +52,7 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
         const emailValidation = new DataValidationTestBuilder()
             .addSchemaValidationScenario(
                 'email configuration',
-                testConfigs.valid,
+                EmailReceiverTestConfigs.valid,
                 {
                     host: 'imap.gmail.com',
                     port: 993,
@@ -70,7 +70,7 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
             )
             .addBoundaryValueScenario(
                 'port numbers',
-                testConfigs.valid,
+                EmailReceiverTestConfigs.valid,
                 {
                     min: 1,
                     max: 65535,
@@ -80,7 +80,7 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
             )
             .addTypeValidationScenario(
                 'folder configuration',
-                testConfigs.valid,
+                EmailReceiverTestConfigs.valid,
                 'array',
                 [
                     ['INBOX'],
@@ -115,9 +115,9 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
 
     describe('Email Error Resilience', function () {
         const resilience = new ErrorResilienceTestBuilder()
-            .addNetworkErrorScenario('IMAP connection', testConfigs.valid)
-            .addMalformedInputScenario('email message processing', testConfigs.valid)
-            .addRapidFireScenario('email burst handling', testConfigs.valid, 50);
+            .addNetworkErrorScenario('IMAP connection', EmailReceiverTestConfigs.valid)
+            .addMalformedInputScenario('email message processing', EmailReceiverTestConfigs.valid)
+            .addRapidFireScenario('email burst handling', EmailReceiverTestConfigs.valid, 50);
 
         resilience.getScenarios().forEach(scenario => {
             it(`should handle ${scenario.name}`, async function () {
@@ -143,15 +143,15 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
 
     describe('Email Edge Cases', function () {
         const edgeCases = new EdgeCaseTestBuilder()
-            .addEmptyDataScenarios('empty email data', testConfigs.valid)
-            .addSpecialCharacterScenarios('special characters in emails', testConfigs.valid)
-            .addLargeDataScenarios('large email attachments', testConfigs.valid);
+            .addEmptyDataScenarios('empty email data', EmailReceiverTestConfigs.valid)
+            .addSpecialCharacterScenarios('special characters in emails', EmailReceiverTestConfigs.valid)
+            .addLargeDataScenarios('large email attachments', EmailReceiverTestConfigs.valid);
 
         // Add email-specific edge cases
         const emailSpecificCases = new TestScenarioBuilder()
             .addCustomScenario({
                 name: 'very long subject line',
-                config: testConfigs.valid,
+                config: EmailReceiverTestConfigs.valid,
                 input: {
                     payload: 'fetch',
                     subject: 'a'.repeat(1000) // Very long subject
@@ -160,14 +160,14 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
             .addCustomScenario({
                 name: 'multiple folder processing',
                 config: {
-                    ...testConfigs.valid,
+                    ...EmailReceiverTestConfigs.valid,
                     folders: Array.from({ length: 50 }, (_, i) => `FOLDER${i}`)
                 },
                 input: { payload: 'fetch' }
             })
             .addCustomScenario({
                 name: 'special email characters',
-                config: testConfigs.valid,
+                config: EmailReceiverTestConfigs.valid,
                 input: {
                     payload: 'fetch',
                     from: 'tëst@exämple.com',
@@ -192,23 +192,23 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
         const asyncTests = new AsyncBehaviorTestBuilder()
             .addDelayedResponseScenario(
                 'IMAP connection delay',
-                testConfigs.valid,
+                EmailReceiverTestConfigs.valid,
                 { payload: 'connect' },
                 2000
             )
             .addRetryMechanismScenario(
                 'failed email fetch retry',
-                testConfigs.valid,
+                EmailReceiverTestConfigs.valid,
                 3
             )
             .addTimeoutHandlingScenario(
                 'IMAP operation timeout',
-                { ...testConfigs.valid, timeout: 1000 },
+                { ...EmailReceiverTestConfigs.valid, timeout: 1000 },
                 1000
             )
             .addBackpressureScenario(
                 'many simultaneous email requests',
-                testConfigs.valid,
+                EmailReceiverTestConfigs.valid,
                 100
             );
 
@@ -232,7 +232,7 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
         it('should efficiently process multiple email fetch requests', async function () {
             const scenario: PerformanceTestScenario = {
                 name: 'multiple email fetches',
-                config: testConfigs.valid,
+                config: EmailReceiverTestConfigs.valid,
                 input: { payload: 'fetch' },
                 iterations: 50,
                 maxDuration: 10000,
@@ -255,7 +255,7 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
         it('should handle memory efficiently during extended operation', async function () {
             const memoryTest = StressTestBuilder.createMemoryLeakTest(
                 'extended email processing',
-                testConfigs.valid,
+                EmailReceiverTestConfigs.valid,
                 200
             );
 
@@ -278,14 +278,14 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
 
     describe('Email Security', function () {
         const security = new SecurityTestBuilder()
-            .addInjectionTestScenarios('email content injection', testConfigs.valid)
-            .addOversizedPayloadScenarios('large email payload', testConfigs.valid);
+            .addInjectionTestScenarios('email content injection', EmailReceiverTestConfigs.valid)
+            .addOversizedPayloadScenarios('large email payload', EmailReceiverTestConfigs.valid);
 
         // Email-specific security tests
         const emailSecurity = new TestScenarioBuilder()
             .addCustomScenario({
                 name: 'malicious email headers',
-                config: testConfigs.valid,
+                config: EmailReceiverTestConfigs.valid,
                 input: {
                     payload: 'fetch',
                     headers: {
@@ -296,7 +296,7 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
             })
             .addCustomScenario({
                 name: 'suspicious attachment handling',
-                config: testConfigs.valid,
+                config: EmailReceiverTestConfigs.valid,
                 input: {
                     payload: 'fetch',
                     attachments: [
@@ -332,7 +332,7 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
     TestPatternHelpers.createDataDrivenTests(
         'Email Processing Scenarios',
         emailReceiverNode,
-        testConfigs.valid,
+        EmailReceiverTestConfigs.valid,
         [
             {
                 name: 'fetch INBOX emails',
@@ -372,9 +372,9 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
     describe('Mock System Integration', function () {
         it('should work with all mock configurations', async function () {
             const mockConfigs = [
-                testConfigs.valid,
-                testConfigs.minimal,
-                testConfigs.arrayFolders
+                EmailReceiverTestConfigs.valid,
+                EmailReceiverTestConfigs.minimal,
+                EmailReceiverTestConfigs.arrayFolders
             ];
 
             for (const config of mockConfigs) {

@@ -1,4 +1,4 @@
-interface ImapConfig {
+export interface ImapConfig {
     host: string;
     port: number;
     secure?: boolean;
