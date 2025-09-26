@@ -1,12 +1,30 @@
 import type { NodeAPI } from 'node-red';
 import type { TestScenario, TestContext, MockNodeREDOptions } from './types';
 
+// Minimal extension for dependency injection
+export interface DependencyContainer {
+  [key: string]: any;
+}
+
+export interface EnhancedMockNodeREDOptions extends MockNodeREDOptions {
+  dependencies?: DependencyContainer;
+}
+
 export class NodeTestRunner {
-  private static createMockNodeRED(context: TestContext, options: MockNodeREDOptions = {}): any {
+  private static createMockNodeRED(context: TestContext, options: EnhancedMockNodeREDOptions = {}): any {
     return {
       nodes: {
         createNode: function(node: any, config: any) {
           Object.assign(node, config);
+
+          // Inject dependencies if available
+          if (options.dependencies) {
+            Object.keys(options.dependencies).forEach(key => {
+              if (!node[key]) {
+                node[key] = options.dependencies![key];
+              }
+            });
+          }
 
           // Set up event handlers
           node.on = options.onHandler || function(event: string, callback: Function) {
@@ -47,7 +65,7 @@ export class NodeTestRunner {
     };
   }
 
-  private static createTestContext(options: MockNodeREDOptions = {}): TestContext {
+  private static createTestContext(options: EnhancedMockNodeREDOptions = {}): TestContext {
     const context: TestContext = {
       mockRED: null,
       nodeInstance: null,
@@ -63,7 +81,7 @@ export class NodeTestRunner {
   static async runScenario(
     nodeConstructorFn: Function,
     scenario: TestScenario,
-    mockOptions: MockNodeREDOptions = {}
+    mockOptions: EnhancedMockNodeREDOptions = {}
   ): Promise<TestContext> {
     const context = this.createTestContext(mockOptions);
 
