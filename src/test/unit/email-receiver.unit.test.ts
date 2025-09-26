@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
-import { createMockMailparser, MockImap, setupModuleMocks, testConfigs } from '../helpers/email-receiver.mocks';
-
+import { testConfigs } from '../helpers/email-receiver.mocks';
+import { MockImap } from '../mocks/imap-mock';
 // Import our test framework
 import {
   TestScenarioBuilder,
@@ -11,20 +11,9 @@ import {
   type TestScenario,
   type MockNodeREDOptions
 } from '../framework';
+import { MockMailParser } from '../mocks/mailparser-mock';
 
 describe('E-Mail Receiver Node - Unit Tests', function () {
-    this.timeout(10000);
-    let cleanupMocks: Function;
-
-    before(function () {
-        cleanupMocks = setupModuleMocks();
-    });
-
-    after(function () {
-        if (cleanupMocks) {
-            cleanupMocks();
-        }
-    });
 
     // ========================================================================
     // USE GENERIC TEST SUITE FOR BASIC FUNCTIONALITY
@@ -84,7 +73,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             it('should establish connection successfully', async function () {
                 const mockDependencies = {
                     Imap: MockImap,
-                    MailParser: createMockMailparser()
+                    MailParser: MockMailParser
                 };
 
                 const mockOptions: MockNodeREDOptions = {

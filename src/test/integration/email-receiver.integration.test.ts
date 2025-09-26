@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
-import { setupModuleMocks, testConfigs } from '../helpers/email-receiver.mocks';
+import { testConfigs } from '../helpers/email-receiver.mocks';
 
 // Import our comprehensive test framework
 import {
@@ -23,17 +23,7 @@ import {
 } from '../framework/advanced-test-patterns';
 
 describe('E-Mail Receiver Node - Integration Tests', function () {
-    this.timeout(30000); // Extended timeout for comprehensive tests
-    let cleanupMocks: Function;
-
-    before(function () {
-        cleanupMocks = setupModuleMocks();
-    });
-
-    after(function () {
-        if (cleanupMocks) cleanupMocks();
-    });
-
+    
     // ========================================================================
     // USE HELPER TO CREATE COMPREHENSIVE SUITE
     // ========================================================================
