@@ -61,7 +61,39 @@ export class NodeTestRunner {
           (this as any).lastRegisteredType = type;
           (this as any).lastRegisteredConstructor = constructor;
         }
-      }
+      },
+      util: {
+            // This is the key missing piece!
+            evaluateNodeProperty: (value: any, type: string, node: any, msg: any): any => {
+                // Simple mock implementation that handles common types
+                switch (type) {
+                    case 'str':
+                        return String(value);
+                    case 'num':
+                        return Number(value);
+                    case 'bool':
+                        return Boolean(value);
+                    case 'json':
+                        try {
+                            return typeof value === 'string' ? JSON.parse(value) : value;
+                        } catch {
+                            return value;
+                        }
+                    case 'msg':
+                        const keys = value.split('.');
+                        let result = msg;
+                        for (const key of keys) {
+                            result = result?.[key];
+                        }
+                        return result;
+                    case 'flow':
+                    case 'global':
+                        return value;
+                    default:
+                        return value;
+                }
+            }
+        }
     };
   }
 
