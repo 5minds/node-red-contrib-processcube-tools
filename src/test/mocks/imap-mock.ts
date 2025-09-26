@@ -6,6 +6,7 @@ export class MockImap extends EventEmitter {
     private config: ImapConfig;
     private isConnected = false;
     private currentBox: string | null = null;
+    public state: string = 'disconnected';
 
     constructor(config: ImapConfig) {
         super();
@@ -20,6 +21,7 @@ export class MockImap extends EventEmitter {
                 this.emit('error', error);
             } else {
                 this.isConnected = true;
+                this.state = 'authenticated';
                 this.emit('ready');
             }
         }, 10);
@@ -43,7 +45,7 @@ export class MockImap extends EventEmitter {
 
     search(criteria: any[], callback: (err: Error | null, results?: number[]) => void): void {
         setTimeout(() => {
-            const messageIds = this.generateMessageIds();
+            const messageIds = this.getFixedMessageIds();
             callback(null, messageIds);
         }, 10);
     }
@@ -53,11 +55,14 @@ export class MockImap extends EventEmitter {
 
         setTimeout(() => {
             results.forEach((id, index) => {
-                const mockMessage = this.createMockMessage(id);
-                fetchEmitter.emit('message', mockMessage);
+                setTimeout(() => {
+                    const mockMessage = this.createMockMessage(id);
+                    fetchEmitter.emit('message', mockMessage, id);
+                }, index * 5);
             });
 
-            setTimeout(() => fetchEmitter.emit('end'), 20);
+            // Emit end after all messages are processed
+            setTimeout(() => fetchEmitter.emit('end'), results.length * 10 + 50);
         }, 10);
 
         return fetchEmitter;
@@ -65,6 +70,7 @@ export class MockImap extends EventEmitter {
 
     end(): void {
         this.isConnected = false;
+        this.state = 'disconnected';
         setTimeout(() => this.emit('end'), 5);
     }
 
@@ -92,8 +98,8 @@ export class MockImap extends EventEmitter {
         return counts[folder.toUpperCase()] || 3;
     }
 
-    private generateMessageIds(): number[] {
-        return [123, 456, 789, 1011, 1213].slice(0, Math.max(1, Math.floor(Math.random() * 5)));
+    private getFixedMessageIds(): number[] {
+        return this.currentBox === 'INBOX' ? [123, 456, 789, 1011, 1213] : [123, 456, 789];
     }
 
     private createMockMessage(id: number) {
@@ -101,7 +107,19 @@ export class MockImap extends EventEmitter {
 
         setTimeout(() => {
             const emailContent = this.generateEmailContent(id);
-            message.emit('body', Buffer.from(emailContent));
+            // Emit body as a readable stream-like object
+            const mockStream = {
+                pipe: (dest: any) => dest,
+                on: (event: string, handler: Function) => {
+                    if (event === 'data') {
+                        setTimeout(() => handler(Buffer.from(emailContent)), 1);
+                    } else if (event === 'end') {
+                        setTimeout(() => handler(), 5);
+                    }
+                },
+                read: () => Buffer.from(emailContent)
+            };
+            message.emit('body', mockStream);
         }, 5);
 
         setTimeout(() => {
@@ -112,10 +130,6 @@ export class MockImap extends EventEmitter {
                 size: Math.floor(Math.random() * 10000) + 500
             });
         }, 10);
-
-        setTimeout(() => {
-            message.emit('end');
-        }, 15);
 
         return message;
     }

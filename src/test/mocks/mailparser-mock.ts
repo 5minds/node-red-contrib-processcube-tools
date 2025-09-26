@@ -1,43 +1,49 @@
 import { EmailData } from "../interfaces/email-data";
-import { ParsedEmail } from "../interfaces/parsed-email";
 
 export function createMockMailparser() {
-    const mockParser = {
-        simpleParser: async (source: any, options: Partial<EmailData> = {}): Promise<ParsedEmail> => {
-            // Parse basic email structure from source if it's a buffer/string
-            let parsedData: Partial<EmailData> = {};
+    return function mockMailParser(stream: NodeJS.ReadableStream, callback: (err: Error | null, parsed?: any) => void) {
+        // Read the stream data
+        let emailData = '';
 
-            if (Buffer.isBuffer(source) || typeof source === 'string') {
-                const content = source.toString();
-                parsedData = parseEmailContent(content);
-            }
+        stream.on('data', (chunk) => {
+            emailData += chunk.toString();
+        });
 
-            return {
-                subject: options.subject || parsedData.subject || 'Mock Email Subject',
-                text: options.text || parsedData.text || 'Mock email content',
-                html: options.html || parsedData.html || '<p>Mock email content</p>',
+        stream.on('end', () => {
+            // Parse the email content using your existing helper
+            const parsedData = parseEmailContent(emailData);
+            const parsedMail = {
+                subject: parsedData.subject || 'Mock Email Subject',
+                text: parsedData.text || 'Mock email content',
+                html: parsedData.html || '<p>Mock email content</p>',
                 from: {
-                    text: options.from || parsedData.from || 'sender@test.com',
-                    value: [{ address: options.from || parsedData.from || 'sender@test.com' }]
+                    text: parsedData.from || 'sender@test.com',
+                    value: [{ address: parsedData.from || parsedData.from || 'sender@test.com' }]
                 },
-                to: {
-                    text: options.to || parsedData.to || 'recipient@test.com',
-                    value: [{ address: options.to || parsedData.to || 'recipient@test.com' }]
+                replyTo: {
+                    text: parsedData.from || 'sender@test.com',
+                    value: [{ address: parsedData.to || parsedData.to || 'recipient@test.com' }]
                 },
-                date: options.date || parsedData.date || new Date(),
-                messageId: options.messageId || parsedData.messageId || '<mock@test.com>',
+                date: parsedData.date || new Date(),
+                messageId: parsedData.messageId || '<mock@test.com>',
                 headers: new Map([
-                    ['message-id', options.messageId || '<mock@test.com>'],
-                    ['subject', options.subject || 'Mock Email Subject'],
-                    ['from', options.from || 'sender@test.com']
+                    ['message-id', parsedData.messageId || '<mock@test.com>'],
+                    ['subject', parsedData.subject || 'Mock Email Subject'],
+                    ['from', parsedData.from || 'sender@test.com']
                 ]),
-                attachments: options.attachments || []
+                attachments: parsedData.attachments || []
             };
-        }
-    };
 
-    // Return a function that returns the parser object
-    return () => mockParser;
+            // Call the callback asynchronously to simulate real parsing
+            setTimeout(() => {
+                callback(null, parsedMail);
+            }, 5);
+        });
+
+        stream.on('error', (err) => {
+            callback(err);
+        });
+    };
 }
 
 // Helper to parse basic email content

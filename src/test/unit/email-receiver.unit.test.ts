@@ -98,7 +98,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
 
                 // Should have received a green status
                 const finalStatus = context.statuses.pop(); // Get the last status update
-                expect(finalStatus.fill).to.equal('green', 'Final status should indicate success');
+                expect(finalStatus.fill).to.equal('green', 'Done, fetched 5 mails from INBOX.');
                 expect(finalStatus.text).to.include('Done, fetched', 'Final status text should indicate completion and fetched mails');
             });
 

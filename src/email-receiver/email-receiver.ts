@@ -318,7 +318,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     });
 
                     imap.once('end', () => {
-                        node.log('IMAP connection ended.');
+                        updateStatus('green', 'IMAP connection ended.');
                     });
 
                     updateStatus('yellow', 'Connecting to IMAP...');
