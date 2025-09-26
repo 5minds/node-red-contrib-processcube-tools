@@ -24,6 +24,7 @@ module.exports = function (RED) {
             const imap_tls = RED.util.evaluateNodeProperty(config.tls, config.tlsType, node, msg);
             const imap_user = RED.util.evaluateNodeProperty(config.user, config.userType, node, msg);
             const imap_password = RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg);
+            const sendstatus = config.sendstatus === true || config.sendstatus === 'true';
 
             // Check if the folder is actually an array
             const imap_folder = RED.util.evaluateNodeProperty(config.folder, config.folderType, node, msg);
@@ -127,18 +128,51 @@ module.exports = function (RED) {
                     if (error) {
                         node.error('IMAP session terminated: ' + error.message);
                         node.status({ fill: 'red', shape: 'ring', text: 'connection error' });
+                        if (sendstatus) {
+                            node.send([null, { 
+                                payload: {
+                                    status: 'error',
+                                    message: error.message,
+                                    errors: state.errors,
+                                }
+                            }]);
+                        }
                     } else if (state.failures > 0) {
                         node.status({
                             fill: 'red',
                             shape: 'dot',
                             text: `Done, ${state.totalMails} mails from ${state.successes}/${state.totalFolders} folders. ${state.failures} failed.`,
                         });
+                        if (sendstatus) {
+                            node.send([null, { 
+                                payload: {
+                                    status: 'warning',
+                                    total: state.totalMails,
+                                    successes: state.successes,
+                                    failures: state.failures,
+                                    totalFolders: state.totalFolders,
+                                    errors: state.errors,
+                                }
+                            }]);
+                        }
+
                     } else {
                         node.status({
                             fill: 'green',
                             shape: 'dot',
                             text: `Done, fetched ${state.totalMails} mails from ${folders.join(', ')}.`,
                         });
+
+                        if (sendstatus) {
+                            node.send([null, { 
+                                payload: {
+                                    status: 'success',
+                                    total: state.totalMails,
+                                    folders: folders.join(', '),
+                                }
+                            }]);
+                        }
+
                     }
                     if (imap && imap.state !== 'disconnected') {
                         imap.end();
