@@ -11,7 +11,7 @@ import {
   type TestScenario,
   type MockNodeREDOptions
 } from '../framework';
-import { MockMailParser } from '../mocks/mailparser-mock';
+import { createMockMailparser } from '../mocks/mailparser-mock';
 
 describe('E-Mail Receiver Node - Unit Tests', function () {
 
@@ -72,8 +72,8 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         describe('IMAP Connection Handling', function () {
             it('should establish connection successfully', async function () {
                 const mockDependencies = {
-                    Imap: MockImap,
-                    MailParser: MockMailParser
+                    ImapClient: MockImap,
+                    mailParser: createMockMailparser()
                 };
 
                 const mockOptions: MockNodeREDOptions = {
@@ -90,15 +90,16 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
                     name: 'successful connection',
                     config: EmailReceiverTestConfigs.valid,
                     input: { payload: 'test' },
-                    expectedStatus: { fill: 'green' },
+                    expectedStatus: { fill: 'green', shape: 'dot', text: 'Done, fetched 5 mails from INBOX.' },
                     timeout: 3000
                 };
 
                 const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
 
                 // Should have received a green status
-                const hasGreenStatus = context.statuses.some(s => s.fill === 'green');
-                expect(hasGreenStatus, 'Should have received green status indicating successful connection').to.be.true;
+                const finalStatus = context.statuses.pop(); // Get the last status update
+                expect(finalStatus.fill).to.equal('green', 'Final status should indicate success');
+                expect(finalStatus.text).to.include('Done, fetched', 'Final status text should indicate completion and fetched mails');
             });
 
             it('should handle connection failures gracefully', async function () {

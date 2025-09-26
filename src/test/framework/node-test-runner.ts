@@ -63,9 +63,7 @@ export class NodeTestRunner {
         }
       },
       util: {
-            // This is the key missing piece!
             evaluateNodeProperty: (value: any, type: string, node: any, msg: any): any => {
-                // Simple mock implementation that handles common types
                 switch (type) {
                     case 'str':
                         return String(value);

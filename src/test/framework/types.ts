@@ -6,7 +6,7 @@ export interface TestScenario {
   input?: any;
   expectedOutput?: any;
   expectedError?: string | RegExp;
-  expectedStatus?: { fill: string; text?: string };
+  expectedStatus?: { fill: string; shape?: string; text?: string };
   timeout?: number;
 }
 
