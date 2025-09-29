@@ -139,20 +139,31 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             });
 
             it('should handle connection failures gracefully', async function () {
-                const invalidConfig = {
-                    ...EmailReceiverTestConfigs.valid,
-                    host: 'nonexistent.invalid.host.com',
-                    port: 12345
+                const mockDependencies = {
+                    ImapClient: MockImap,
+                    mailParser: createMockMailparser()
+                };
+
+                const mockOptions: MockNodeREDOptions = {
+                    dependencies: mockDependencies,
+                    statusHandler: function(status: any) {
+                        console.log('📊 Status received:', JSON.stringify(status, null, 2));
+                    },
+                    errorHandler: function(err: any) {
+                        console.log('❌ Error received:', err);
+                    }
                 };
 
                 const scenario: TestScenario = {
                     name: 'connection failure',
-                    config: invalidConfig,
+                    config: EmailReceiverTestConfigs.invalidConfig,
                     input: { payload: 'test' },
+                    expectedStatus: { fill: 'red', shape: 'ring', text: 'config error' },
+                    expectedError: "Missing required IMAP config: host, password. Aborting.",
                     timeout: 5000
                 };
 
-                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
 
                 // Should have either error or red status (or both)
                 const hasError = context.errors.length > 0;
