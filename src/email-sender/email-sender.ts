@@ -1,41 +1,6 @@
-import { NodeInitializer, Node, NodeDef, NodeMessage } from 'node-red';
+import { NodeInitializer, Node, NodeMessage } from 'node-red';
 import nodemailer from 'nodemailer';
-
-interface EmailSenderNodeProperties extends NodeDef {
-    // Mail configuration properties
-    sender: string;
-    senderType: string;
-    address: string;
-    addressType: string;
-    to: string;
-    toType: string;
-    cc: string;
-    ccType: string;
-    bcc: string;
-    bccType: string;
-    replyTo: string;
-    replyToType: string;
-    subject: string;
-    subjectType: string;
-    htmlContent: string;
-    htmlContentType: string;
-    attachments: string;
-    attachmentsType: string;
-
-    // SMTP configuration properties
-    host: string;
-    hostType: string;
-    port: string;
-    portType: string;
-    user: string;
-    userType: string;
-    password: string;
-    passwordType: string;
-    secure: string;
-    secureType: string;
-    rejectUnauthorized: string;
-    rejectUnauthorizedType: string;
-}
+import { EmailSenderNodeProperties } from '../interfaces/EmailSenderNodeProperties';
 
 interface EmailSenderNodeMessage extends NodeMessage {}
 
