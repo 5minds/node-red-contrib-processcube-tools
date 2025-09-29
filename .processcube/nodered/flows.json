@@ -24,6 +24,36 @@
         "env": []
     },
     {
+        "id": "4035419d568c0211",
+        "type": "tab",
+        "label": "Swagger",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "ae5f8092b3d054f3",
+        "type": "swagger-doc",
+        "summary": "This is an example",
+        "description": "and here is its description",
+        "tags": "",
+        "parameters": [],
+        "responses": {},
+        "requestBody": {
+            "description": "Request body",
+            "required": false,
+            "content": {
+                "text/plain": {
+                    "schema": {
+                        "type": "string"
+                    },
+                    "example": "<note>\n<to>Tove</to>\n<from>Jani</from>\n<heading>Reminder</heading>\n<body>Don't forget me this weekend!</body>\n</note>"
+                }
+            }
+        },
+        "deprecated": false
+    },
+    {
         "id": "fd4bdf33d0253f6a",
         "type": "processcube-html-to-text",
         "z": "4a5484c44fd92283",
@@ -833,5 +863,39 @@
                 "c7e14035c3e1b2e0"
             ]
         ]
+    },
+    {
+        "id": "ec42c49342a54dd7",
+        "type": "http in",
+        "z": "4035419d568c0211",
+        "name": "My test api call",
+        "url": "/test",
+        "method": "post",
+        "upload": false,
+        "skipBodyParsing": false,
+        "swaggerDoc": "ae5f8092b3d054f3",
+        "x": 260,
+        "y": 180,
+        "wires": [
+            [
+                "01d5e22b20428fea"
+            ]
+        ]
+    },
+    {
+        "id": "01d5e22b20428fea",
+        "type": "debug",
+        "z": "4035419d568c0211",
+        "name": "debug 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 530,
+        "y": 180,
+        "wires": []
     }
 ]

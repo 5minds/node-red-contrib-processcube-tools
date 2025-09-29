@@ -38,7 +38,8 @@
         "nodes": {
             "EmailReceiver": "email-receiver/email-receiver.js",
             "EmailSender": "email-sender/email-sender.js",
-            "HtmlToText": "processcube-html-to-text/processcube-html-to-text.js"
+            "HtmlToText": "processcube-html-to-text/processcube-html-to-text.js",
+            "Swagger": "swagger/swagger.js"
         },
         "examples": "examples"
     },
@@ -47,7 +48,8 @@
         "mailparser": "^3.6.8",
         "node-imap": "^0.9.6",
         "nodemailer": "^7.0.6",
-        "utf7": "^1.0.2"
+        "utf7": "^1.0.2",
+        "swagger-ui-dist": "^5.29.0"
     },
     "devDependencies": {
         "chai": "^4.3.4",
