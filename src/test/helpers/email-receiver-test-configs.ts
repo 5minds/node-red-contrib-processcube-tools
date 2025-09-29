@@ -1,6 +1,6 @@
-import { TestConfig } from "../interfaces/test-config";
+import { EmailReceiverConfig } from "../interfaces/email-receiver-config";
 
-export const EmailReceiverTestConfigs = {
+export const EmailReceiverEmailReceiverConfigs = {
     valid: {
         id: 'test-node-1',
         type: 'email-receiver',
@@ -12,7 +12,7 @@ export const EmailReceiverTestConfigs = {
         folder: ['INBOX'],
         tls: true,
         markseen: true
-    } as TestConfig,
+    } as EmailReceiverConfig,
 
     minimal: {
         id: 'test-node-minimal',
@@ -22,7 +22,7 @@ export const EmailReceiverTestConfigs = {
         user: 'minimal@test.com',
         password: 'minimalpass',
         folder: 'INBOX'
-    } as TestConfig,
+    } as EmailReceiverConfig,
 
     arrayFolders: {
         id: 'test-node-array',
@@ -33,7 +33,7 @@ export const EmailReceiverTestConfigs = {
         user: 'test@test.com',
         password: 'testpass',
         folder: ['INBOX', 'SENT', 'DRAFTS']
-    } as TestConfig,
+    } as EmailReceiverConfig,
 
     invalidFolderType: {
         id: 'test-node-invalid-folder',
@@ -43,7 +43,7 @@ export const EmailReceiverTestConfigs = {
         user: 'test@test.com',
         password: 'testpass',
         folder: 123 as any // Invalid type
-    } as TestConfig,
+    } as EmailReceiverConfig,
 
     invalidConfig: {
         id: 'test-node-invalid',
@@ -53,7 +53,7 @@ export const EmailReceiverTestConfigs = {
         user: 'test@test.com',
         password: '', // Missing password
         folder: ['INBOX']
-    } as TestConfig,
+    } as EmailReceiverConfig,
 
     networkError: {
         id: 'test-node-network-error',
@@ -63,6 +63,6 @@ export const EmailReceiverTestConfigs = {
         user: 'test@test.com',
         password: 'testpass',
         folder: ['INBOX']
-    } as TestConfig
+    } as EmailReceiverConfig
 };
 

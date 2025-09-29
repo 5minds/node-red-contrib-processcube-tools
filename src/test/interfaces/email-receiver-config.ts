@@ -1,4 +1,4 @@
-export interface TestConfig {
+export interface EmailReceiverConfig {
     id: string;
     type: string;
     name?: string;
