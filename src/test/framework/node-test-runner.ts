@@ -116,25 +116,20 @@ export class NodeTestRunner {
     const context = this.createTestContext(mockOptions);
 
     return new Promise((resolve, reject) => {
+      let completed = false;
+
       const timeout = setTimeout(() => {
-        reject(new Error(`Test scenario '${scenario.name}' timed out after ${scenario.timeout || 5000}ms`));
+        if (!completed) {
+          reject(new Error(`Test scenario '${scenario.name}' timed out after ${scenario.timeout || 5000}ms`));
+        }
       }, scenario.timeout || 5000);
 
-      let expectedEvents = 0;
-      let receivedEvents = 0;
-
-      // Count expected events
-      if (scenario.expectedOutput) expectedEvents++;
-      if (scenario.expectedError) expectedEvents++;
-      if (scenario.expectedStatus) expectedEvents++;
-
-      const checkCompletion = () => {
-        receivedEvents++;
-        if (receivedEvents >= expectedEvents || expectedEvents === 0) {
-          clearTimeout(timeout);
-          // Small delay to catch any additional events
-          setTimeout(() => resolve(context), 50);
-        }
+      const complete = () => {
+        if (completed) return;
+        completed = true;
+        clearTimeout(timeout);
+        // Small delay to catch any additional events
+        setTimeout(() => resolve(context), 50);
       };
 
       try {
@@ -149,47 +144,48 @@ export class NodeTestRunner {
         const NodeConstructor = (context.mockRED.nodes as any).lastRegisteredConstructor;
         context.nodeInstance = new NodeConstructor(scenario.config);
 
-        // Set up completion detection
+        // Set up completion detection based on scenario configuration
         const originalSend = context.nodeInstance.send;
         const originalError = context.nodeInstance.error;
         const originalStatus = context.nodeInstance.status;
 
+        // Override send to detect expected output
         if (scenario.expectedOutput) {
           context.nodeInstance.send = function(msg: any) {
             originalSend.call(this, msg);
-            checkCompletion();
+            // Complete when we get the expected output
+            complete();
           };
         }
 
+        // Override error to detect expected errors
         if (scenario.expectedError) {
           context.nodeInstance.error = function(error: any) {
             originalError.call(this, error);
-            checkCompletion();
+            // Complete when we get the expected error
+            complete();
           };
         }
 
+        // Override status to detect completion patterns
         if (scenario.expectedStatus) {
-          const statusChecks: any[] = [];
-
           context.nodeInstance.status = function(status: any) {
             originalStatus.call(this, status);
-            statusChecks.push(status);
 
-            // If waiting for final status, only complete on specific pattern
-            if (scenario.waitForFinalStatus && scenario.finalStatusPattern) {
-              if (status.text?.includes(scenario.finalStatusPattern)) {
-                checkCompletion();
-              }
-            } else {
-              checkCompletion();
+            // Check if status matches all specified properties
+            const fillMatches = !scenario.expectedStatus!.fill || status.fill === scenario.expectedStatus!.fill;
+            const shapeMatches = !scenario.expectedStatus!.shape || status.shape === scenario.expectedStatus!.shape;
+            const textMatches = !scenario.expectedStatus!.text || status.text?.includes(scenario.expectedStatus!.text);
+
+            if (fillMatches && shapeMatches && textMatches) {
+              complete();
             }
           };
         }
 
-        // If no expectations, complete after creation
-        if (expectedEvents === 0) {
-          clearTimeout(timeout);
-          setTimeout(() => resolve(context), 100);
+        // If no specific expectations, complete after a short delay to allow initialization
+        if (!scenario.expectedOutput && !scenario.expectedError && !scenario.expectedStatus) {
+          setTimeout(() => complete(), 100);
           return;
         }
 

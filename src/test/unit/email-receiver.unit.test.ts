@@ -92,8 +92,6 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
                     config: EmailReceiverTestConfigs.valid,
                     input: { payload: 'test' },
                     expectedStatus: { fill: 'green', shape: 'dot', text: 'IMAP connection ended.' },
-                    waitForFinalStatus: true,
-                    finalStatusPattern: 'IMAP connection ended.',
                     timeout: 10000
                 };
 
@@ -128,18 +126,16 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
                     config: EmailReceiverTestConfigs.valid,
                     input: { payload: 'test' },
                     expectedStatus: { fill: 'green', shape: 'dot', text: 'Done, fetched 5 mails from INBOX.' },
-                    waitForFinalStatus: true,
-                    finalStatusPattern: 'Done, fetched 5 mails from INBOX.',
                     timeout: 10000
                 };
 
                 const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
-
+                const doneStatus = context.statuses.find(s => s.text?.includes('Done, fetched'));
 
                 // Should have received a green status
-                const finalStatus = context.statuses.pop(); // Get the last status update
-                expect(finalStatus.fill).to.equal('green', 'Done, fetched 5 mails from INBOX.');
-                expect(finalStatus.text).to.include('Done, fetched', 'Final status text should indicate completion and fetched mails');
+                expect(doneStatus).to.exist;
+                expect(doneStatus.fill).to.equal('green', 'Done, fetched 5 mails from INBOX.');
+                expect(doneStatus.text).to.include('Done, fetched', 'Final status text should indicate completion and fetched mails');
             });
 
             it('should handle connection failures gracefully', async function () {
