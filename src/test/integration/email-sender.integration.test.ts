@@ -6,7 +6,7 @@ import {
     emailSenderConfigs,
     testFlows,
     type EmailSenderConfig
-} from '../helpers/email-sender.mocks';
+} from '../mocks/node-mailer-mock';
 
 // Import our integration testing framework
 import {

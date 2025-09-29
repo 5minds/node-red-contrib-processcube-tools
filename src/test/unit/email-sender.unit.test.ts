@@ -3,7 +3,6 @@ import {
   TestScenarioBuilder,
   NodeTestRunner,
   NodeAssertions,
-  createNodeTestSuite,
   TestPatternHelpers,
   ErrorResilienceTestBuilder,
   DataValidationTestBuilder,
@@ -11,37 +10,52 @@ import {
   type TestScenario
 } from '../framework';
 
-import {
-  setupModuleMocks,
-  emailSenderConfigs,
-  createMockNodemailer,
-  type EmailSenderConfig
-} from '../helpers/email-sender.mocks';
+import { EmailSenderTestConfigs } from '../helpers/email-sender-test-configs';
 
 // Import your email sender node
 const emailSenderNode = require('../../email-sender/email-sender');
 
-describe('E-Mail Sender Node - Framework Tests', function () {
-    this.timeout(10000);
-    let cleanupMocks: (() => void) | undefined;
-
-    before(function () {
-        cleanupMocks = setupModuleMocks();
-    });
-
-    after(function () {
-        if (cleanupMocks) cleanupMocks();
-    });
+describe('E-Mail Sender Node - Unit Tests', function () {
 
     // ========================================================================
     // BASIC FUNCTIONALITY USING GENERIC TEST SUITE
     // ========================================================================
 
-    createNodeTestSuite('Email Sender', emailSenderNode, {
-        valid: emailSenderConfigs.valid,
-        minimal: emailSenderConfigs.minimal,
-        invalid: emailSenderConfigs.invalid
-    });
+    describe('Configuration Validation', function () {
+            const configTests = new TestScenarioBuilder()
+                .addValidScenario('valid configuration', EmailSenderTestConfigs.valid)
+                .addValidScenario('minimal configuration', EmailSenderTestConfigs.minimal)
+                .addErrorScenario(
+                    'missing required config',
+                    EmailSenderTestConfigs.invalid,
+                    'Missing required IMAP config'
+                );
+
+            configTests.getScenarios().forEach(scenario => {
+                it(`should handle ${scenario.name}`, async function () {
+                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
+
+                    // Verify node was created
+                    expect(context.nodeInstance).to.exist;
+
+                    // Check specific expectations
+                    if (scenario.expectedError) {
+                        NodeAssertions.expectError(context, scenario.expectedError);
+                    } else {
+                        NodeAssertions.expectNoErrors(context);
+                    }
+
+                    // Verify node properties
+                    if (scenario.config.name) {
+                        NodeAssertions.expectNodeProperty(context, 'name', scenario.config.name);
+                    }
+
+                    if (scenario.config.id) {
+                        NodeAssertions.expectNodeProperty(context, 'id', scenario.config.id);
+                    }
+                });
+            });
+        });
 
     // ========================================================================
     // EMAIL SENDER SPECIFIC TESTS

@@ -1,6 +1,6 @@
 import { EmailReceiverConfig } from "../interfaces/email-receiver-config";
 
-export const EmailReceiverEmailReceiverConfigs = {
+export const EmailReceiverTestConfigs = {
     valid: {
         id: 'test-node-1',
         type: 'email-receiver',
