@@ -107,18 +107,14 @@ export class MockImap extends EventEmitter {
 
         setTimeout(() => {
             const emailContent = this.generateEmailContent(id);
-            // Emit body as a readable stream-like object
-            const mockStream = {
-                pipe: (dest: any) => dest,
-                on: (event: string, handler: Function) => {
-                    if (event === 'data') {
-                        setTimeout(() => handler(Buffer.from(emailContent)), 1);
-                    } else if (event === 'end') {
-                        setTimeout(() => handler(), 5);
-                    }
-                },
-                read: () => Buffer.from(emailContent)
-            };
+            // Create a proper readable stream
+            const { Readable } = require('stream');
+            const mockStream = new Readable({
+                read() {
+                    this.push(Buffer.from(emailContent));
+                    this.push(null); // End the stream
+                }
+            });
             message.emit('body', mockStream);
         }, 5);
 

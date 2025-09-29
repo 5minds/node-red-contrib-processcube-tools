@@ -169,9 +169,20 @@ export class NodeTestRunner {
         }
 
         if (scenario.expectedStatus) {
+          const statusChecks: any[] = [];
+
           context.nodeInstance.status = function(status: any) {
             originalStatus.call(this, status);
-            checkCompletion();
+            statusChecks.push(status);
+
+            // If waiting for final status, only complete on specific pattern
+            if (scenario.waitForFinalStatus && scenario.finalStatusPattern) {
+              if (status.text?.includes(scenario.finalStatusPattern)) {
+                checkCompletion();
+              }
+            } else {
+              checkCompletion();
+            }
           };
         }
 

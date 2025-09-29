@@ -70,7 +70,44 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         });
 
         describe('IMAP Connection Handling', function () {
-            it('should establish connection successfully', async function () {
+            it('should establish connection successfully till the end', async function () {
+                this.timeout(15000);
+                const mockDependencies = {
+                    ImapClient: MockImap,
+                    mailParser: createMockMailparser()
+                };
+
+                const mockOptions: MockNodeREDOptions = {
+                    dependencies: mockDependencies,
+                    statusHandler: function(status: any) {
+                        console.log('📊 Status received:', JSON.stringify(status, null, 2));
+                    },
+                    errorHandler: function(err: any) {
+                        console.log('❌ Error received:', err);
+                    }
+                };
+
+                const scenario: TestScenario = {
+                    name: 'successful connection',
+                    config: EmailReceiverTestConfigs.valid,
+                    input: { payload: 'test' },
+                    expectedStatus: { fill: 'green', shape: 'dot', text: 'IMAP connection ended.' },
+                    waitForFinalStatus: true,
+                    finalStatusPattern: 'IMAP connection ended.',
+                    timeout: 10000
+                };
+
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
+
+
+                // Should have received a green status
+                const finalStatus = context.statuses.pop(); // Get the last status update
+                expect(finalStatus.fill).to.equal('green', 'IMAP connection ended.');
+                expect(finalStatus.text).to.include('IMAP connection ended.', 'Final status text should indicate completion');
+            });
+
+            it('should establish connection successfully to show mails received', async function () {
+                this.timeout(15000);
                 const mockDependencies = {
                     ImapClient: MockImap,
                     mailParser: createMockMailparser()
@@ -91,10 +128,13 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
                     config: EmailReceiverTestConfigs.valid,
                     input: { payload: 'test' },
                     expectedStatus: { fill: 'green', shape: 'dot', text: 'Done, fetched 5 mails from INBOX.' },
-                    timeout: 3000
+                    waitForFinalStatus: true,
+                    finalStatusPattern: 'Done, fetched 5 mails from INBOX.',
+                    timeout: 10000
                 };
 
                 const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
+
 
                 // Should have received a green status
                 const finalStatus = context.statuses.pop(); // Get the last status update

@@ -8,6 +8,8 @@ export interface TestScenario {
   expectedError?: string | RegExp;
   expectedStatus?: { fill: string; shape?: string; text?: string };
   timeout?: number;
+  waitForFinalStatus?: boolean;
+  finalStatusPattern?: string; 
 }
 
 export interface TestContext {
