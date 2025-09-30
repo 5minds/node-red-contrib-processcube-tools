@@ -117,6 +117,23 @@ describe('E-Mail Sender Node - Unit Tests', function () {
         });
 
         describe('Attachment Handling', function () {
+            const mockDependencies = {
+                nodemailer: createMockNodemailer({
+                    shouldFail: false,
+                    acceptedEmails: []
+                })
+            };
+
+            const mockOptions: MockNodeREDOptions = {
+                dependencies: mockDependencies,
+                statusHandler: function(status: any) {
+                    console.log('📊 Status received:', JSON.stringify(status, null, 2));
+                },
+                errorHandler: function(err: any) {
+                    console.log('❌ Error received:', err);
+                }
+            };
+
             const attachmentTests = [
                 {
                     name: 'array of attachments',
@@ -129,7 +146,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                         attachmentsType: 'json'
                     },
                     input: { payload: 'test', topic: 'test message' },
-                    expectedStatus: { fill: 'green', text: 'sent' }
+                    expectedStatus: { fill: 'green', text: 'sent' },
                 },
                 {
                     name: 'single attachment object',
@@ -180,7 +197,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                         timeout: 3000
                     };
 
-                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
+                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
 
                     expect(context.nodeInstance).to.exist;
 

@@ -21,11 +21,12 @@ export class NodeAssertions {
   static expectError(context: TestContext, expectedError: string | RegExp): void {
     expect(context.errors, 'No errors were recorded').to.have.length.greaterThan(0);
     const error = context.errors[context.errors.length - 1];
+    const errorMessage = error?.message || error?.toString() || '';
 
     if (typeof expectedError === 'string') {
-      expect(error, 'Error message does not contain expected text').to.include(expectedError);
+      expect(errorMessage, 'Error message does not contain expected text').to.include(expectedError);
     } else {
-      expect(error, 'Error message does not match expected pattern').to.match(expectedError);
+      expect(errorMessage, 'Error message does not match expected pattern').to.match(expectedError);
     }
   }
 
