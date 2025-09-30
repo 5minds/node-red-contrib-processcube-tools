@@ -20,14 +20,13 @@ const EmailSenderNode: NodeInitializer = function (RED) {
                 { name: 'port', value: cfg.port },
                 { name: 'user', value: cfg.user },
                 { name: 'password', value: cfg.password },
-                { name: 'passwordType', value: cfg.passwordType },
                 { name: 'secure', value: cfg.secure },
                 { name: 'rejectUnauthorized', value: cfg.rejectUnauthorized },
             ];
 
             for (const field of requiredFields) {
                 if (field.value === undefined || field.value === null || field.value === '') {
-                    return `Required property '${field.name}' is not set`;
+                    return `Required property '${field.name}' is missing`;
                 }
             }
 

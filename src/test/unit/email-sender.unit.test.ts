@@ -22,7 +22,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
     // USE GENERIC TEST SUITE FOR BASIC FUNCTIONALITY
     // ========================================================================
 
-    createNodeTestSuite('Email Receiver', emailSenderNode, EmailSenderTestConfigs);
+    createNodeTestSuite('Email Sender', emailSenderNode, EmailSenderTestConfigs);
 
     // ========================================================================
     // SPECIFIC EMAIL SENDER TESTS
@@ -37,7 +37,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     .addErrorScenario(
                         'missing required config',
                         EmailSenderTestConfigs.invalid,
-                        'configuration error'
+                        'Required property \'sender\' is missing',
                     );
 
                 configTests.getScenarios().forEach(scenario => {
