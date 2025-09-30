@@ -49,6 +49,23 @@ const EmailSenderTestConfigs = {
         password: '' // Missing password
     } as EmailSenderConfig,
 
+
+    minimalDataDriven: {
+        id: 'test-sender-minimal',
+        type: 'email-sender',
+        sender: 'Test Sender',
+        address: 'test.sender@example.com',
+        subject: 'Minimal Subject',
+        htmlContent: 'Minimal content',
+        host: 'smtp.minimal.com',
+        port: 587,
+        user: 'minimal-user',
+        password: 'minimal-pass',
+        secure: false,
+        rejectUnauthorized: true
+    } as EmailSenderConfig,
+
+
     withAttachments: {
         id: 'test-sender-attachments',
         type: 'email-sender',

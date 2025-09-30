@@ -15,7 +15,6 @@ export {
   PerformanceTestRunner,
   StressTestBuilder,
   ErrorResilienceTestBuilder,
-  DataValidationTestBuilder,
   AsyncBehaviorTestBuilder,
   EdgeCaseTestBuilder,
   SecurityTestBuilder,

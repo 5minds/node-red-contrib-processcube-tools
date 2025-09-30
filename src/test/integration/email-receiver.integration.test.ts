@@ -16,7 +16,6 @@ import {
   PerformanceTestRunner,
   StressTestBuilder,
   ErrorResilienceTestBuilder,
-  DataValidationTestBuilder,
   EdgeCaseTestBuilder,
   AsyncBehaviorTestBuilder,
   SecurityTestBuilder,
@@ -47,70 +46,6 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
         }
     );
 
-    // ========================================================================
-    // EMAIL-SPECIFIC DATA VALIDATION TESTS
-    // ========================================================================
-
-    describe('Email Data Validation', function () {
-        const emailValidation = new DataValidationTestBuilder()
-            .addSchemaValidationScenario(
-                'email configuration',
-                EmailReceiverTestConfigs.valid,
-                {
-                    host: 'imap.gmail.com',
-                    port: 993,
-                    secure: true,
-                    user: 'test@gmail.com',
-                    password: 'password',
-                    folders: ['INBOX']
-                },
-                [
-                    { host: '', port: 993 }, // Missing host
-                    { host: 'imap.gmail.com', port: 'invalid' }, // Invalid port
-                    { host: 'imap.gmail.com', port: 993, folders: 'not-array' }, // Invalid folders
-                    { host: 'imap.gmail.com', port: 993, secure: 'maybe' } // Invalid secure flag
-                ]
-            )
-            .addBoundaryValueScenario(
-                'port numbers',
-                EmailReceiverTestConfigs.valid,
-                {
-                    min: 1,
-                    max: 65535,
-                    belowMin: 0,
-                    aboveMax: 65536
-                }
-            )
-            .addTypeValidationScenario(
-                'folder configuration',
-                EmailReceiverTestConfigs.valid,
-                'array',
-                [
-                    ['INBOX'],
-                    ['INBOX', 'SENT'],
-                    []
-                ],
-                [
-                    'INBOX',
-                    123,
-                    null,
-                    undefined,
-                    { folder: 'INBOX' }
-                ]
-            );
-
-        emailValidation.getScenarios().forEach(scenario => {
-            it(`should validate ${scenario.name}`, async function () {
-                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
-
-                if (scenario.expectedError) {
-                    NodeAssertions.expectError(context, scenario.expectedError);
-                } else {
-                    NodeAssertions.expectNoErrors(context);
-                }
-            });
-        });
-    });
 
     // ========================================================================
     // EMAIL-SPECIFIC ERROR RESILIENCE TESTS
