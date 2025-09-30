@@ -1,3 +1,4 @@
+import { EnhancedMockNodeREDOptions } from "../framework/node-test-runner";
 import { MailOptions, MockNodemailerOptions } from "../interfaces/mail-options";
 import { SendMailResult } from "../interfaces/send-mail-result";
 
@@ -103,6 +104,14 @@ export function createMockNodemailer(options: MockNodemailerOptions = {}) {
         createTransport: (config?: any) => new MockNodemailer(options),
         restore: () => {
             // Cleanup method for compatibility
+        }
+    };
+}
+
+export function withNodemailerMock(options: MockNodemailerOptions): Partial<EnhancedMockNodeREDOptions> {
+    return {
+        dependencies: {
+            nodemailer: createMockNodemailer(options)
         }
     };
 }

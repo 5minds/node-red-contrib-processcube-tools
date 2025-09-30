@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import emailSenderNode  from '../../email-sender/email-sender';
 import { EmailSenderTestConfigs } from '../helpers/email-sender-test-configs';
 
-import { createMockNodemailer } from '../mocks/nodemailer-mock';
+import { createMockNodemailer, withNodemailerMock } from '../mocks/nodemailer-mock';
 
 import {
   TestScenarioBuilder,
@@ -68,56 +68,39 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             });
 
         describe('Email Sending Functionality', function () {
-            const mockDependencies = {
-                nodemailer: createMockNodemailer({
-                    // Add any options you need for your test
-                    shouldFail: false,
-                    rejectedEmails: [],
-                    pendingEmails: [],
-                    onSendMail: (mailOptions) => {
-                        console.log('📧 Mail sent:', mailOptions);
-                    }
-                })
-            };
-            
-            const mockOptions: MockNodeREDOptions = {
-                dependencies: mockDependencies,
-                statusHandler: function(status: any) {
-                    console.log('📊 Status received:', JSON.stringify(status, null, 2));
-                },
-                errorHandler: function(err: any) {
-                    console.log('❌ Error received:', err);
-                }
-            };
-
             const emailSendingTests = new TestScenarioBuilder()
                 .addStatusScenario(
                     'successful email send',
                     EmailSenderTestConfigs.valid,
                     { fill: 'green', text: 'sent' },
-                    { payload: 'test', topic: 'test message' }
+                    { payload: 'test', topic: 'test message' },
+                    withNodemailerMock({ shouldFail: false })
                 )
                 .addStatusScenario(
                     'send mail error',
                     { ...EmailSenderTestConfigs.valid, shouldFail: true },
                     { fill: 'red', text: 'error sending' },
-                    { payload: 'test', topic: 'test message' }
+                    { payload: 'test', topic: 'test message' },
+                    withNodemailerMock({ shouldFail: true })
                 )
                 .addStatusScenario(
                     'rejected email',
                     { ...EmailSenderTestConfigs.valid, rejectedEmails: ['recipient@example.com'] },
                     { fill: 'red', text: 'rejected' },
-                    { payload: 'test', topic: 'test message' }
+                    { payload: 'test', topic: 'test message' },
+                    withNodemailerMock({ rejectedEmails: ['recipient@example.com'] })
                 )
                 .addStatusScenario(
                     'pending email',
                     { ...EmailSenderTestConfigs.valid, pendingEmails: ['recipient@example.com'] },
                     { fill: 'yellow', text: 'pending' },
-                    { payload: 'test', topic: 'test message' }
+                    { payload: 'test', topic: 'test message' },
+                    withNodemailerMock({ pendingEmails: ['recipient@example.com'] })
                 );
 
             emailSendingTests.getScenarios().forEach(scenario => {
                 it(`should handle ${scenario.name}`, async function () {
+                    const mockOptions: MockNodeREDOptions = scenario.mockOptions || {};
                     const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
 
                     expect(context.nodeInstance).to.exist;

@@ -1,4 +1,5 @@
 import type { Node, NodeMessageInFlow } from 'node-red';
+import { MockNodemailerOptions } from '../interfaces/mail-options';
 
 export interface TestScenario {
   name: string;
@@ -8,6 +9,7 @@ export interface TestScenario {
   expectedError?: string | RegExp;
   expectedStatus?: { fill: string; shape?: string; text?: string };
   timeout?: number;
+  mockOptions?: MockNodeREDOptions;
 }
 
 export interface TestContext {
