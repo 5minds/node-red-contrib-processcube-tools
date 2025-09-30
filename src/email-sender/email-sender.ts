@@ -37,7 +37,9 @@ const EmailSenderNode: NodeInitializer = function (RED) {
         const validationError = validateRequiredProperties(config);
         if (validationError) {
             node.status({ fill: 'red', shape: 'dot', text: 'configuration error' });
-            node.error(validationError);
+            setImmediate(() => {
+                node.error(validationError);
+            });
             return; // Stop initialization if config is invalid
         }
 
