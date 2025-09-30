@@ -610,45 +610,4 @@ export class TestPatternHelpers {
       }
     });
   }
-
-  /**
-   * Create data-driven tests from a configuration object
-   */
-  static createDataDrivenTests(
-    testName: string,
-    nodeConstructor: Function,
-    config: any,
-    testCases: Array<{
-      name: string;
-      input: any;
-      expectedOutput?: any;
-      expectedError?: string | RegExp;
-      timeout?: number;
-    }>
-  ) {
-    describe(testName, function() {
-      testCases.forEach(testCase => {
-        it(`should handle ${testCase.name}`, async function() {
-          const scenario: TestScenario = {
-            name: testCase.name,
-            config,
-            input: testCase.input,
-            expectedOutput: testCase.expectedOutput,
-            expectedError: testCase.expectedError,
-            timeout: testCase.timeout || 3000
-          };
-
-          const context = await NodeTestRunner.runScenario(nodeConstructor, scenario);
-
-          if (testCase.expectedOutput) {
-            NodeAssertions.expectMessage(context, testCase.expectedOutput);
-          }
-
-          if (testCase.expectedError) {
-            NodeAssertions.expectError(context, testCase.expectedError);
-          }
-        });
-      });
-    });
-  }
 }

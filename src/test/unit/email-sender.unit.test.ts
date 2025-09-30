@@ -211,64 +211,103 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 });
             });
         });
+
+        // ========================================================================
+        // DATA-DRIVEN EMAIL CONFIGURATION TESTS
+        // ========================================================================
+
+        describe('Email Sender Data driven tests', function () {
+
+            const mockDependencies = {
+                    nodemailer: createMockNodemailer({
+                        shouldFail: false,
+                        acceptedEmails: []
+                    })
+                };
+
+                const mockOptions: MockNodeREDOptions = {
+                    dependencies: mockDependencies,
+                    statusHandler: function(status: any) {
+                        console.log('📊 Status received:', JSON.stringify(status, null, 2));
+                    },
+                    errorHandler: function(err: any) {
+                        console.log('❌ Error received:', err);
+                    }
+                };
+
+            const DataDrivenTests =
+            [
+                {
+                    name: 'basic text email',
+                    input: {
+                        payload: 'Hello World',
+                        topic: 'Test Subject',
+                        to: 'test@example.com'
+                    },
+                    expectedOutput: { payload: 'Hello World' } // Assuming node passes through
+                },
+                {
+                    name: 'HTML email',
+                    input: {
+                        payload: '<h1>Hello World</h1>',
+                        topic: 'HTML Test',
+                        to: 'test@example.com',
+                        html: true
+                    }
+                },
+                {
+                    name: 'email with custom headers',
+                    input: {
+                        payload: 'Custom headers test',
+                        topic: 'Custom Headers',
+                        to: 'test@example.com',
+                        headers: { 'X-Custom': 'test-header' }
+                    }
+                },
+                {
+                    name: 'empty payload',
+                    input: {
+                        payload: '',
+                        topic: 'Empty Content',
+                        to: 'test@example.com'
+                    }
+                },
+                {
+                    name: 'missing recipient',
+                    input: {
+                        payload: 'No recipient test',
+                        topic: 'No Recipient'
+                    },
+                    expectedError: /recipient|to|email/i
+                }
+            ]
+
+            DataDrivenTests.forEach(testCase => {
+                it(`should handle ${testCase.name}`, async function () {
+                    const scenario: TestScenario = {
+                        name: testCase.name,
+                        config: EmailSenderTestConfigs.valid,
+                        input: testCase.input,
+                        expectedOutput: testCase.expectedOutput,
+                        expectedError: testCase.expectedError,
+                        timeout: 3000
+                    };
+
+                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                    expect(context.nodeInstance).to.exist;
+
+                    if (scenario.expectedStatus) {
+                        NodeAssertions.expectStatus(context, scenario.expectedStatus);
+                    }
+
+                    if (scenario.expectedError) {
+                        NodeAssertions.expectError(context, scenario.expectedError);
+                    }
+                });
+
+        });
     });
-    // ========================================================================
-    // DATA-DRIVEN EMAIL CONFIGURATION TESTS
-    // ========================================================================
-
-    describe('Email Sender Data driven configuration tests', function () {
-
-    TestPatternHelpers.createDataDrivenTests(
-        'Email Configuration Tests',
-        emailSenderNode,
-        EmailSenderTestConfigs.valid,
-        [
-            {
-                name: 'basic text email',
-                input: {
-                    payload: 'Hello World',
-                    topic: 'Test Subject',
-                    to: 'test@example.com'
-                },
-                expectedOutput: { payload: 'Hello World' } // Assuming node passes through
-            },
-            {
-                name: 'HTML email',
-                input: {
-                    payload: '<h1>Hello World</h1>',
-                    topic: 'HTML Test',
-                    to: 'test@example.com',
-                    html: true
-                }
-            },
-            {
-                name: 'email with custom headers',
-                input: {
-                    payload: 'Custom headers test',
-                    topic: 'Custom Headers',
-                    to: 'test@example.com',
-                    headers: { 'X-Custom': 'test-header' }
-                }
-            },
-            {
-                name: 'empty payload',
-                input: {
-                    payload: '',
-                    topic: 'Empty Content',
-                    to: 'test@example.com'
-                }
-            },
-            {
-                name: 'missing recipient',
-                input: {
-                    payload: 'No recipient test',
-                    topic: 'No Recipient'
-                },
-                expectedError: /recipient|to|email/i
-            }
-        ]
-    );
-
     // ========================================================================
     // ERROR RESILIENCE TESTS
     // ========================================================================
