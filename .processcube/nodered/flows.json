@@ -32,7 +32,7 @@
         "env": []
     },
     {
-        "id": "cae119e5cf0605c7",
+        "id": "26b226e0c33daadc",
         "type": "group",
         "z": "4902f3ca9af6dabb",
         "style": {
@@ -45,44 +45,27 @@
             "color": "#a4a4a4"
         },
         "nodes": [
-            "bc23935965b25f46",
-            "7185a89803f145ea",
-            "8768fe6d1967e757",
-            "44bead702a355706",
-            "2f0322a4b5f18041"
+            "8f531e985998ce9c",
+            "74ce382734b27b6b",
+            "721899213c294de0",
+            "107ae4e9aacf93b1",
+            "7a274146dcaaac86",
+            "20473c630fd04972",
+            "aabf2954a9c22b12",
+            "6273e391b80d25e8",
+            "4c710143a0708516",
+            "872ddbeee3074bc7",
+            "f2dafd8348141666",
+            "1b0f1bc50bb005dc",
+            "32366e76238aae78"
         ],
-        "x": 134,
-        "y": 99,
-        "w": 692,
-        "h": 222
-    },
-    {
-        "id": "4179b8b12be402c7",
-        "type": "group",
-        "z": "4902f3ca9af6dabb",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#a4a4a4"
-        },
-        "nodes": [
-            "27e0781f4dcbe076",
-            "94ca2fd19470bb71",
-            "e760108b18544b27",
-            "b9c44af7fa40c23a",
-            "53dbb78d927f4a2a"
-        ],
-        "x": 134,
-        "y": 339,
-        "w": 652,
+        "x": 14,
+        "y": 19,
+        "w": 1832,
         "h": 202
     },
     {
-        "id": "201468a254684a17",
+        "id": "6bf1fbf80c50b96b",
         "type": "group",
         "z": "4902f3ca9af6dabb",
         "style": {
@@ -95,44 +78,25 @@
             "color": "#a4a4a4"
         },
         "nodes": [
-            "9ae114fe09db4f2f",
-            "651ed72d4ade7b14",
-            "1caf00dec4f35f1f",
-            "ab7a6a668c43b21d",
-            "6fc078c8d3575ec8",
-            "acc2ae8fdc0b8e3b"
+            "76f7dadc9c6b0991",
+            "fcfe7c4d87b69979",
+            "09b173b9899a83dd",
+            "a2572e50b4e0adf2",
+            "396b21ca0e73094b",
+            "aa989abfb2a473f6",
+            "834109992034f64c",
+            "04402a076f80e8ce",
+            "a772367c6334dff2",
+            "2251c175e52e855b",
+            "5f53a910087e4196",
+            "247ed5dbdb089565",
+            "ac59f55ac75e26f2",
+            "c7acfa936a7b9a93",
+            "dc7d1dc334bb08ca"
         ],
-        "x": 134,
-        "y": 559,
-        "w": 812,
-        "h": 202
-    },
-    {
-        "id": "dbcc6b34b4fe44fe",
-        "type": "group",
-        "z": "4902f3ca9af6dabb",
-        "style": {
-            "stroke": "#999999",
-            "stroke-opacity": "1",
-            "fill": "none",
-            "fill-opacity": "1",
-            "label": true,
-            "label-position": "nw",
-            "color": "#a4a4a4"
-        },
-        "nodes": [
-            "670f8b0df641a9c1",
-            "aeeb8ec56e9bff43",
-            "a558a5a749da2dbf",
-            "6229039e302fab74",
-            "1e720aabafa99ea0",
-            "2028ee875f21d65c",
-            "1f2dd8bbfbc65655",
-            "73353271929fac83"
-        ],
-        "x": 134,
-        "y": 799,
-        "w": 1172,
+        "x": 14,
+        "y": 399,
+        "w": 2112,
         "h": 202
     },
     {
@@ -947,31 +911,10 @@
         ]
     },
     {
-        "id": "bc23935965b25f46",
-        "type": "file-storage",
-        "z": "4902f3ca9af6dabb",
-        "g": "cae119e5cf0605c7",
-        "name": "",
-        "provider": "pg",
-        "baseDir": "/data",
-        "pgConnectionString": "postgres://postgres:postgres@localhost:5432/postgres",
-        "pgSchema": "public",
-        "pgTable": "files",
-        "outputAs": "buffer",
-        "defaultAction": "store",
-        "x": 550,
-        "y": 200,
-        "wires": [
-            [
-                "2f0322a4b5f18041"
-            ]
-        ]
-    },
-    {
-        "id": "7185a89803f145ea",
+        "id": "8f531e985998ce9c",
         "type": "inject",
         "z": "4902f3ca9af6dabb",
-        "g": "cae119e5cf0605c7",
+        "g": "26b226e0c33daadc",
         "name": "",
         "props": [
             {
@@ -995,21 +938,21 @@
         "topic": "",
         "payload": "[68,105,101,115,32,105,115,116,32,109,101,105,110,32,66,117,102,102,101,114]",
         "payloadType": "bin",
-        "x": 230,
-        "y": 200,
+        "x": 110,
+        "y": 120,
         "wires": [
             [
-                "bc23935965b25f46",
-                "8768fe6d1967e757"
+                "74ce382734b27b6b",
+                "20473c630fd04972"
             ]
         ]
     },
     {
-        "id": "8768fe6d1967e757",
+        "id": "74ce382734b27b6b",
         "type": "debug",
         "z": "4902f3ca9af6dabb",
-        "g": "cae119e5cf0605c7",
-        "name": "debug 2",
+        "g": "26b226e0c33daadc",
+        "name": "Output buffer",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -1018,47 +961,266 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 520,
-        "y": 280,
+        "x": 140,
+        "y": 180,
         "wires": []
     },
     {
-        "id": "27e0781f4dcbe076",
+        "id": "721899213c294de0",
+        "type": "comment",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Speichern in Datenbank aus Buffer und Laden als Buffer mit Löschen im Anschluss",
+        "info": "",
+        "x": 330,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "107ae4e9aacf93b1",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Output Speichern",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 390,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "7a274146dcaaac86",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Output Laden",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "20473c630fd04972",
         "type": "file-storage",
         "z": "4902f3ca9af6dabb",
-        "g": "4179b8b12be402c7",
-        "name": "",
+        "g": "26b226e0c33daadc",
+        "name": "Datei in Datenbank speichern",
         "provider": "pg",
-        "baseDir": "/data",
-        "pgConnectionString": "postgres://postgres:postgres@localhost:5432/postgres",
+        "baseDir": "",
+        "usernameType": "env",
+        "username": "PGUSER",
+        "passwordType": "env",
+        "password": "PGPASSWORD",
+        "hostType": "env",
+        "host": "PGHOST",
+        "portType": "env",
+        "port": "PGPORT",
+        "databaseType": "env",
+        "database": "PGDATABASE",
+        "pgSchema": "public",
+        "pgTable": "files",
+        "outputAs": "buffer",
+        "defaultAction": "store",
+        "x": 430,
+        "y": 120,
+        "wires": [
+            [
+                "107ae4e9aacf93b1",
+                "4c710143a0708516"
+            ]
+        ]
+    },
+    {
+        "id": "aabf2954a9c22b12",
+        "type": "file-storage",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Datei aus Datenbank als Buffer laden",
+        "provider": "pg",
+        "baseDir": "",
+        "usernameType": "env",
+        "username": "PGUSER",
+        "passwordType": "env",
+        "password": "PGPASSWORD",
+        "hostType": "env",
+        "host": "PGHOST",
+        "portType": "env",
+        "port": "PGPORT",
+        "databaseType": "env",
+        "database": "PGDATABASE",
         "pgSchema": "public",
         "pgTable": "files",
         "outputAs": "buffer",
         "defaultAction": "get",
-        "x": 490,
-        "y": 420,
+        "x": 1090,
+        "y": 120,
         "wires": [
             [
-                "53dbb78d927f4a2a"
+                "7a274146dcaaac86",
+                "f2dafd8348141666"
             ]
         ]
     },
     {
-        "id": "94ca2fd19470bb71",
+        "id": "6273e391b80d25e8",
+        "type": "file-storage",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Datei löschen",
+        "provider": "pg",
+        "baseDir": "",
+        "usernameType": "env",
+        "username": "PGUSER",
+        "passwordType": "env",
+        "password": "PGPASSWORD",
+        "hostType": "env",
+        "host": "PGHOST",
+        "portType": "env",
+        "port": "PGPORT",
+        "databaseType": "env",
+        "database": "PGDATABASE",
+        "pgSchema": "public",
+        "pgTable": "files",
+        "outputAs": "buffer",
+        "defaultAction": "delete",
+        "x": 1720,
+        "y": 120,
+        "wires": [
+            [
+                "32366e76238aae78"
+            ]
+        ]
+    },
+    {
+        "id": "4c710143a0708516",
+        "type": "function",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Vorbereitung Laden",
+        "func": "const newMsg = {\n    action: \"get\",\n    file: {\n        id: msg.file.id,\n    }\n};\n\nreturn newMsg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 120,
+        "wires": [
+            [
+                "aabf2954a9c22b12",
+                "872ddbeee3074bc7"
+            ]
+        ]
+    },
+    {
+        "id": "872ddbeee3074bc7",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Output Vorbereitung Laden",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 740,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "f2dafd8348141666",
+        "type": "function",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Vorbereitung Löschen",
+        "func": "const newMsg = {\n    action: \"delete\",\n    file: {\n        id: msg.file.id,\n    }\n};\n\nreturn newMsg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1400,
+        "y": 120,
+        "wires": [
+            [
+                "6273e391b80d25e8",
+                "1b0f1bc50bb005dc"
+            ]
+        ]
+    },
+    {
+        "id": "1b0f1bc50bb005dc",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Output Bereinigen vor Löschen",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1430,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "32366e76238aae78",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "26b226e0c33daadc",
+        "name": "Output Löschen",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1720,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "76f7dadc9c6b0991",
         "type": "inject",
         "z": "4902f3ca9af6dabb",
-        "g": "4179b8b12be402c7",
+        "g": "6bf1fbf80c50b96b",
         "name": "",
         "props": [
             {
+                "p": "payload"
+            },
+            {
                 "p": "action",
-                "v": "get",
+                "v": "store",
                 "vt": "str"
             },
             {
-                "p": "file.id",
-                "v": "7487b07d-c9cb-47fe-936c-a8e812773be7",
-                "vt": "str"
+                "p": "file",
+                "v": "{\"filename\": \"test.pdf\"}",
+                "vt": "json"
             }
         ],
         "repeat": "",
@@ -1066,21 +1228,23 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 230,
-        "y": 420,
+        "payload": "[68,105,101,115,32,105,115,116,32,109,101,105,110,32,66,117,102,102,101,114]",
+        "payloadType": "bin",
+        "x": 110,
+        "y": 500,
         "wires": [
             [
-                "27e0781f4dcbe076",
-                "e760108b18544b27"
+                "fcfe7c4d87b69979",
+                "aa989abfb2a473f6"
             ]
         ]
     },
     {
-        "id": "e760108b18544b27",
+        "id": "fcfe7c4d87b69979",
         "type": "debug",
         "z": "4902f3ca9af6dabb",
-        "g": "4179b8b12be402c7",
-        "name": "debug 3",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Output buffer",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -1089,38 +1253,27 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 520,
-        "y": 500,
+        "x": 140,
+        "y": 560,
         "wires": []
     },
     {
-        "id": "44bead702a355706",
+        "id": "09b173b9899a83dd",
         "type": "comment",
         "z": "4902f3ca9af6dabb",
-        "g": "cae119e5cf0605c7",
-        "name": "Speichern",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Speichern in Datenbank aus Buffer und Laden als Stream mit Löschen im Anschluss",
         "info": "",
-        "x": 220,
-        "y": 140,
+        "x": 330,
+        "y": 440,
         "wires": []
     },
     {
-        "id": "b9c44af7fa40c23a",
-        "type": "comment",
-        "z": "4902f3ca9af6dabb",
-        "g": "4179b8b12be402c7",
-        "name": "Laden und Ausgabe als Buffer",
-        "info": "",
-        "x": 280,
-        "y": 380,
-        "wires": []
-    },
-    {
-        "id": "53dbb78d927f4a2a",
+        "id": "a2572e50b4e0adf2",
         "type": "debug",
         "z": "4902f3ca9af6dabb",
-        "g": "4179b8b12be402c7",
-        "name": "debug 4",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Output Speichern",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -1129,116 +1282,223 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 680,
-        "y": 420,
+        "x": 390,
+        "y": 560,
         "wires": []
     },
     {
-        "id": "9ae114fe09db4f2f",
+        "id": "396b21ca0e73094b",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Output Laden",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1020,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "aa989abfb2a473f6",
         "type": "file-storage",
         "z": "4902f3ca9af6dabb",
-        "g": "201468a254684a17",
-        "name": "",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Datei in Datenbank speichern",
         "provider": "pg",
-        "baseDir": "/data",
-        "pgConnectionString": "postgres://postgres:postgres@localhost:5432/postgres",
+        "baseDir": "",
+        "usernameType": "env",
+        "username": "PGUSER",
+        "passwordType": "env",
+        "password": "PGPASSWORD",
+        "hostType": "env",
+        "host": "PGHOST",
+        "portType": "env",
+        "port": "PGPORT",
+        "databaseType": "env",
+        "database": "PGDATABASE",
+        "pgSchema": "public",
+        "pgTable": "files",
+        "outputAs": "buffer",
+        "defaultAction": "store",
+        "x": 430,
+        "y": 500,
+        "wires": [
+            [
+                "a2572e50b4e0adf2",
+                "a772367c6334dff2"
+            ]
+        ]
+    },
+    {
+        "id": "834109992034f64c",
+        "type": "file-storage",
+        "z": "4902f3ca9af6dabb",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Datei aus Datenbank als Stream laden",
+        "provider": "pg",
+        "baseDir": "",
+        "usernameType": "env",
+        "username": "PGUSER",
+        "passwordType": "env",
+        "password": "PGPASSWORD",
+        "hostType": "env",
+        "host": "PGHOST",
+        "portType": "env",
+        "port": "PGPORT",
+        "databaseType": "env",
+        "database": "PGDATABASE",
         "pgSchema": "public",
         "pgTable": "files",
         "outputAs": "stream",
         "defaultAction": "get",
-        "x": 490,
-        "y": 640,
+        "x": 1090,
+        "y": 500,
         "wires": [
             [
-                "acc2ae8fdc0b8e3b"
+                "c7acfa936a7b9a93"
             ]
         ]
     },
     {
-        "id": "651ed72d4ade7b14",
-        "type": "inject",
+        "id": "04402a076f80e8ce",
+        "type": "file-storage",
         "z": "4902f3ca9af6dabb",
-        "g": "201468a254684a17",
-        "name": "",
-        "props": [
-            {
-                "p": "action",
-                "v": "get",
-                "vt": "str"
-            },
-            {
-                "p": "file.id",
-                "v": "7487b07d-c9cb-47fe-936c-a8e812773be7",
-                "vt": "str"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 230,
-        "y": 640,
+        "g": "6bf1fbf80c50b96b",
+        "name": "Datei löschen",
+        "provider": "pg",
+        "baseDir": "",
+        "usernameType": "env",
+        "username": "PGUSER",
+        "passwordType": "env",
+        "password": "PGPASSWORD",
+        "hostType": "env",
+        "host": "PGHOST",
+        "portType": "env",
+        "port": "PGPORT",
+        "databaseType": "env",
+        "database": "PGDATABASE",
+        "pgSchema": "public",
+        "pgTable": "files",
+        "outputAs": "buffer",
+        "defaultAction": "delete",
+        "x": 1980,
+        "y": 500,
         "wires": [
             [
-                "9ae114fe09db4f2f",
-                "1caf00dec4f35f1f"
+                "ac59f55ac75e26f2"
             ]
         ]
     },
     {
-        "id": "1caf00dec4f35f1f",
-        "type": "debug",
-        "z": "4902f3ca9af6dabb",
-        "g": "201468a254684a17",
-        "name": "debug 5",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 520,
-        "y": 720,
-        "wires": []
-    },
-    {
-        "id": "ab7a6a668c43b21d",
-        "type": "comment",
-        "z": "4902f3ca9af6dabb",
-        "g": "201468a254684a17",
-        "name": "Laden und Ausgabe als Stream",
-        "info": "",
-        "x": 290,
-        "y": 600,
-        "wires": []
-    },
-    {
-        "id": "6fc078c8d3575ec8",
-        "type": "debug",
-        "z": "4902f3ca9af6dabb",
-        "g": "201468a254684a17",
-        "name": "debug 6",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 840,
-        "y": 640,
-        "wires": []
-    },
-    {
-        "id": "acc2ae8fdc0b8e3b",
+        "id": "a772367c6334dff2",
         "type": "function",
         "z": "4902f3ca9af6dabb",
-        "g": "201468a254684a17",
-        "name": "function 1",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Vorbereitung Laden",
+        "func": "const newMsg = {\n    action: \"get\",\n    file: {\n        id: msg.file.id,\n    }\n};\n\nreturn newMsg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 710,
+        "y": 500,
+        "wires": [
+            [
+                "834109992034f64c",
+                "2251c175e52e855b"
+            ]
+        ]
+    },
+    {
+        "id": "2251c175e52e855b",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Output Vorbereitung Laden",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 740,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "5f53a910087e4196",
+        "type": "function",
+        "z": "4902f3ca9af6dabb",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Vorbereitung Löschen",
+        "func": "const newMsg = {\n    action: \"delete\",\n    file: {\n        id: msg.file.id,\n    }\n};\n\nreturn newMsg;\n",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1680,
+        "y": 500,
+        "wires": [
+            [
+                "04402a076f80e8ce",
+                "247ed5dbdb089565"
+            ]
+        ]
+    },
+    {
+        "id": "247ed5dbdb089565",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Output Bereinigen vor Löschen",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1730,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "ac59f55ac75e26f2",
+        "type": "debug",
+        "z": "4902f3ca9af6dabb",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Output Löschen",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2000,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "c7acfa936a7b9a93",
+        "type": "function",
+        "z": "4902f3ca9af6dabb",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Lese Stream in Buffer",
         "func": "const chunks = [];\nconst stream = msg.payload;\nstream.on('data', (c) => chunks.push(c));\nawait new Promise((res, rej) => stream.on('end', res).on('error', rej));\n\nmsg.buffer = Buffer.concat(chunks);\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
@@ -1246,20 +1506,21 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 660,
-        "y": 640,
+        "x": 1400,
+        "y": 500,
         "wires": [
             [
-                "6fc078c8d3575ec8"
+                "5f53a910087e4196",
+                "dc7d1dc334bb08ca"
             ]
         ]
     },
     {
-        "id": "2f0322a4b5f18041",
+        "id": "dc7d1dc334bb08ca",
         "type": "debug",
         "z": "4902f3ca9af6dabb",
-        "g": "cae119e5cf0605c7",
-        "name": "debug 7",
+        "g": "6bf1fbf80c50b96b",
+        "name": "Gibt Buffer aus",
         "active": true,
         "tosidebar": true,
         "console": false,
@@ -1268,173 +1529,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 720,
-        "y": 200,
-        "wires": []
-    },
-    {
-        "id": "670f8b0df641a9c1",
-        "type": "file-storage",
-        "z": "4902f3ca9af6dabb",
-        "g": "dbcc6b34b4fe44fe",
-        "name": "Datei in Datenbank speichern",
-        "provider": "pg",
-        "baseDir": "/data",
-        "pgConnectionString": "postgres://postgres:postgres@localhost:5432/postgres",
-        "pgSchema": "public",
-        "pgTable": "files",
-        "outputAs": "buffer",
-        "defaultAction": "store",
-        "x": 470,
-        "y": 900,
-        "wires": [
-            [
-                "1e720aabafa99ea0",
-                "2028ee875f21d65c"
-            ]
-        ]
-    },
-    {
-        "id": "aeeb8ec56e9bff43",
-        "type": "inject",
-        "z": "4902f3ca9af6dabb",
-        "g": "dbcc6b34b4fe44fe",
-        "name": "",
-        "props": [
-            {
-                "p": "payload"
-            },
-            {
-                "p": "action",
-                "v": "store",
-                "vt": "str"
-            },
-            {
-                "p": "file",
-                "v": "{\"filename\": \"test.pdf\"}",
-                "vt": "json"
-            }
-        ],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "payload": "[68,105,101,115,32,105,115,116,32,109,101,105,110,32,66,117,102,102,101,114]",
-        "payloadType": "bin",
-        "x": 230,
-        "y": 900,
-        "wires": [
-            [
-                "670f8b0df641a9c1",
-                "a558a5a749da2dbf"
-            ]
-        ]
-    },
-    {
-        "id": "a558a5a749da2dbf",
-        "type": "debug",
-        "z": "4902f3ca9af6dabb",
-        "g": "dbcc6b34b4fe44fe",
-        "name": "debug 8",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 400,
-        "y": 960,
-        "wires": []
-    },
-    {
-        "id": "6229039e302fab74",
-        "type": "comment",
-        "z": "4902f3ca9af6dabb",
-        "g": "dbcc6b34b4fe44fe",
-        "name": "Speichern und Löschen",
-        "info": "",
-        "x": 260,
-        "y": 840,
-        "wires": []
-    },
-    {
-        "id": "1e720aabafa99ea0",
-        "type": "debug",
-        "z": "4902f3ca9af6dabb",
-        "g": "dbcc6b34b4fe44fe",
-        "name": "debug 9",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 580,
-        "y": 960,
-        "wires": []
-    },
-    {
-        "id": "2028ee875f21d65c",
-        "type": "function",
-        "z": "4902f3ca9af6dabb",
-        "g": "dbcc6b34b4fe44fe",
-        "name": "function 2",
-        "func": "\nmsg.action = \"delete\";\n\nreturn msg;",
-        "outputs": 1,
-        "timeout": 0,
-        "noerr": 0,
-        "initialize": "",
-        "finalize": "",
-        "libs": [],
-        "x": 740,
-        "y": 900,
-        "wires": [
-            [
-                "1f2dd8bbfbc65655"
-            ]
-        ]
-    },
-    {
-        "id": "1f2dd8bbfbc65655",
-        "type": "file-storage",
-        "z": "4902f3ca9af6dabb",
-        "g": "dbcc6b34b4fe44fe",
-        "name": "Datei aus Datenbank löschen",
-        "provider": "pg",
-        "baseDir": "/data",
-        "pgConnectionString": "postgres://postgres:postgres@localhost:5432/postgres",
-        "pgSchema": "public",
-        "pgTable": "files",
-        "outputAs": "buffer",
-        "defaultAction": "delete",
-        "x": 960,
-        "y": 900,
-        "wires": [
-            [
-                "73353271929fac83"
-            ]
-        ]
-    },
-    {
-        "id": "73353271929fac83",
-        "type": "debug",
-        "z": "4902f3ca9af6dabb",
-        "g": "dbcc6b34b4fe44fe",
-        "name": "debug 10",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "false",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1200,
-        "y": 900,
+        "x": 1380,
+        "y": 560,
         "wires": []
     }
 ]

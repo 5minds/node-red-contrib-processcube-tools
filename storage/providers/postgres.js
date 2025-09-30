@@ -7,10 +7,11 @@ const pump = promisify(pipeline);
 
 class PgProvider {
     constructor(opts = {}) {
-        // this.connectionString = opts.connectionString || process.env.PG_URL || 'postgres://localhost/postgres';
+        const conString = "postgres://" + opts.username + ":" + opts.password + "@" +  opts.host + ":" + opts.port + "/" + opts.database;
+        this.connectionString = conString
         this.schema = opts.schema || 'public';
         this.table = opts.table || 'files';
-        // this.pool = new Pool({ connectionString: this.connectionString });
+        this.pool = new Pool({ connectionString: this.connectionString });
         this.pool = new Pool();
     }
 

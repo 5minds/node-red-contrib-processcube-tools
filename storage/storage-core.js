@@ -23,7 +23,11 @@ class StorageCore {
      * @param {Object} [config.fs]
      * @param {string} [config.fs.baseDir]
      * @param {Object} [config.pg]
-     * @param {string} [config.pg.connectionString]
+     * @param {string} [config.pg.username]
+     * @param {string} [config.pg.password]
+     * @param {string} [config.pg.host]
+     * @param {number} [config.pg.port]
+     * @param {string} [config.pg.database]
      * @param {string} [config.pg.schema]
      * @param {string} [config.pg.table]
      */

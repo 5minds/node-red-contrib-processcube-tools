@@ -6,7 +6,17 @@
             name: { value: '' },
             provider: { value: 'fs' },
             baseDir: { value: '' },
-            pgConnectionString: { value: '' },
+            usernameType: { value: 'str' },
+            username: { value: '', required: true, validate: RED.validators.typedInput('usernameType') },
+            passwordType: { value: 'str' },
+            password: { value: '', required: true, validate: RED.validators.typedInput('passwordType') },
+            hostType: { value: 'str' },
+            host: { value: '', required: true, validate: RED.validators.typedInput('hostType') },
+            portType: { value: 'str' },
+            port: { value: '', required: true, validate: RED.validators.typedInput('portType') },
+            databaseType: { value: 'str' },
+            database: { value: '', required: true, validate: RED.validators.typedInput('databaseType') },
+            
             pgSchema: { value: 'public' },
             pgTable: { value: 'files' },
             outputAs: { value: 'stream' },
@@ -17,6 +27,34 @@
         icon: 'file.png',
         label: function () {
             return this.name || 'file-storage';
+        },
+        oneditprepare: function () {
+            // postgres fields user, password, host, port, database
+            $('#node-input-username').typedInput({
+                default: 'str',
+                types: ['str', 'env'],
+                typeField: '#node-input-usernameType',
+            });
+            $('#node-input-password').typedInput({
+                default: 'str',
+                types: ['str', 'env'],
+                typeField: '#node-input-passwordType',
+            });
+            $('#node-input-host').typedInput({
+                default: 'str',
+                types: ['str', 'env'],
+                typeField: '#node-input-hostType',
+            });
+            $('#node-input-port').typedInput({
+                default: 'str',
+                types: ['str', 'env'],
+                typeField: '#node-input-portType',
+            });
+            $('#node-input-database').typedInput({
+                default: 'str',
+                types: ['str', 'env'],
+                typeField: '#node-input-databaseType',
+            });
         },
     });
 </script>
@@ -50,15 +88,36 @@
     <hr />
     <div class="form-tips">PostgreSQL</div>
     <div class="form-row">
-        <label for="node-input-pgConnectionString"><i class="fa fa-plug"></i> Connection</label>
-        <input type="text" id="node-input-pgConnectionString" placeholder="postgres://user:pass@host:5432/db" />
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="postgres" />
+        <input type="hidden" id="node-input-usernameType" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="postgres" />
+         <input type="hidden" id="node-input-passwordType" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-host"><i class="fa fa-server"></i> Host</label>
+        <input type="text" id="node-input-host" placeholder="localhost" />
+         <input type="hidden" id="node-input-hostType" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-port"><i class="fa fa-plug"></i> Port</label>
+        <input type="text" id="node-input-port" placeholder="5432" />
+         <input type="hidden" id="node-input-portType" />
+    </div>
+    <div class="form-row">
+        <label for="node-input-database"><i class="fa fa-database"></i> Database</label>
+        <input type="text" id="node-input-database" placeholder="postgres" />
+         <input type="hidden" id="node-input-databaseType" />
     </div>
     <div class="form-row">
         <label for="node-input-pgSchema"><i class="fa fa-sitemap"></i> Schema</label>
         <input type="text" id="node-input-pgSchema" placeholder="public" />
     </div>
     <div class="form-row">
-        <label for="node-input-pgTable"><i class="fa fa-table"></i> Tabelle</label>
+        <label for="node-input-pgTable"><i class="fa fa-table"></i> Table</label>
         <input type="text" id="node-input-pgTable" placeholder="files" />
     </div>
     <hr />
@@ -73,25 +132,72 @@
 </script>
 
 <script type="text/html" data-help-name="file-storage">
+    <h2>File Storage Node</h2>
     <p>
-        File-Storage-Node zum Speichern/Abrufen/Löschen von Dateien inkl. Metadaten. Provider: Filesystem (Datei + JSON)
-        oder PostgreSQL (Large Objects + Metadaten-Tabelle).
+        A Node-RED node for storing, retrieving, and deleting files (including metadata) using either the local filesystem or PostgreSQL (Large Objects + metadata table) as a backend.
     </p>
+    <h3>Features</h3>
+    <ul>
+        <li><b>Providers:</b>
+            <ul>
+                <li>Filesystem (stores file and metadata as JSON)</li>
+                <li>PostgreSQL (stores file as Large Object and metadata in a table)</li>
+            </ul>
+        </li>
+        <li><b>Actions:</b> Store, Retrieve, Delete files</li>
+        <li><b>Flexible output:</b> Stream, Buffer, or Path (filesystem only)</li>
+    </ul>
+    <h3>Node Properties</h3>
+    <ul>
+        <li><b>Name:</b> Optional node label.</li>
+        <li><b>Provider:</b> Select between Filesystem and PostgreSQL.</li>
+        <li><b>Output:</b> Choose the output type for retrieval: Stream, Buffer, or Path (Path only for filesystem).</li>
+        <li><b>Base Dir:</b> (Filesystem) Directory where files are stored.</li>
+        <li><b>Schema:</b> (PostgreSQL) Database schema (default: public).</li>
+        <li><b>Table:</b> (PostgreSQL) Table for metadata (default: files).</li>
+        <li><b>Default Action:</b> Default action if not specified in the message (store, get, or delete).</li>
+    </ul>
     <h3>Input</h3>
     <pre>
-  msg.action = "store" | "get" | "delete"
-  msg.payload = Buffer | Readable | String (bei store)
-  msg.file = {
-    id?: string (bei get/delete),
-    filename?: string,
-    contentType?: string,
-    metadata?: object
-  }
-  </pre
-    >
+msg.action = "store" | "get" | "delete" // Optional, overrides defaultAction
+msg.payload = Buffer | ReadableStream | String // For "store"
+msg.file = {
+  id?: string,         // For "get" or "delete"
+  filename?: string,   // For "store"
+  contentType?: string,// For "store"
+  metadata?: object    // For "store"
+}
+    </pre>
     <h3>Output</h3>
-    <p>
-        Bei <code>store</code>: <code>msg.payload</code> enthält Metadaten inkl. <code>id</code>. Bei <code>get</code>:
-        <code>msg.payload</code> ist Stream/Buffer/Pfad (je nach Option), Metadaten in <code>msg.file</code>.
-    </p>
+    <ul>
+        <li><b>store:</b> <code>msg.payload</code> contains metadata including the generated <code>id</code>. <code>msg.file</code> contains the merged file info and result.</li>
+        <li><b>get:</b> <code>msg.payload</code> contains the file as a Stream, Buffer, or Path (depending on output setting). <code>msg.file</code> contains the file metadata.</li>
+        <li><b>delete:</b> <code>msg.payload</code> contains the result of the delete operation.</li>
+    </ul>
+    <h3>Example Usage</h3>
+    <pre>
+// Store a file:
+msg.action = "store";
+msg.payload = Buffer.from("Hello World");
+msg.file = {
+  filename: "hello.txt",
+  contentType: "text/plain",
+  metadata: { author: "Alice" }
+};
+
+// Retrieve a file:
+msg.action = "get";
+msg.file = { id: "your-file-id" };
+
+// Delete a file:
+msg.action = "delete";
+msg.file = { id: "your-file-id" };
+    </pre>
+    <h3>Notes</h3>
+    <ul>
+        <li>For PostgreSQL, ensure the connection string, schema, and table exist and the user has the necessary permissions.</li>
+        <li>For filesystem storage, ensure the base directory is writable by Node-RED.</li>
+        <li>The node is designed to handle large files efficiently using streams.</li>
+    </ul>
+    <p><b>Enjoy using the File Storage Node in your Node-RED flows!</b></p>
 </script>
