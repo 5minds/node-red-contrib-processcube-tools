@@ -33,6 +33,31 @@ class MockNodemailer {
         }, 10);
     }
 
+    verify(callback?: (err: Error | null, success?: boolean) => void): Promise<boolean> | void {
+        if (callback) {
+            setTimeout(() => {
+                if (this.options.shouldFailVerify) {
+                    const error = new Error('Mock verify error') as Error & { code: string };
+                    error.code = 'ECONNREFUSED';
+                    callback(error);
+                } else {
+                    callback(null, true);
+                }
+            }, 10);
+        } else {
+            // Return a promise if no callback provided
+            return new Promise((resolve, reject) => {
+                if (this.options.shouldFailVerify) {
+                    const error = new Error('Mock verify error') as Error & { code: string };
+                    error.code = 'ECONNREFUSED';
+                    reject(error);
+                } else {
+                    resolve(true);
+                }
+            });
+        }
+    }
+
     private normalizeRecipients(to: string | string[]): string[] {
         if (Array.isArray(to)) return to;
         if (typeof to === 'string') return to.split(',').map(email => email.trim());

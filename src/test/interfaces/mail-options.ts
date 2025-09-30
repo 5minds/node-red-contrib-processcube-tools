@@ -9,9 +9,10 @@ export interface MailOptions {
 }
 
 export interface MockNodemailerOptions {
+    onSendMail?: (mailOptions: MailOptions) => void;
     shouldFail?: boolean;
+    shouldFailVerify?: boolean;
     rejectedEmails?: string[];
     pendingEmails?: string[];
     acceptedEmails?: string[];
-    onSendMail?: (mailOptions: MailOptions) => void;
 }

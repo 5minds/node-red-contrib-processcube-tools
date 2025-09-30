@@ -4,7 +4,17 @@ import { EmailSenderNodeProperties } from '../interfaces/EmailSenderNodeProperti
 
 interface EmailSenderNodeMessage extends NodeMessage {}
 
-const EmailSenderNode: NodeInitializer = function (RED) {
+// Dependency injection interface
+interface Dependencies {
+    nodemailer: typeof nodemailer;
+}
+
+// Default dependencies - production values
+const defaultDependencies: Dependencies = {
+    nodemailer: nodemailer,
+};
+
+const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defaultDependencies) => {
     function EmailSender(this: Node, config: EmailSenderNodeProperties) {
         RED.nodes.createNode(this, config);
         const node = this;
@@ -102,7 +112,7 @@ const EmailSenderNode: NodeInitializer = function (RED) {
                 }
 
                 // Create and send email
-                const transporter = nodemailer.createTransport({
+                const transporter = dependencies.nodemailer.createTransport({
                     host,
                     port,
                     secure,

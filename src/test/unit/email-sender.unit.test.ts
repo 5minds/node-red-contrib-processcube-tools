@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import emailSenderNode  from '../../email-sender/email-sender';
 import { EmailSenderTestConfigs } from '../helpers/email-sender-test-configs';
 
-import { createMockNodemailer } from '../mocks/node-mailer-mock';
+import { createMockNodemailer } from '../mocks/nodemailer-mock';
 
 import {
   TestScenarioBuilder,
@@ -13,7 +13,8 @@ import {
   ErrorResilienceTestBuilder,
   DataValidationTestBuilder,
   EdgeCaseTestBuilder,
-  type TestScenario
+  type TestScenario,
+  MockNodeREDOptions
 } from '../framework';
 
 describe('E-Mail Sender Node - Unit Tests', function () {
@@ -67,6 +68,28 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             });
 
         describe('Email Sending Functionality', function () {
+            const mockDependencies = {
+                nodemailer: createMockNodemailer({
+                    // Add any options you need for your test
+                    shouldFail: false,
+                    rejectedEmails: [],
+                    pendingEmails: [],
+                    onSendMail: (mailOptions) => {
+                        console.log('📧 Mail sent:', mailOptions);
+                    }
+                })
+            };
+            
+            const mockOptions: MockNodeREDOptions = {
+                dependencies: mockDependencies,
+                statusHandler: function(status: any) {
+                    console.log('📊 Status received:', JSON.stringify(status, null, 2));
+                },
+                errorHandler: function(err: any) {
+                    console.log('❌ Error received:', err);
+                }
+            };
+
             const emailSendingTests = new TestScenarioBuilder()
                 .addStatusScenario(
                     'successful email send',
@@ -95,7 +118,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
             emailSendingTests.getScenarios().forEach(scenario => {
                 it(`should handle ${scenario.name}`, async function () {
-                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
+                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
 
                     expect(context.nodeInstance).to.exist;
 
