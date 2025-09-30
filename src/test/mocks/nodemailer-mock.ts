@@ -6,15 +6,16 @@ class MockNodemailer {
     constructor(private options: MockNodemailerOptions = {}) {}
 
     sendMail(mailOptions: MailOptions, callback: (err: Error | null, result?: SendMailResult) => void): void {
-        // Allow inspection of mail options
         if (this.options.onSendMail) {
             this.options.onSendMail(mailOptions);
         }
 
-        // Simulate different failure scenarios
         if (this.options.shouldFail) {
-            const error = new Error('Mock sendMail error') as Error & { code: string };
-            error.code = 'ECONNREFUSED';
+            console.log('💥 Triggering failure');
+            const error = new Error(
+                this.options.failureMessage || 'Invalid login: 535 Authentication credentials invalid'
+            ) as Error & { code: string };
+            error.code = this.options.failureCode || 'EAUTH';
             return callback(error);
         }
 

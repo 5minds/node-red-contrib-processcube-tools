@@ -1,5 +1,4 @@
 import type { Node, NodeMessageInFlow } from 'node-red';
-import { MockNodemailerOptions } from '../interfaces/mail-options';
 
 export interface TestScenario {
   name: string;

@@ -12,6 +12,8 @@ export interface MockNodemailerOptions {
     onSendMail?: (mailOptions: MailOptions) => void;
     shouldFail?: boolean;
     shouldFailVerify?: boolean;
+    failureMessage?: string;
+    failureCode?: string;
     rejectedEmails?: string[];
     pendingEmails?: string[];
     acceptedEmails?: string[];

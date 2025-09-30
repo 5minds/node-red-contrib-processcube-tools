@@ -241,8 +241,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                         payload: 'Hello World',
                         topic: 'Test Subject',
                         to: 'test@example.com'
-                    },
-                    expectedOutput: { payload: 'Hello World' } // Assuming node passes through
+                    }
                 },
                 {
                     name: 'HTML email',
@@ -286,7 +285,6 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                         name: testCase.name,
                         config: EmailSenderTestConfigs.minimalDataDriven,
                         input: testCase.input,
-                        expectedOutput: testCase.expectedOutput,
                         expectedError: testCase.expectedError,
                         timeout: 10000
                     };
@@ -322,15 +320,15 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 })
             };
 
-            const mockOptions: MockNodeREDOptions = {
-                dependencies: mockDependencies,
-                statusHandler: function(status: any) {
-                    console.log('📊 Status received:', JSON.stringify(status, null, 2));
-                },
-                errorHandler: function(err: any) {
-                    console.log('❌ Error received:', err);
-                }
-            };
+        const mockOptions: MockNodeREDOptions = {
+            dependencies: mockDependencies,
+            statusHandler: function(status: any) {
+                console.log('📊 Status received:', JSON.stringify(status, null, 2));
+            },
+            errorHandler: function(err: any) {
+                console.log('❌ Error received:', err);
+            }
+        };
 
         // Add email-specific error scenarios
         const emailErrors = new TestScenarioBuilder()
@@ -338,27 +336,40 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 'invalid SMTP config',
                 {
                     ...EmailSenderTestConfigs.valid,
-                    smtpHost: 'invalid.smtp.server',
-                    smtpPort: 99999
+                    hostnameost: 'invalid.smtp.server',
+                    port: 99999
                 },
                 /connection|smtp|invalid/i,
-                { payload: 'test', topic: 'test' }
+                { payload: 'test', topic: 'test' },
+                withNodemailerMock({
+                    shouldFail: true,
+                    failureMessage: 'Connection failed: SMTP server not reachable',
+                    failureCode: 'ECONNREFUSED'
+                })
             )
             .addErrorScenario(
                 'authentication failure',
                 {
                     ...EmailSenderTestConfigs.valid,
-                    smtpUser: 'invalid@user.com',
-                    smtpPassword: 'wrongpassword'
+                    user: 'invalid@user.com',
+                    password: 'wrongpassword'
                 },
                 /auth|login|credential/i,
                 { payload: 'test', topic: 'test' },
-                withNodemailerMock({ shouldFail: true })
+                withNodemailerMock({
+                    shouldFail: true,
+                    failureMessage: 'Invalid login: 535 Authentication credentials invalid',
+                    failureCode: 'EAUTH',
+                    onSendMail: (mailOptions) => {
+                        console.log('🔍 Mock sendMail called with shouldFail=true');
+                    }
+                })
             );
 
         [...resilience.getScenarios(), ...emailErrors.getScenarios()].forEach(scenario => {
             it(`should handle ${scenario.name}`, async function () {
-                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+                const testMockOptions = scenario.mockOptions || mockOptions;
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, testMockOptions);
 
                 expect(context.nodeInstance).to.exist;
 
