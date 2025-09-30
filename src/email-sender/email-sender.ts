@@ -96,17 +96,28 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 // Process attachments
                 let processedAttachments: any[] = [];
                 let parsedAttachments = attachments;
-                if (config.attachmentsType === 'json' && typeof parsedAttachments === 'string') {
-                    parsedAttachments = JSON.parse(parsedAttachments);
+                if (typeof parsedAttachments === 'string' && parsedAttachments.trim().startsWith('[')) {
+                    try {
+                        parsedAttachments = JSON.parse(parsedAttachments);
+                    } catch (e) {
+                        throw new Error('Failed to parse attachments JSON: ' + (e as Error).message);
+                    }
                 }
 
                 if (parsedAttachments) {
                     const attachmentArray = Array.isArray(parsedAttachments) ? parsedAttachments : [parsedAttachments];
                     for (const attachment of attachmentArray) {
-                        if (attachment.filename && attachment.content) {
-                            processedAttachments.push({ filename: attachment.filename, content: attachment.content });
+                        if (typeof attachment === 'object' && attachment !== null) {
+                            if (attachment.filename && attachment.content !== undefined) {
+                                processedAttachments.push({
+                                    filename: attachment.filename,
+                                    content: attachment.content
+                                });
+                            } else {
+                                throw new Error(`Attachment object is missing 'filename' or 'content' property. Got: ${JSON.stringify(attachment)}`);
+                            }
                         } else {
-                            throw new Error("Attachment object is missing 'filename' or 'content' property.");
+                            throw new Error(`Invalid attachment format. Expected object, got: ${typeof attachment}`);
                         }
                     }
                 }

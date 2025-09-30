@@ -352,7 +352,8 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     smtpPassword: 'wrongpassword'
                 },
                 /auth|login|credential/i,
-                { payload: 'test', topic: 'test' }
+                { payload: 'test', topic: 'test' },
+                withNodemailerMock({ shouldFail: true })
             );
 
         [...resilience.getScenarios(), ...emailErrors.getScenarios()].forEach(scenario => {
@@ -479,7 +480,8 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                         { filename: 'text.txt', content: 'Text file' },
                         { filename: 'data.json', content: '{"test": true}' },
                         { filename: 'image.jpg', content: 'base64encodeddata...' }
-                    ])
+                    ]),
+                    attachmentsType: 'json'
                 },
                 input: {
                     payload: 'Mixed attachments test',
