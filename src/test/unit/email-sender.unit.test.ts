@@ -430,6 +430,24 @@ describe('E-Mail Sender Node - Unit Tests', function () {
     // ========================================================================
 
     describe('Complex Email Scenarios', function () {
+
+        const mockDependencies = {
+            nodemailer: createMockNodemailer({
+                shouldFail: false,
+                acceptedEmails: []
+            })
+        };
+
+        const mockOptions: MockNodeREDOptions = {
+            dependencies: mockDependencies,
+            statusHandler: function(status: any) {
+                console.log('📊 Status received:', JSON.stringify(status, null, 2));
+            },
+            errorHandler: function(err: any) {
+                console.log('❌ Error received:', err);
+            }
+        };
+
         const complexScenarios = [
             {
                 name: 'email with multiple recipients',
@@ -438,7 +456,8 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     payload: 'Multi-recipient test',
                     topic: 'Multiple Recipients',
                     to: 'user1@example.com,user2@example.com,user3@example.com'
-                }
+                },
+                expectedStatus: { fill: 'green', text: 'sent' }
             },
             {
                 name: 'email with CC and BCC',
@@ -449,7 +468,8 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     to: 'primary@example.com',
                     cc: 'cc@example.com',
                     bcc: 'bcc@example.com'
-                }
+                },
+                expectedStatus: { fill: 'green', text: 'sent' }
             },
             {
                 name: 'email with mixed attachment types',
@@ -464,7 +484,8 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                 input: {
                     payload: 'Mixed attachments test',
                     topic: 'Multiple Attachment Types'
-                }
+                },
+                expectedStatus: { fill: 'green', text: 'sent' }
             },
             {
                 name: 'email with custom priority',
@@ -473,7 +494,8 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     payload: 'High priority email',
                     topic: 'URGENT: Priority Test',
                     priority: 'high'
-                }
+                },
+                expectedStatus: { fill: 'green', text: 'sent' }
             }
         ];
 
@@ -483,10 +505,11 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     name: scenario.name,
                     config: scenario.config,
                     input: scenario.input,
-                    timeout: 5000
+                    timeout: 5000,
+                    expectedStatus: scenario.expectedStatus
                 };
 
-                const context = await NodeTestRunner.runScenario(emailSenderNode, testScenario);
+                const context = await NodeTestRunner.runScenario(emailSenderNode, testScenario, mockOptions);
 
                 expect(context.nodeInstance).to.exist;
 
