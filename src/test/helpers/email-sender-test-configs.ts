@@ -1,4 +1,4 @@
-import { EmailSenderConfig } from "../mocks/node-mailer-mock";
+import { EmailSenderConfig } from "../interfaces/email-sender-config";
 
 const EmailSenderTestConfigs = {
     valid: {
@@ -37,7 +37,7 @@ const EmailSenderTestConfigs = {
         type: 'email-sender',
         name: 'Invalid Sender',
         sender: '', // Missing sender
-        to: 'recipient@example.com',
+        to: 'test@example.com',
         subject: 'Invalid Test',
         host: '', // Missing host
         port: 587,

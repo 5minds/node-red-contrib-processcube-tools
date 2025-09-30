@@ -1,12 +1,7 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import * as helper from 'node-red-node-test-helper';
-import {
-    setupModuleMocks,
-    emailSenderConfigs,
-    testFlows,
-    type EmailSenderConfig
-} from '../mocks/node-mailer-mock';
+
 
 // Import our integration testing framework
 import {
@@ -15,6 +10,8 @@ import {
     IntegrationScenarioBuilder,
     type IntegrationTestScenario
 } from '../framework';
+import { EmailSenderTestConfigs } from '../helpers/email-sender-test-configs';
+import { testFlows } from '../helpers/email-sender-test-flows';
 
 const emailSenderNode = require('../../email-sender/email-sender');
 
@@ -23,7 +20,6 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
     let cleanupMocks: (() => void) | undefined;
 
     before(function (done: Mocha.Done) {
-        cleanupMocks = setupModuleMocks();
         IntegrationTestRunner.initializeHelper();
         helper.startServer(done);
     });
@@ -48,8 +44,8 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
 
     describe('Node Loading (Enhanced)', function () {
         const loadingTests = new IntegrationScenarioBuilder()
-            .addLoadingScenario('valid configuration', [emailSenderConfigs.valid], emailSenderConfigs.valid.id)
-            .addLoadingScenario('minimal configuration', [emailSenderConfigs.minimal], emailSenderConfigs.minimal.id);
+            .addLoadingScenario('valid configuration', [EmailSenderTestConfigs.valid], EmailSenderTestConfigs.valid.id)
+            .addLoadingScenario('minimal configuration', [EmailSenderTestConfigs.minimal], EmailSenderTestConfigs.minimal.id);
 
         loadingTests.getScenarios().forEach(scenario => {
             it(`should load with ${scenario.name}`, async function () {
@@ -72,8 +68,8 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
 
     describe('Node Connections (Enhanced)', function () {
         const connectionTests = new IntegrationScenarioBuilder()
-            .addConnectionScenario('simple connection', testFlows.connected, [emailSenderConfigs.valid.id, 'h1'])
-            .addConnectionScenario('multiple outputs', testFlows.multiOutput, [emailSenderConfigs.valid.id, 'h1', 'h2']);
+            .addConnectionScenario('simple connection', testFlows.connected, [EmailSenderTestConfigs.valid.id, 'h1'])
+            .addConnectionScenario('multiple outputs', testFlows.multiOutput, [EmailSenderTestConfigs.valid.id, 'h1', 'h2']);
 
         connectionTests.getScenarios().forEach(scenario => {
             it(`should create ${scenario.name} correctly`, async function () {
@@ -84,7 +80,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
                 IntegrationAssertions.expectAllNodesExist(context, nodeIds);
 
                 // Verify the main node has correct properties
-                IntegrationAssertions.expectNodeProperty(context, emailSenderConfigs.valid.id, 'name', emailSenderConfigs.valid.name);
+                IntegrationAssertions.expectNodeProperty(context, EmailSenderTestConfigs.valid.id, 'name', EmailSenderTestConfigs.valid.name);
             });
         });
     });
@@ -98,13 +94,13 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
             const scenario: IntegrationTestScenario = {
                 name: 'input handling',
                 flow: testFlows.single,
-                nodeId: emailSenderConfigs.valid.id,
+                nodeId: EmailSenderTestConfigs.valid.id,
                 input: { payload: 'test input' },
                 timeout: 2000
             };
 
             const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
-            IntegrationAssertions.expectNodeExists(context, emailSenderConfigs.valid.id);
+            IntegrationAssertions.expectNodeExists(context, EmailSenderTestConfigs.valid.id);
             // Success is implicit - if we reach here, no crash occurred
         });
 
@@ -112,7 +108,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
             const scenario: IntegrationTestScenario = {
                 name: 'message processing',
                 flow: testFlows.connected,
-                nodeId: emailSenderConfigs.valid.id,
+                nodeId: EmailSenderTestConfigs.valid.id,
                 expectedMessages: [
                     { nodeId: 'h1', expectedMsg: { payload: 'string' } }
                 ],
@@ -127,7 +123,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
                             subject: 'Mock Email Subject',
                             _msgid: 'test-msg-id',
                         };
-                        (nodes[emailSenderConfigs.valid.id] as any).send(mockEmailMessage);
+                        (nodes[EmailSenderTestConfigs.valid.id] as any).send(mockEmailMessage);
                     }, 100);
                 }
             };
@@ -140,7 +136,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
             const scenario: IntegrationTestScenario = {
                 name: 'timeout handling',
                 flow: testFlows.connected,
-                nodeId: emailSenderConfigs.valid.id,
+                nodeId: EmailSenderTestConfigs.valid.id,
                 timeout: 1000, // Short timeout to test timeout handling
                 setup: (nodes) => {
                     // Don't send any messages - let it timeout
@@ -160,7 +156,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
             const scenario: IntegrationTestScenario = {
                 name: 'multi-output flow',
                 flow: testFlows.multiOutput,
-                nodeId: emailSenderConfigs.valid.id,
+                nodeId: EmailSenderTestConfigs.valid.id,
                 expectedMessages: [
                     { nodeId: 'h1', expectedMsg: { payload: 'string' } },
                     { nodeId: 'h2', expectedMsg: { payload: 'string' } }
@@ -175,7 +171,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
                             _msgid: 'multi-output-test-id',
                         };
                         // Send to both outputs
-                        (nodes[emailSenderConfigs.valid.id] as any).send([mockEmail, mockEmail]);
+                        (nodes[EmailSenderTestConfigs.valid.id] as any).send([mockEmail, mockEmail]);
                     }, 50);
                 }
             };
@@ -195,7 +191,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
             const scenario: IntegrationTestScenario = {
                 name: 'successful email sending',
                 flow: testFlows.connected,
-                nodeId: emailSenderConfigs.valid.id,
+                nodeId: EmailSenderTestConfigs.valid.id,
                 input: {
                     payload: 'Test email content',
                     topic: 'Test Subject',
@@ -216,7 +212,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
 
         it('should handle email with attachments', async function () {
             const attachmentConfig = {
-                ...emailSenderConfigs.valid,
+                ...EmailSenderTestConfigs.valid,
                 attachments: JSON.stringify([
                     { filename: 'test.txt', content: 'Test attachment content' }
                 ])
@@ -246,7 +242,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
 
         it('should handle email sending errors gracefully', async function () {
             const errorConfig = {
-                ...emailSenderConfigs.valid,
+                ...EmailSenderTestConfigs.valid,
                 smtpHost: 'invalid.smtp.server',
                 shouldFail: true
             };
@@ -280,21 +276,21 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
         const validationTests = new IntegrationScenarioBuilder()
             .addScenario({
                 name: 'minimal configuration handling',
-                flow: [emailSenderConfigs.minimal],
-                nodeId: emailSenderConfigs.minimal.id,
+                flow: [EmailSenderTestConfigs.minimal],
+                nodeId: EmailSenderTestConfigs.minimal.id,
                 input: { payload: 'test', topic: 'test' },
                 timeout: 2000
             })
             .addScenario({
                 name: 'complex configuration handling',
                 flow: [{
-                    ...emailSenderConfigs.valid,
+                    ...EmailSenderTestConfigs.valid,
                     attachments: JSON.stringify([
                         { filename: 'config-test.txt', content: 'Configuration test' }
                     ]),
                     priority: 'high'
                 }],
-                nodeId: emailSenderConfigs.valid.id,
+                nodeId: EmailSenderTestConfigs.valid.id,
                 input: { payload: 'complex test', topic: 'complex' },
                 timeout: 3000
             });
@@ -320,13 +316,13 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
                 const scenario: IntegrationTestScenario = {
                     name: `lifecycle cycle ${i}`,
                     flow: testFlows.single,
-                    nodeId: emailSenderConfigs.valid.id,
+                    nodeId: EmailSenderTestConfigs.valid.id,
                     input: { payload: `test cycle ${i}`, topic: `cycle ${i}` },
                     timeout: 1000
                 };
 
                 const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
-                IntegrationAssertions.expectNodeExists(context, emailSenderConfigs.valid.id);
+                IntegrationAssertions.expectNodeExists(context, EmailSenderTestConfigs.valid.id);
 
                 // Clean up after each cycle
                 helper.unload();
@@ -338,7 +334,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
             const scenario: IntegrationTestScenario = {
                 name: 'rapid message processing',
                 flow: testFlows.connected,
-                nodeId: emailSenderConfigs.valid.id,
+                nodeId: EmailSenderTestConfigs.valid.id,
                 expectedMessages: [
                     { nodeId: 'h1', expectedMsg: { payload: 'string' } }
                 ],
@@ -352,7 +348,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
                                 topic: `Rapid ${i}`,
                                 _msgid: `rapid-${i}`
                             };
-                            (nodes[emailSenderConfigs.valid.id] as any).receive(message);
+                            (nodes[EmailSenderTestConfigs.valid.id] as any).receive(message);
                         }, i * 10);
                     }
                 }
@@ -414,7 +410,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
                 const scenario: IntegrationTestScenario = {
                     name: testCase.name,
                     flow: testFlows.connected,
-                    nodeId: emailSenderConfigs.valid.id,
+                    nodeId: EmailSenderTestConfigs.valid.id,
                     input: testCase.input,
                     expectedMessages: [
                         { nodeId: 'h1', expectedMsg: { payload: 'string' } }

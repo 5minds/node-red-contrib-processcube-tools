@@ -9,6 +9,38 @@ const EmailSenderNode: NodeInitializer = function (RED) {
         RED.nodes.createNode(this, config);
         const node = this;
 
+        const validateRequiredProperties = (cfg: EmailSenderNodeProperties): string | null => {
+            const requiredFields = [
+                { name: 'sender', value: cfg.sender },
+                { name: 'address', value: cfg.address },
+                { name: 'to', value: cfg.to },
+                { name: 'subject', value: cfg.subject },
+                { name: 'htmlContent', value: cfg.htmlContent },
+                { name: 'host', value: cfg.host },
+                { name: 'port', value: cfg.port },
+                { name: 'user', value: cfg.user },
+                { name: 'password', value: cfg.password },
+                { name: 'passwordType', value: cfg.passwordType },
+                { name: 'secure', value: cfg.secure },
+                { name: 'rejectUnauthorized', value: cfg.rejectUnauthorized },
+            ];
+
+            for (const field of requiredFields) {
+                if (field.value === undefined || field.value === null || field.value === '') {
+                    return `Required property '${field.name}' is not set`;
+                }
+            }
+
+            return null;
+        };
+
+        const validationError = validateRequiredProperties(config);
+        if (validationError) {
+            node.status({ fill: 'red', shape: 'dot', text: 'configuration error' });
+            node.error(validationError);
+            return; // Stop initialization if config is invalid
+        }
+
         const safeEvaluatePropertyAttachment = (cfg: EmailSenderNodeProperties, n: Node, m: NodeMessage) => {
             if (cfg.attachments && cfg.attachments.trim() !== '') {
                 try {
@@ -20,6 +52,7 @@ const EmailSenderNode: NodeInitializer = function (RED) {
             }
             return null;
         };
+
 
         (node as any).on('input', async (msg: EmailSenderNodeMessage, send: Function, done: Function) => {
             send = send || function() { node.send.apply(node, arguments as any); };

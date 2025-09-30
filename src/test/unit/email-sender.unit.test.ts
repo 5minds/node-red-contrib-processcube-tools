@@ -1,8 +1,14 @@
 import { expect } from 'chai';
+import emailSenderNode  from '../../email-sender/email-sender';
+import { EmailSenderTestConfigs } from '../helpers/email-sender-test-configs';
+
+import { createMockNodemailer } from '../mocks/node-mailer-mock';
+
 import {
   TestScenarioBuilder,
   NodeTestRunner,
   NodeAssertions,
+  createNodeTestSuite,
   TestPatternHelpers,
   ErrorResilienceTestBuilder,
   DataValidationTestBuilder,
@@ -10,192 +16,189 @@ import {
   type TestScenario
 } from '../framework';
 
-import { EmailSenderTestConfigs } from '../helpers/email-sender-test-configs';
-
-// Import your email sender node
-const emailSenderNode = require('../../email-sender/email-sender');
-
 describe('E-Mail Sender Node - Unit Tests', function () {
 
     // ========================================================================
-    // BASIC FUNCTIONALITY USING GENERIC TEST SUITE
+    // USE GENERIC TEST SUITE FOR BASIC FUNCTIONALITY
     // ========================================================================
 
-    describe('Configuration Validation', function () {
-            const configTests = new TestScenarioBuilder()
-                .addValidScenario('valid configuration', EmailSenderTestConfigs.valid)
-                .addValidScenario('minimal configuration', EmailSenderTestConfigs.minimal)
-                .addErrorScenario(
-                    'missing required config',
-                    EmailSenderTestConfigs.invalid,
-                    'Missing required IMAP config'
+    createNodeTestSuite('Email Receiver', emailSenderNode, EmailSenderTestConfigs);
+
+    // ========================================================================
+    // SPECIFIC EMAIL SENDER TESTS
+    // ========================================================================
+
+    describe('Email Sender Specific Tests', function () {
+
+        describe('Configuration Validation', function () {
+                const configTests = new TestScenarioBuilder()
+                    .addValidScenario('valid configuration', EmailSenderTestConfigs.valid)
+                    .addValidScenario('minimal configuration', EmailSenderTestConfigs.minimal)
+                    .addErrorScenario(
+                        'missing required config',
+                        EmailSenderTestConfigs.invalid,
+                        'configuration error'
+                    );
+
+                configTests.getScenarios().forEach(scenario => {
+                    it(`should handle ${scenario.name}`, async function () {
+                        const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
+
+                        // Verify node was created
+                        expect(context.nodeInstance).to.exist;
+
+                        // Check specific expectations
+                        if (scenario.expectedError) {
+                            NodeAssertions.expectError(context, scenario.expectedError);
+                        } else {
+                            NodeAssertions.expectNoErrors(context);
+                        }
+
+                        // Verify node properties
+                        if (scenario.config.name) {
+                            NodeAssertions.expectNodeProperty(context, 'name', scenario.config.name);
+                        }
+
+                        if (scenario.config.id) {
+                            NodeAssertions.expectNodeProperty(context, 'id', scenario.config.id);
+                        }
+                    });
+                });
+            });
+
+        describe('Email Sending Functionality', function () {
+            const emailSendingTests = new TestScenarioBuilder()
+                .addStatusScenario(
+                    'successful email send',
+                    EmailSenderTestConfigs.valid,
+                    { fill: 'green', text: 'sent' },
+                    { payload: 'test', topic: 'test message' }
+                )
+                .addStatusScenario(
+                    'send mail error',
+                    { ...EmailSenderTestConfigs.valid, shouldFail: true },
+                    { fill: 'red', text: 'error sending' },
+                    { payload: 'test', topic: 'test message' }
+                )
+                .addStatusScenario(
+                    'rejected email',
+                    { ...EmailSenderTestConfigs.valid, rejectedEmails: ['recipient@example.com'] },
+                    { fill: 'red', text: 'rejected' },
+                    { payload: 'test', topic: 'test message' }
+                )
+                .addStatusScenario(
+                    'pending email',
+                    { ...EmailSenderTestConfigs.valid, pendingEmails: ['recipient@example.com'] },
+                    { fill: 'yellow', text: 'pending' },
+                    { payload: 'test', topic: 'test message' }
                 );
 
-            configTests.getScenarios().forEach(scenario => {
+            emailSendingTests.getScenarios().forEach(scenario => {
                 it(`should handle ${scenario.name}`, async function () {
                     const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
 
-                    // Verify node was created
                     expect(context.nodeInstance).to.exist;
 
-                    // Check specific expectations
+                    if (scenario.expectedStatus) {
+                        NodeAssertions.expectStatus(context, scenario.expectedStatus);
+                    }
+
                     if (scenario.expectedError) {
                         NodeAssertions.expectError(context, scenario.expectedError);
-                    } else {
-                        NodeAssertions.expectNoErrors(context);
-                    }
-
-                    // Verify node properties
-                    if (scenario.config.name) {
-                        NodeAssertions.expectNodeProperty(context, 'name', scenario.config.name);
-                    }
-
-                    if (scenario.config.id) {
-                        NodeAssertions.expectNodeProperty(context, 'id', scenario.config.id);
                     }
                 });
             });
         });
 
-    // ========================================================================
-    // EMAIL SENDER SPECIFIC TESTS
-    // ========================================================================
-
-    describe('Email Sending Functionality', function () {
-        const emailSendingTests = new TestScenarioBuilder()
-            .addStatusScenario(
-                'successful email send',
-                emailSenderConfigs.valid,
-                { fill: 'green', text: 'sent' },
-                { payload: 'test', topic: 'test message' }
-            )
-            .addStatusScenario(
-                'send mail error',
-                { ...emailSenderConfigs.valid, shouldFail: true },
-                { fill: 'red', text: 'error sending' },
-                { payload: 'test', topic: 'test message' }
-            )
-            .addStatusScenario(
-                'rejected email',
-                { ...emailSenderConfigs.valid, rejectedEmails: ['recipient@example.com'] },
-                { fill: 'red', text: 'rejected' },
-                { payload: 'test', topic: 'test message' }
-            )
-            .addStatusScenario(
-                'pending email',
-                { ...emailSenderConfigs.valid, pendingEmails: ['recipient@example.com'] },
-                { fill: 'yellow', text: 'pending' },
-                { payload: 'test', topic: 'test message' }
-            );
-
-        emailSendingTests.getScenarios().forEach(scenario => {
-            it(`should handle ${scenario.name}`, async function () {
-                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
-
-                expect(context.nodeInstance).to.exist;
-
-                if (scenario.expectedStatus) {
-                    NodeAssertions.expectStatus(context, scenario.expectedStatus);
+        describe('Attachment Handling', function () {
+            const attachmentTests = [
+                {
+                    name: 'array of attachments',
+                    config: {
+                        ...EmailSenderTestConfigs.valid,
+                        attachments: JSON.stringify([
+                            { filename: 'test1.txt', content: 'First file' },
+                            { filename: 'test2.txt', content: 'Second file' }
+                        ]),
+                        attachmentsType: 'json'
+                    },
+                    input: { payload: 'test', topic: 'test message' },
+                    expectedStatus: { fill: 'green', text: 'sent' }
+                },
+                {
+                    name: 'single attachment object',
+                    config: {
+                        ...EmailSenderTestConfigs.valid,
+                        attachments: JSON.stringify({
+                            filename: 'single-test.txt',
+                            content: 'Single file content'
+                        }),
+                        attachmentsType: 'json'
+                    },
+                    input: { payload: 'test', topic: 'test message' },
+                    expectedStatus: { fill: 'green', text: 'sent' }
+                },
+                {
+                    name: 'empty attachments string',
+                    config: {
+                        ...EmailSenderTestConfigs.valid,
+                        attachments: '',
+                        attachmentsType: 'str'
+                    },
+                    input: { payload: 'test', topic: 'test message' },
+                    expectedStatus: { fill: 'green', text: 'sent' }
+                },
+                {
+                    name: 'malformed attachments',
+                    config: {
+                        ...EmailSenderTestConfigs.valid,
+                        attachments: JSON.stringify([
+                            { filename: 'valid.txt', content: 'Valid content' },
+                            { filename: 'invalid.txt' } // Missing content
+                        ]),
+                        attachmentsType: 'json'
+                    },
+                    input: { payload: 'test', topic: 'test message' },
+                    expectedError: "Attachment object is missing 'filename' or 'content' property."
                 }
+            ];
 
-                if (scenario.expectedError) {
-                    NodeAssertions.expectError(context, scenario.expectedError);
-                }
+            attachmentTests.forEach(testCase => {
+                it(`should handle ${testCase.name}`, async function () {
+                    const scenario: TestScenario = {
+                        name: testCase.name,
+                        config: testCase.config,
+                        input: testCase.input,
+                        expectedStatus: testCase.expectedStatus,
+                        expectedError: testCase.expectedError,
+                        timeout: 3000
+                    };
+
+                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
+
+                    expect(context.nodeInstance).to.exist;
+
+                    if (scenario.expectedStatus) {
+                        NodeAssertions.expectStatus(context, scenario.expectedStatus);
+                    }
+
+                    if (scenario.expectedError) {
+                        NodeAssertions.expectError(context, scenario.expectedError);
+                    }
+                });
             });
         });
     });
-
-    // ========================================================================
-    // ATTACHMENT HANDLING TESTS
-    // ========================================================================
-
-    describe('Attachment Handling', function () {
-        const attachmentTests = [
-            {
-                name: 'array of attachments',
-                config: {
-                    ...emailSenderConfigs.valid,
-                    attachments: JSON.stringify([
-                        { filename: 'test1.txt', content: 'First file' },
-                        { filename: 'test2.txt', content: 'Second file' }
-                    ]),
-                    attachmentsType: 'json'
-                },
-                input: { payload: 'test', topic: 'test message' },
-                expectedStatus: { fill: 'green', text: 'sent' }
-            },
-            {
-                name: 'single attachment object',
-                config: {
-                    ...emailSenderConfigs.valid,
-                    attachments: JSON.stringify({
-                        filename: 'single-test.txt',
-                        content: 'Single file content'
-                    }),
-                    attachmentsType: 'json'
-                },
-                input: { payload: 'test', topic: 'test message' },
-                expectedStatus: { fill: 'green', text: 'sent' }
-            },
-            {
-                name: 'empty attachments string',
-                config: {
-                    ...emailSenderConfigs.valid,
-                    attachments: '',
-                    attachmentsType: 'str'
-                },
-                input: { payload: 'test', topic: 'test message' },
-                expectedStatus: { fill: 'green', text: 'sent' }
-            },
-            {
-                name: 'malformed attachments',
-                config: {
-                    ...emailSenderConfigs.valid,
-                    attachments: JSON.stringify([
-                        { filename: 'valid.txt', content: 'Valid content' },
-                        { filename: 'invalid.txt' } // Missing content
-                    ]),
-                    attachmentsType: 'json'
-                },
-                input: { payload: 'test', topic: 'test message' },
-                expectedError: "Attachment object is missing 'filename' or 'content' property."
-            }
-        ];
-
-        attachmentTests.forEach(testCase => {
-            it(`should handle ${testCase.name}`, async function () {
-                const scenario: TestScenario = {
-                    name: testCase.name,
-                    config: testCase.config,
-                    input: testCase.input,
-                    expectedStatus: testCase.expectedStatus,
-                    expectedError: testCase.expectedError,
-                    timeout: 3000
-                };
-
-                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
-
-                expect(context.nodeInstance).to.exist;
-
-                if (scenario.expectedStatus) {
-                    NodeAssertions.expectStatus(context, scenario.expectedStatus);
-                }
-
-                if (scenario.expectedError) {
-                    NodeAssertions.expectError(context, scenario.expectedError);
-                }
-            });
-        });
-    });
-
     // ========================================================================
     // DATA-DRIVEN EMAIL CONFIGURATION TESTS
     // ========================================================================
 
+    describe('Email Sender Data driven configuration tests', function () {
+
     TestPatternHelpers.createDataDrivenTests(
         'Email Configuration Tests',
         emailSenderNode,
-        emailSenderConfigs.valid,
+        EmailSenderTestConfigs.valid,
         [
             {
                 name: 'basic text email',
@@ -249,15 +252,15 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
     describe('Error Resilience', function () {
         const resilience = new ErrorResilienceTestBuilder()
-            .addMalformedInputScenario('email input', emailSenderConfigs.valid)
-            .addRapidFireScenario('rapid email sending', emailSenderConfigs.valid, 10);
+            .addMalformedInputScenario('email input', EmailSenderTestConfigs.valid)
+            .addRapidFireScenario('rapid email sending', EmailSenderTestConfigs.valid, 10);
 
         // Add email-specific error scenarios
         const emailErrors = new TestScenarioBuilder()
             .addErrorScenario(
                 'invalid SMTP config',
                 {
-                    ...emailSenderConfigs.valid,
+                    ...EmailSenderTestConfigs.valid,
                     smtpHost: 'invalid.smtp.server',
                     smtpPort: 99999
                 },
@@ -267,7 +270,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             .addErrorScenario(
                 'authentication failure',
                 {
-                    ...emailSenderConfigs.valid,
+                    ...EmailSenderTestConfigs.valid,
                     smtpUser: 'invalid@user.com',
                     smtpPassword: 'wrongpassword'
                 },
@@ -302,7 +305,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
         const validation = new DataValidationTestBuilder()
             .addTypeValidationScenario(
                 'email addresses',
-                emailSenderConfigs.valid,
+                EmailSenderTestConfigs.valid,
                 'email',
                 [
                     'test@example.com',
@@ -319,7 +322,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             )
             .addBoundaryValueScenario(
                 'attachment sizes',
-                emailSenderConfigs.valid,
+                EmailSenderTestConfigs.valid,
                 {
                     min: { filename: 'small.txt', content: 'x' },
                     max: { filename: 'large.txt', content: 'x'.repeat(1000) },
@@ -349,14 +352,14 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
     describe('Email Edge Cases', function () {
         const edgeCases = new EdgeCaseTestBuilder()
-            .addEmptyDataScenarios('empty email data', emailSenderConfigs.valid)
-            .addSpecialCharacterScenarios('special characters in emails', emailSenderConfigs.valid);
+            .addEmptyDataScenarios('empty email data', EmailSenderTestConfigs.valid)
+            .addSpecialCharacterScenarios('special characters in emails', EmailSenderTestConfigs.valid);
 
         // Email-specific edge cases
         const emailEdgeCases = new TestScenarioBuilder()
             .addCustomScenario({
                 name: 'very long subject line',
-                config: emailSenderConfigs.valid,
+                config: EmailSenderTestConfigs.valid,
                 input: {
                     payload: 'test',
                     topic: 'a'.repeat(1000) // Very long subject
@@ -364,7 +367,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             })
             .addCustomScenario({
                 name: 'Unicode characters in email',
-                config: emailSenderConfigs.valid,
+                config: EmailSenderTestConfigs.valid,
                 input: {
                     payload: 'Héllo Wörld! 🌟',
                     topic: 'Tëst Émails 📧',
@@ -373,7 +376,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             })
             .addCustomScenario({
                 name: 'very large email content',
-                config: emailSenderConfigs.valid,
+                config: EmailSenderTestConfigs.valid,
                 input: {
                     payload: 'x'.repeat(100000), // 100KB content
                     topic: 'Large Email Test'
@@ -402,7 +405,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
         const complexScenarios = [
             {
                 name: 'email with multiple recipients',
-                config: emailSenderConfigs.valid,
+                config: EmailSenderTestConfigs.valid,
                 input: {
                     payload: 'Multi-recipient test',
                     topic: 'Multiple Recipients',
@@ -411,7 +414,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             },
             {
                 name: 'email with CC and BCC',
-                config: emailSenderConfigs.valid,
+                config: EmailSenderTestConfigs.valid,
                 input: {
                     payload: 'CC/BCC test',
                     topic: 'Carbon Copy Test',
@@ -423,7 +426,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             {
                 name: 'email with mixed attachment types',
                 config: {
-                    ...emailSenderConfigs.valid,
+                    ...EmailSenderTestConfigs.valid,
                     attachments: JSON.stringify([
                         { filename: 'text.txt', content: 'Text file' },
                         { filename: 'data.json', content: '{"test": true}' },
@@ -437,7 +440,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
             },
             {
                 name: 'email with custom priority',
-                config: emailSenderConfigs.valid,
+                config: EmailSenderTestConfigs.valid,
                 input: {
                     payload: 'High priority email',
                     topic: 'URGENT: Priority Test',
@@ -479,11 +482,12 @@ describe('E-Mail Sender Node - Unit Tests', function () {
         it('should register with correct node type', async function () {
             const scenario: TestScenario = {
                 name: 'node type registration',
-                config: emailSenderConfigs.minimal
+                config: EmailSenderTestConfigs.minimal
             };
 
             const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
             expect(context.mockRED.nodes.lastRegisteredType).to.equal('email-sender');
         });
     });
+});
 });

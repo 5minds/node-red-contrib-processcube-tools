@@ -1,8 +1,10 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
 import { EmailReceiverTestConfigs } from '../helpers/email-receiver-test-configs';
+
 import { MockImap } from '../mocks/imap-mock';
-// Import our test framework
+import { createMockMailparser } from '../mocks/mailparser-mock';
+
 import {
   TestScenarioBuilder,
   NodeTestRunner,
@@ -11,7 +13,6 @@ import {
   type TestScenario,
   type MockNodeREDOptions
 } from '../framework';
-import { createMockMailparser } from '../mocks/mailparser-mock';
 
 describe('E-Mail Receiver Node - Unit Tests', function () {
 
