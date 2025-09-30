@@ -7,7 +7,8 @@ import {
   TestScenarioBuilder,
   NodeTestRunner,
   NodeAssertions,
-  type TestScenario
+  type TestScenario,
+  MockNodeREDOptions
 } from '../framework';
 
 import {
@@ -21,6 +22,8 @@ import {
   SecurityTestBuilder,
   type PerformanceTestScenario
 } from '../framework/advanced-test-patterns';
+import { MockImap } from '../mocks/imap-mock';
+import { createMockMailparser } from '../mocks/mailparser-mock';
 
 describe('E-Mail Receiver Node - Integration Tests', function () {
 
@@ -329,10 +332,23 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
     // DATA-DRIVEN TESTS FOR EMAIL SCENARIOS
     // ========================================================================
 
-    TestPatternHelpers.createDataDrivenTests(
-        'Email Processing Scenarios',
-        emailReceiverNode,
-        EmailReceiverTestConfigs.valid,
+    describe('Email Sender Data driven tests', function () {
+        const mockDependencies = {
+            ImapClient: MockImap,
+            mailParser: createMockMailparser()
+
+        };
+        const mockOptions: MockNodeREDOptions = {
+            dependencies: mockDependencies,
+            statusHandler: function(status: any) {
+                console.log('📊 Status received:', JSON.stringify(status, null, 2));
+            },
+            errorHandler: function(err: any) {
+                console.log('❌ Error received:', err);
+            }
+        };
+
+        const DataDrivenTests =
         [
             {
                 name: 'fetch INBOX emails',
@@ -362,8 +378,32 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
                 expectedError: /folder|string|type/i,
                 timeout: 2000
             }
-        ]
-    );
+        ];
+
+        DataDrivenTests.forEach(testCase => {
+            it(`Email Processing Scenarios ${testCase.name}`, async function () {
+                const scenario: TestScenario = {
+                    name: testCase.name,
+                    config: EmailReceiverTestConfigs.valid,
+                    input: testCase.input,
+                    expectedError: testCase.expectedError,
+                    timeout: 3000
+                };
+
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+
+                if (scenario.expectedStatus) {
+                    NodeAssertions.expectStatus(context, scenario.expectedStatus);
+                }
+
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
+                }
+        });
+        });
+    });
 
     // ========================================================================
     // INTEGRATION WITH EXISTING MOCK SYSTEM
