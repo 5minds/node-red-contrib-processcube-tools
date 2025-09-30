@@ -16,6 +16,9 @@ export interface TestContext {
   messages: any[];
   errors: any[];
   statuses: any[];
+  logs?: any[];
+  warnings?: any[];
+  debugs?: any[];
 }
 
 export interface MockNodeREDOptions {
@@ -24,6 +27,10 @@ export interface MockNodeREDOptions {
   sendHandler?: (msg: any) => void;
   errorHandler?: (err: any) => void;
   statusHandler?: (status: any) => void;
+  logHandler?: (msg: any) => void;
+  warnHandler?: (msg: any) => void;
+  debugHandler?: (msg: any) => void;
+  traceHandler?: (msg: any) => void;
 }
 
 // Integration Test Types

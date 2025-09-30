@@ -55,6 +55,38 @@ export class NodeTestRunner {
             }
           };
 
+          // Add logging methods
+          node.log = function(msg: any) {
+            if (options.logHandler) {
+              options.logHandler.call(this, msg);
+            }
+            // Optionally store logs in context
+            if (!context.logs) context.logs = [];
+            context.logs.push(msg);
+          };
+
+          node.warn = function(msg: any) {
+            if (options.warnHandler) {
+              options.warnHandler.call(this, msg);
+            }
+            if (!context.warnings) context.warnings = [];
+            context.warnings.push(msg);
+          };
+
+          node.debug = function(msg: any) {
+            if (options.debugHandler) {
+              options.debugHandler.call(this, msg);
+            }
+            if (!context.debugs) context.debugs = [];
+            context.debugs.push(msg);
+          };
+
+          node.trace = function(msg: any) {
+            if (options.traceHandler) {
+              options.traceHandler.call(this, msg);
+            }
+          };
+
           return node;
         },
         registerType: function(type: string, constructor: Function) {
