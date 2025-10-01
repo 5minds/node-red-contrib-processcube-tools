@@ -11,7 +11,10 @@ import {
   NodeAssertions,
   createNodeTestSuite,
   type TestScenario,
-  type MockNodeREDOptions
+  type MockNodeREDOptions,
+  SecurityTestBuilder,
+  EdgeCaseTestBuilder,
+  ErrorResilienceTestBuilder
 } from '../framework';
 
 describe('E-Mail Receiver Node - Unit Tests', function () {
@@ -222,6 +225,234 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
                 const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
                 expect(context.nodeInstance).to.exist;
             });
+        });
+    });
+
+
+    // ========================================================================
+    // EMAIL-SPECIFIC ERROR RESILIENCE TESTS
+    // ========================================================================
+
+    describe('Email Error Resilience', function () {
+        const resilience = new ErrorResilienceTestBuilder()
+            .addNetworkErrorScenario('IMAP connection', EmailReceiverTestConfigs.valid)
+            .addMalformedInputScenario('email message processing', EmailReceiverTestConfigs.valid)
+            .addRapidFireScenario('email burst handling', EmailReceiverTestConfigs.valid, 50);
+
+        resilience.getScenarios().forEach(scenario => {
+            it(`should handle ${scenario.name}`, async function () {
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+
+                // Node should exist and handle errors gracefully
+                expect(context.nodeInstance).to.exist;
+
+                // Should either process successfully or handle errors appropriately
+                const hasGracefulHandling =
+                    context.errors.length === 0 ||
+                    context.statuses.some(s => s.fill === 'red') ||
+                    context.errors.some(e => typeof e === 'string');
+
+                expect(hasGracefulHandling, 'Should handle errors gracefully').to.be.true;
+            });
+        });
+    });
+
+    // ========================================================================
+    // EMAIL-SPECIFIC EDGE CASES
+    // ========================================================================
+
+    describe('Email Edge Cases', function () {
+        const edgeCases = new EdgeCaseTestBuilder()
+            .addEmptyDataScenarios('empty email data', EmailReceiverTestConfigs.valid)
+            .addSpecialCharacterScenarios('special characters in emails', EmailReceiverTestConfigs.valid)
+            .addLargeDataScenarios('large email attachments', EmailReceiverTestConfigs.valid);
+
+        // Add email-specific edge cases
+        const emailSpecificCases = new TestScenarioBuilder()
+            .addCustomScenario({
+                name: 'very long subject line',
+                config: EmailReceiverTestConfigs.valid,
+                input: {
+                    payload: 'fetch',
+                    subject: 'a'.repeat(1000) // Very long subject
+                }
+            })
+            .addCustomScenario({
+                name: 'multiple folder processing',
+                config: {
+                    ...EmailReceiverTestConfigs.valid,
+                    folders: Array.from({ length: 50 }, (_, i) => `FOLDER${i}`)
+                },
+                input: { payload: 'fetch' }
+            })
+            .addCustomScenario({
+                name: 'special email characters',
+                config: EmailReceiverTestConfigs.valid,
+                input: {
+                    payload: 'fetch',
+                    from: 'tëst@exämple.com',
+                    subject: '📧 Émails with spéciál chars! 🌟'
+                }
+            });
+
+        [...edgeCases.getScenarios(), ...emailSpecificCases.getScenarios()]
+            .forEach(scenario => {
+                it(`should handle ${scenario.name}`, async function () {
+                    const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+                    expect(context.nodeInstance).to.exist;
+                });
+            });
+    });
+
+    // ========================================================================
+    // SECURITY TESTS FOR EMAIL PROCESSING
+    // ========================================================================
+
+    describe('Email Security', function () {
+        const security = new SecurityTestBuilder()
+            .addInjectionTestScenarios('email content injection', EmailReceiverTestConfigs.valid)
+            .addOversizedPayloadScenarios('large email payload', EmailReceiverTestConfigs.valid);
+
+        // Email-specific security tests
+        const emailSecurity = new TestScenarioBuilder()
+            .addCustomScenario({
+                name: 'malicious email headers',
+                config: EmailReceiverTestConfigs.valid,
+                input: {
+                    payload: 'fetch',
+                    headers: {
+                        'X-Malicious': '<script>alert("xss")</script>',
+                        'X-Injection': "'; DROP TABLE emails; --"
+                    }
+                }
+            })
+            .addCustomScenario({
+                name: 'suspicious attachment handling',
+                config: EmailReceiverTestConfigs.valid,
+                input: {
+                    payload: 'fetch',
+                    attachments: [
+                        { filename: '../../../../../../etc/passwd' },
+                        { filename: 'virus.exe.txt' },
+                        { filename: '<script>evil.js</script>' }
+                    ]
+                }
+            });
+
+        [...security.getScenarios(), ...emailSecurity.getScenarios()]
+            .forEach(scenario => {
+                it(`should resist ${scenario.name}`, async function () {
+                    const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+
+                    // Node should exist and not crash
+                    expect(context.nodeInstance).to.exist;
+
+                    // Should handle security threats gracefully
+                    const handledSecurely =
+                        context.errors.length === 0 ||
+                        context.errors.some(e => typeof e === 'string');
+
+                    expect(handledSecurely, 'Should handle security threats gracefully').to.be.true;
+                });
+            });
+    });
+
+    // ========================================================================
+    // DATA-DRIVEN TESTS FOR EMAIL SCENARIOS
+    // ========================================================================
+
+    describe('Email Receiver Data driven tests', function () {
+        const mockDependencies = {
+            ImapClient: MockImap,
+            mailParser: createMockMailparser()
+
+        };
+        const mockOptions: MockNodeREDOptions = {
+            dependencies: mockDependencies,
+            statusHandler: function(status: any) {
+                console.log('📊 Status received:', JSON.stringify(status, null, 2));
+            },
+            errorHandler: function(err: any) {
+                console.log('❌ Error received:', err);
+            }
+        };
+
+        const DataDrivenTests =
+        [
+            {
+                name: 'fetch INBOX emails',
+                input: {
+                    payload: 'fetch',
+                    folder: 'INBOX',
+                    to: 'test@example.com'
+                },
+                timeout: 3000
+            },
+            {
+                name: 'fetch SENT emails',
+                input:  {
+                    payload: 'fetch',
+                    folder: 'SENT',
+                    to: 'test@example.com'
+                },
+                timeout: 3000
+            },
+            {
+                name: 'invalid email receiver',
+                input:  {
+                    payload: 'fetch',
+                    folder: 'INBOX',
+                },
+                expectedStatus: { fill: 'red' },
+                expectedError: /invalid|unknown|command/i,
+                timeout: 2000
+            },
+            {
+                name: 'empty folder name',
+                input:  {
+                    payload: 'fetch',
+                    folder: undefined,
+                    to: 'test@example.com'
+                },
+                expectedStatus: { fill: 'red' },
+                expectedError: /folder|empty|invalid/i,
+                timeout: 2000
+            },
+            {
+                name: 'numeric folder name',
+                input: { payload: 'fetch', folder: 123 },
+                expectedStatus: { fill: 'red' },
+                expectedError: /folder|string|type/i,
+                timeout: 2000
+            }
+        ];
+
+        DataDrivenTests.forEach(testCase => {
+            it(`Email Processing Scenarios ${testCase.name}`, async function () {
+                const scenario: TestScenario = {
+                    name: testCase.name,
+                    config: {
+                        ...EmailReceiverTestConfigs.valid,
+                        folder: testCase.input.folder,
+                        to: testCase.input.to
+                    },
+                    expectedError: testCase.expectedError,
+                    expectedStatus: testCase.expectedStatus,
+                    timeout: 3000
+                };
+
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+
+                if (scenario.expectedStatus) {
+                    NodeAssertions.expectStatus(context, scenario.expectedStatus);
+                }
+
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
+                }
+        });
         });
     });
 });

@@ -12,14 +12,9 @@ export { IntegrationAssertions } from './integration-assertions';
 export { IntegrationScenarioBuilder } from './integration-scenario-builder';
 
 export {
-  PerformanceTestRunner,
-  StressTestBuilder,
   ErrorResilienceTestBuilder,
-  AsyncBehaviorTestBuilder,
   EdgeCaseTestBuilder,
   SecurityTestBuilder,
-  TestPatternHelpers,
-  type PerformanceTestScenario
 } from './advanced-test-patterns';
 
 // Types
