@@ -1,7 +1,6 @@
-import * as helper from 'node-red-node-test-helper';
-import { expect } from 'chai';
 import type { Node, NodeMessageInFlow } from 'node-red';
-import type { TestContext } from './types';
+import { NodeTestRunner } from './node-test-runner';
+import type { TestScenario } from './types';
 
 export interface IntegrationTestScenario {
   name: string;
@@ -29,91 +28,69 @@ export interface IntegrationTestContext {
 }
 
 export class IntegrationTestRunner {
-  private static isHelperInitialized = false;
-
-  static initializeHelper(): void {
-    if (!this.isHelperInitialized) {
-      helper.init(require.resolve('node-red'));
-      this.isHelperInitialized = true;
-    }
-  }
-
   static async runIntegrationScenario(
     nodeConstructor: Function,
     scenario: IntegrationTestScenario
   ): Promise<IntegrationTestContext> {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error(`Integration test '${scenario.name}' timed out after ${scenario.timeout || 5000}ms`));
-      }, scenario.timeout || 5000);
+    console.log(`[SCENARIO START] ${scenario.name}`);
 
-      const context: IntegrationTestContext = {
-        nodes: {},
-        messages: [],
-        errors: []
-      };
+    const context: IntegrationTestContext = {
+      nodes: {},
+      messages: [],
+      errors: []
+    };
 
-      helper.load(nodeConstructor as any, scenario.flow, function() {
-        try {
-          // Collect all nodes from the flow
-          scenario.flow.forEach(nodeConfig => {
-            const node = helper.getNode(nodeConfig.id);
-            if (node) {
-              context.nodes[nodeConfig.id] = node;
-            }
+    // For integration tests, we need to test the main node only
+    // Helper nodes would be tested separately
+    const mainNodeConfig = scenario.flow.find(n => n.id === scenario.nodeId);
+
+    if (!mainNodeConfig) {
+      throw new Error(`Node with id ${scenario.nodeId} not found in flow`);
+    }
+
+    // Convert to TestScenario format for NodeTestRunner
+    const testScenario: TestScenario = {
+      name: scenario.name,
+      config: mainNodeConfig,
+      input: scenario.input,
+      timeout: scenario.timeout || 5000
+    };
+
+    // If expecting messages, set up expectations
+    if (scenario.expectedMessages && scenario.expectedMessages.length > 0) {
+      // We expect output to be sent
+      testScenario.expectedOutput = scenario.expectedMessages[0].expectedMsg;
+    }
+
+    // Run the scenario using NodeTestRunner
+    const testContext = await NodeTestRunner.runScenario(
+      nodeConstructor,
+      testScenario,
+      {
+        sendHandler: function(msg: any) {
+          // Capture sent messages
+          context.messages.push({
+            nodeId: scenario.nodeId,
+            message: msg,
+            timestamp: Date.now()
           });
-
-          // Set up message listeners for expected messages
-          if (scenario.expectedMessages) {
-            let receivedCount = 0;
-            const expectedCount = scenario.expectedMessages.length;
-
-            scenario.expectedMessages.forEach(expectation => {
-              const node = context.nodes[expectation.nodeId];
-              if (node) {
-                node.on('input', function(msg: NodeMessageInFlow) {
-                  context.messages.push({
-                    nodeId: expectation.nodeId,
-                    message: msg,
-                    timestamp: Date.now()
-                  });
-
-                  receivedCount++;
-                  if (receivedCount >= expectedCount) {
-                    clearTimeout(timeout);
-                    resolve(context);
-                  }
-                });
-              }
-            });
-          }
-
-          // Run custom setup if provided
-          if (scenario.setup) {
-            scenario.setup(context.nodes);
-          }
-
-          // Send input if provided
-          if (scenario.input) {
-            const targetNode = context.nodes[scenario.nodeId];
-            if (targetNode && (targetNode as any).receive) {
-              setTimeout(() => {
-                (targetNode as any).receive(scenario.input);
-              }, 10);
-            }
-          }
-
-          // If no expected messages, resolve after setup
-          if (!scenario.expectedMessages || scenario.expectedMessages.length === 0) {
-            clearTimeout(timeout);
-            setTimeout(() => resolve(context), 100);
-          }
-
-        } catch (error) {
-          clearTimeout(timeout);
-          reject(error);
+        },
+        errorHandler: function(error: any) {
+          // Capture errors
+          context.errors.push(error);
         }
-      });
-    });
+      }
+    );
+
+    // Store the node instance
+    context.nodes[scenario.nodeId] = testContext.nodeInstance;
+
+    // Run custom setup if provided
+    if (scenario.setup) {
+      scenario.setup(context.nodes);
+    }
+
+    console.log(`[SCENARIO COMPLETE] ${scenario.name}`);
+    return context;
   }
 }

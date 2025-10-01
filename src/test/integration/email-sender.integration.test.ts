@@ -1,9 +1,5 @@
 import { describe, it } from 'mocha';
 import { expect } from 'chai';
-import * as helper from 'node-red-node-test-helper';
-
-
-// Import our integration testing framework
 import {
     IntegrationTestRunner,
     IntegrationAssertions,
@@ -15,28 +11,9 @@ import { testFlows } from '../helpers/email-sender-test-flows';
 
 const emailSenderNode = require('../../email-sender/email-sender');
 
+
+
 describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
-    this.timeout(10000);
-    let cleanupMocks: (() => void) | undefined;
-
-    before(function (done: Mocha.Done) {
-        IntegrationTestRunner.initializeHelper();
-        helper.startServer(done);
-    });
-
-    after(function (done: Mocha.Done) {
-        if (cleanupMocks) cleanupMocks();
-        helper.stopServer(done);
-    });
-
-    beforeEach(function (done: Mocha.Done) {
-        helper.startServer(done);
-    });
-
-    afterEach(function (done: Mocha.Done) {
-        helper.unload();
-        helper.stopServer(done);
-    });
 
     // ========================================================================
     // NODE LOADING TESTS USING FRAMEWORK
@@ -66,7 +43,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
     // CONNECTION TESTS USING FRAMEWORK
     // ========================================================================
 
-    describe('Node Connections (Enhanced)', function () {
+    describe('Node Connections', function () {
         const connectionTests = new IntegrationScenarioBuilder()
             .addConnectionScenario('simple connection', testFlows.connected, [EmailSenderTestConfigs.valid.id, 'h1'])
             .addConnectionScenario('multiple outputs', testFlows.multiOutput, [EmailSenderTestConfigs.valid.id, 'h1', 'h2']);
@@ -89,7 +66,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
     // MESSAGE FLOW TESTS USING FRAMEWORK
     // ========================================================================
 
-    describe('Message Flow (Enhanced)', function () {
+    describe('Message Flow', function () {
         it('should handle input without crashing', async function () {
             const scenario: IntegrationTestScenario = {
                 name: 'input handling',
@@ -308,7 +285,7 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
     // LIFECYCLE TESTS USING FRAMEWORK
     // ========================================================================
 
-    describe('Node Lifecycle (Enhanced)', function () {
+    describe('Node Lifecycle', function () {
         it('should handle multiple load/unload cycles', async function () {
             const cycles = 3;
 
@@ -324,8 +301,6 @@ describe('E-Mail Sender Node - Integration Tests (Framework)', function () {
                 const context = await IntegrationTestRunner.runIntegrationScenario(emailSenderNode, scenario);
                 IntegrationAssertions.expectNodeExists(context, EmailSenderTestConfigs.valid.id);
 
-                // Clean up after each cycle
-                helper.unload();
                 await new Promise(resolve => setTimeout(resolve, 50));
             }
         });
