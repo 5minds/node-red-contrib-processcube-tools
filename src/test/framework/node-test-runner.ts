@@ -176,6 +176,17 @@ export class NodeTestRunner {
         const NodeConstructor = (context.mockRED.nodes as any).lastRegisteredConstructor;
         context.nodeInstance = new NodeConstructor(scenario.config);
 
+        if ((context.nodeInstance as any).configError) {
+          setTimeout(() => {
+            if (scenario.expectedError && context.errors.length > 0) {
+              complete();
+            } else if (scenario.expectedStatus && context.statuses.length > 0) {
+              complete();
+            }
+          }, 100);
+          return;
+        }
+
         // Set up completion detection based on scenario configuration
         const originalSend = context.nodeInstance.send;
         const originalError = context.nodeInstance.error;
@@ -185,37 +196,45 @@ export class NodeTestRunner {
         if (scenario.expectedOutput) {
           context.nodeInstance.send = function(msg: any) {
             originalSend.call(this, msg);
-            // Complete when we get the expected output
             complete();
           };
         }
 
         // Override error to detect expected errors
         if (scenario.expectedError) {
+          let errorCount = context.errors.length;
           context.nodeInstance.error = function(error: any) {
             originalError.call(this, error);
-            // Complete when we get the expected error
-            complete();
-          };
-        }
-
-        // Override status to detect completion patterns
-        if (scenario.expectedStatus) {
-          context.nodeInstance.status = function(status: any) {
-            originalStatus.call(this, status);
-
-            // Check if status matches all specified properties
-            const fillMatches = !scenario.expectedStatus!.fill || status.fill === scenario.expectedStatus!.fill;
-            const shapeMatches = !scenario.expectedStatus!.shape || status.shape === scenario.expectedStatus!.shape;
-            const textMatches = !scenario.expectedStatus!.text || status.text?.includes(scenario.expectedStatus!.text);
-
-            if (fillMatches && shapeMatches && textMatches) {
+            // ✅ Only complete on NEW errors (not construction errors we already saw)
+            if (context.errors.length > errorCount) {
+              errorCount = context.errors.length;
               complete();
             }
           };
         }
 
-        // If no specific expectations, complete after a short delay to allow initialization
+        // Override status to detect completion patterns
+        if (scenario.expectedStatus) {
+          let statusCount = context.statuses.length;
+          context.nodeInstance.status = function(status: any) {
+            originalStatus.call(this, status);
+
+            // ✅ Only check NEW statuses
+            if (context.statuses.length > statusCount) {
+              statusCount = context.statuses.length;
+
+              const fillMatches = !scenario.expectedStatus!.fill || status.fill === scenario.expectedStatus!.fill;
+              const shapeMatches = !scenario.expectedStatus!.shape || status.shape === scenario.expectedStatus!.shape;
+              const textMatches = !scenario.expectedStatus!.text || status.text?.includes(scenario.expectedStatus!.text);
+
+              if (fillMatches && shapeMatches && textMatches) {
+                complete();
+              }
+            }
+          };
+        }
+
+        // If no specific expectations, complete after a short delay
         if (!scenario.expectedOutput && !scenario.expectedError && !scenario.expectedStatus) {
           setTimeout(() => complete(), 100);
           return;

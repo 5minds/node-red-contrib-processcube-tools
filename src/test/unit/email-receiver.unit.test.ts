@@ -370,10 +370,17 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         const mockOptions: MockNodeREDOptions = {
             dependencies: mockDependencies,
             statusHandler: function(status: any) {
-                console.log('📊 Status received:', JSON.stringify(status, null, 2));
+                console.log('📊 Status:', JSON.stringify(status, null, 2));
             },
             errorHandler: function(err: any) {
-                console.log('❌ Error received:', err);
+                console.log('❌ Error:', err);
+                console.log('❌ Error stack:', new Error().stack); // See when error occurs
+            },
+            onHandler: function(event: string, callback: Function) {
+                console.log(`🎯 Event registered: ${event}`);
+                if (event === 'input') {
+                    (this as any).inputCallback = callback;
+                }
             }
         };
 
@@ -381,46 +388,44 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
         [
             {
                 name: 'fetch INBOX emails',
-                input: {
-                    payload: 'fetch',
-                    folder: 'INBOX',
-                    to: 'test@example.com'
-                },
-                timeout: 3000
+                config: {
+                    ...EmailReceiverTestConfigs.valid,
+                    folder: 'INBOX'
+                }
             },
             {
                 name: 'fetch SENT emails',
-                input:  {
-                    payload: 'fetch',
+                config:  {
+                    ...EmailReceiverTestConfigs.valid,
                     folder: 'SENT',
-                    to: 'test@example.com'
-                },
-                timeout: 3000
+                }
             },
             {
                 name: 'invalid email receiver',
-                input:  {
-                    payload: 'fetch',
+                config:  {
+                    ...EmailReceiverTestConfigs.valid,
                     folder: 'INBOX',
+                    host: ''
                 },
                 expectedStatus: { fill: 'red' },
-                expectedError: /invalid|unknown|command/i,
-                timeout: 2000
+                expectedError: /invalid|unknown|missing/i
             },
             {
                 name: 'empty folder name',
-                input:  {
-                    payload: 'fetch',
-                    folder: undefined,
-                    to: 'test@example.com'
+                config:  {
+                    ...EmailReceiverTestConfigs.valid,
+                    folder: ''
                 },
                 expectedStatus: { fill: 'red' },
-                expectedError: /folder|empty|invalid/i,
+                expectedError: /folders|empty|invalid/i,
                 timeout: 2000
             },
             {
                 name: 'numeric folder name',
-                input: { payload: 'fetch', folder: 123 },
+                config: {
+                    ...EmailReceiverTestConfigs.valid,
+                    folder: 123
+                },
                 expectedStatus: { fill: 'red' },
                 expectedError: /folder|string|type/i,
                 timeout: 2000
@@ -431,18 +436,29 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             it(`Email Processing Scenarios ${testCase.name}`, async function () {
                 const scenario: TestScenario = {
                     name: testCase.name,
-                    config: {
-                        ...EmailReceiverTestConfigs.valid,
-                        folder: testCase.input.folder,
-                        to: testCase.input.to
-                    },
+                    config: testCase.config,
+                    input: { payload: 'fetch' },
                     expectedError: testCase.expectedError,
                     expectedStatus: testCase.expectedStatus,
                     timeout: 3000
                 };
+                console.log(`\n🧪 Starting test: ${testCase.name}`);
+    console.log('📝 Config:', JSON.stringify(scenario.config));
+    console.log('📝 Input:', JSON.stringify(scenario.input));
 
                 const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
 
+// 🔍 DEBUG
+console.log('📦 Node constructed');
+console.log('❌ Errors so far:', context.errors);
+console.log('📊 Statuses so far:', context.statuses);
+console.log('🐛 Has configError:', !!(context.nodeInstance as any).configError);
+
+setTimeout(() => {
+  console.log('⏰ After 100ms:');
+  console.log('❌ Errors:', context.errors);
+  console.log('📊 Statuses:', context.statuses);
+}, 100);
                 expect(context.nodeInstance).to.exist;
 
                 if (scenario.expectedStatus) {
