@@ -64,10 +64,17 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
             return null;
         };
 
-
         (node as any).on('input', async (msg: EmailSenderNodeMessage, send: Function, done: Function) => {
-            send = send || function() { node.send.apply(node, arguments as any); };
-            done = done || function(err?: Error) { if (err) node.error(err, msg); };
+            send =
+                send ||
+                function () {
+                    node.send.apply(node, arguments as any);
+                };
+            done =
+                done ||
+                function (err?: Error) {
+                    if (err) node.error(err, msg);
+                };
 
             try {
                 // Retrieve and evaluate all configuration values
@@ -76,11 +83,17 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 const to = String(RED.util.evaluateNodeProperty(config.to, config.toType, node, msg) || '');
                 const cc = String(RED.util.evaluateNodeProperty(config.cc, config.ccType, node, msg) || '');
                 const bcc = String(RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || '');
-                const replyTo = String(RED.util.evaluateNodeProperty(config.replyTo, config.replyToType, node, msg) || '');
-                const subject = String(
-                    RED.util.evaluateNodeProperty(config.subject, config.subjectType, node, msg) || msg.topic || 'Message from Node-RED'
+                const replyTo = String(
+                    RED.util.evaluateNodeProperty(config.replyTo, config.replyToType, node, msg) || '',
                 );
-                const htmlContent = String(RED.util.evaluateNodeProperty(config.htmlContent, config.htmlContentType, node, msg));
+                const subject = String(
+                    RED.util.evaluateNodeProperty(config.subject, config.subjectType, node, msg) ||
+                        msg.topic ||
+                        'Message from Node-RED',
+                );
+                const htmlContent = String(
+                    RED.util.evaluateNodeProperty(config.htmlContent, config.htmlContentType, node, msg),
+                );
                 const attachments = safeEvaluatePropertyAttachment(config, node, msg);
 
                 // SMTP Configuration
@@ -90,7 +103,7 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 const password = String(RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg));
                 const secure = Boolean(RED.util.evaluateNodeProperty(config.secure, config.secureType, node, msg));
                 const rejectUnauthorized = Boolean(
-                    RED.util.evaluateNodeProperty(config.rejectUnauthorized, config.rejectUnauthorizedType, node, msg)
+                    RED.util.evaluateNodeProperty(config.rejectUnauthorized, config.rejectUnauthorizedType, node, msg),
                 );
 
                 // Process attachments
@@ -111,10 +124,12 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                             if (attachment.filename && attachment.content !== undefined) {
                                 processedAttachments.push({
                                     filename: attachment.filename,
-                                    content: attachment.content
+                                    content: attachment.content,
                                 });
                             } else {
-                                throw new Error(`Attachment object is missing 'filename' or 'content' property. Got: ${JSON.stringify(attachment)}`);
+                                throw new Error(
+                                    `Attachment object is missing 'filename' or 'content' property. Got: ${JSON.stringify(attachment)}`,
+                                );
                             }
                         } else {
                             throw new Error(`Invalid attachment format. Expected object, got: ${typeof attachment}`);
@@ -133,7 +148,11 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
 
                 const mailOptions = {
                     from: { name: sender, address: address },
-                    to, cc, bcc, replyTo, subject,
+                    to,
+                    cc,
+                    bcc,
+                    replyTo,
+                    subject,
                     html: Buffer.from(htmlContent, 'utf-8'),
                     attachments: processedAttachments,
                 };
@@ -141,10 +160,16 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 transporter.sendMail(mailOptions, (error, info) => {
                     if (error) {
                         node.status({ fill: 'red', shape: 'dot', text: 'error sending' });
-                        if (error.message && error.message.includes('SSL routines') && error.message.includes('wrong version number')) {
-                            done(new Error(
-                                'SSL/TLS connection failed: Wrong version number. This usually means the wrong port or security settings are used. For SMTP: use port 587 with secure=false (STARTTLS) or port 465 with secure=true (SSL/TLS).',
-                            ));
+                        if (
+                            error.message &&
+                            error.message.includes('SSL routines') &&
+                            error.message.includes('wrong version number')
+                        ) {
+                            done(
+                                new Error(
+                                    'SSL/TLS connection failed: Wrong version number. This usually means the wrong port or security settings are used. For SMTP: use port 587 with secure=false (STARTTLS) or port 465 with secure=true (SSL/TLS).',
+                                ),
+                            );
                         } else {
                             done(error);
                         }
@@ -168,7 +193,6 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                         }
                     }
                 });
-
             } catch (error) {
                 done(error instanceof Error ? error : new Error(String(error)));
                 node.status({ fill: 'red', shape: 'dot', text: 'error' });

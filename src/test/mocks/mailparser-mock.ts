@@ -1,4 +1,4 @@
-import { EmailData } from "../interfaces/email-data";
+import { EmailData } from '../interfaces/email-data';
 
 export function createMockMailparser() {
     return function mockMailParser(stream: NodeJS.ReadableStream, callback: (err: Error | null, parsed?: any) => void) {
@@ -18,20 +18,20 @@ export function createMockMailparser() {
                 html: parsedData.html || '<p>Mock email content</p>',
                 from: {
                     text: parsedData.from || 'sender@test.com',
-                    value: [{ address: parsedData.from || parsedData.from || 'sender@test.com' }]
+                    value: [{ address: parsedData.from || parsedData.from || 'sender@test.com' }],
                 },
                 replyTo: {
                     text: parsedData.from || 'sender@test.com',
-                    value: [{ address: parsedData.to || parsedData.to || 'recipient@test.com' }]
+                    value: [{ address: parsedData.to || parsedData.to || 'recipient@test.com' }],
                 },
                 date: parsedData.date || new Date(),
                 messageId: parsedData.messageId || '<mock@test.com>',
                 headers: new Map([
                     ['message-id', parsedData.messageId || '<mock@test.com>'],
                     ['subject', parsedData.subject || 'Mock Email Subject'],
-                    ['from', parsedData.from || 'sender@test.com']
+                    ['from', parsedData.from || 'sender@test.com'],
                 ]),
-                attachments: parsedData.attachments || []
+                attachments: parsedData.attachments || [],
             };
 
             // Call the callback asynchronously to simulate real parsing

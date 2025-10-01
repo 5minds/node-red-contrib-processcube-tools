@@ -10,5 +10,5 @@ export interface ImapConnectionConfig {
     authTimeout: number;
     keepalive: boolean;
     autotls: string;
-    tlsOptions: { rejectUnauthorized: boolean; };
+    tlsOptions: { rejectUnauthorized: boolean };
 }

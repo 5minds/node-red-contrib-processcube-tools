@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { ImapConfig } from "../interfaces/imap-config";
+import { ImapConfig } from '../interfaces/imap-config';
 import { ImapMailbox } from '../interfaces/imap-mailbox';
 
 export class MockImap extends EventEmitter {
@@ -38,7 +38,7 @@ export class MockImap extends EventEmitter {
             callback(null, {
                 messages: { total: this.getMessageCount(folder) },
                 name: folder,
-                readOnly
+                readOnly,
             });
         }, 5);
     }
@@ -80,20 +80,22 @@ export class MockImap extends EventEmitter {
 
     // Private helper methods
     private isConnectionInvalid(): boolean {
-        return !this.config.host ||
-               this.config.host.includes('invalid') ||
-               this.config.host.includes('nonexistent') ||
-               this.config.host.includes('unreachable') ||
-               !this.config.user ||
-               !this.config.password;
+        return (
+            !this.config.host ||
+            this.config.host.includes('invalid') ||
+            this.config.host.includes('nonexistent') ||
+            this.config.host.includes('unreachable') ||
+            !this.config.user ||
+            !this.config.password
+        );
     }
 
     private getMessageCount(folder: string): number {
         const counts: Record<string, number> = {
-            'INBOX': 5,
-            'SENT': 2,
-            'DRAFTS': 1,
-            'JUNK': 0
+            INBOX: 5,
+            SENT: 2,
+            DRAFTS: 1,
+            JUNK: 0,
         };
         return counts[folder.toUpperCase()] || 3;
     }
@@ -113,7 +115,7 @@ export class MockImap extends EventEmitter {
                 read() {
                     this.push(Buffer.from(emailContent));
                     this.push(null); // End the stream
-                }
+                },
             });
             message.emit('body', mockStream);
         }, 5);
@@ -123,7 +125,7 @@ export class MockImap extends EventEmitter {
                 uid: id,
                 flags: Math.random() > 0.5 ? ['\\Seen'] : [],
                 date: new Date(),
-                size: Math.floor(Math.random() * 10000) + 500
+                size: Math.floor(Math.random() * 10000) + 500,
             });
         }, 10);
 
@@ -139,7 +141,7 @@ export class MockImap extends EventEmitter {
             `Date: ${new Date().toUTCString()}`,
             ``,
             `This is test email content for message ${id}.`,
-            `Generated for testing purposes.`
+            `Generated for testing purposes.`,
         ].join('\r\n');
     }
 }

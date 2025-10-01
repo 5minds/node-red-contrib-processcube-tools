@@ -1,4 +1,3 @@
-
 export interface EmailSenderConfig {
     id: string;
     type: string;

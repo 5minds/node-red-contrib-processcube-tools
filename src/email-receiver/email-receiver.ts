@@ -51,7 +51,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
             }
 
             if (Array.isArray(config.folder)) {
-                if (!config.folder.every(f => typeof f === 'string')) {
+                if (!config.folder.every((f) => typeof f === 'string')) {
                     throw new Error("The 'folders' property must be an array of strings.");
                 }
             } else if (typeof config.folder !== 'string' && config.folder !== undefined) {
@@ -59,15 +59,18 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
             }
 
             // Validate required fields - check both explicit types and default string values
-            const requiredFields: Array<{key: keyof EmailReceiverNodeProperties, typeKey: keyof EmailReceiverNodeProperties}> = [
-                {key: 'host', typeKey: 'hostType'},
-                {key: 'user', typeKey: 'userType'},
-                {key: 'password', typeKey: 'passwordType'},
-                {key: 'port', typeKey: 'portType'}
+            const requiredFields: Array<{
+                key: keyof EmailReceiverNodeProperties;
+                typeKey: keyof EmailReceiverNodeProperties;
+            }> = [
+                { key: 'host', typeKey: 'hostType' },
+                { key: 'user', typeKey: 'userType' },
+                { key: 'password', typeKey: 'passwordType' },
+                { key: 'port', typeKey: 'portType' },
             ];
 
             const missingFields: string[] = [];
-            requiredFields.forEach(({key, typeKey}) => {
+            requiredFields.forEach(({ key, typeKey }) => {
                 const value = config[key];
                 const type = config[typeKey] || 'str'; // Default to 'str' if type not specified
 
@@ -84,7 +87,6 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
             if (missingFields.length > 0) {
                 throw new Error(`Missing required IMAP config: ${missingFields.join(', ')}. Aborting.`);
             }
-
         } catch (error) {
             configError = error instanceof Error ? error : new Error(String(error));
             node.status({ fill: 'red', shape: 'ring', text: 'config error' });
@@ -100,8 +102,16 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
         }
 
         node.on('input', (msg: EmailReceiverNodeMessage, send: Function, done: Function) => {
-            send = send || function(m: NodeMessage | NodeMessage[]) { node.send(m); };
-            done = done || function(err?: Error) { if (err) node.error(err, msg); };
+            send =
+                send ||
+                function (m: NodeMessage | NodeMessage[]) {
+                    node.send(m);
+                };
+            done =
+                done ||
+                function (err?: Error) {
+                    if (err) node.error(err, msg);
+                };
 
             // If there's a configuration error, report it and don't proceed
             if (configError) {
@@ -116,14 +126,22 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                 const imap_tls = RED.util.evaluateNodeProperty(String(config.tls), config.tlsType, node, msg);
                 const imap_user = RED.util.evaluateNodeProperty(config.user, config.userType, node, msg);
                 const imap_password = RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg);
-                const imap_markSeen = RED.util.evaluateNodeProperty(String(config.markseen), config.markseenType, node, msg);
+                const imap_markSeen = RED.util.evaluateNodeProperty(
+                    String(config.markseen),
+                    config.markseenType,
+                    node,
+                    msg,
+                );
                 const imap_folder = RED.util.evaluateNodeProperty(String(config.folder), config.folderType, node, msg);
                 let folders: string[];
 
                 if (Array.isArray(imap_folder)) {
                     folders = imap_folder as string[];
                 } else if (typeof imap_folder === 'string') {
-                    folders = imap_folder.split(',').map((f) => f.trim()).filter((f) => f.length > 0);
+                    folders = imap_folder
+                        .split(',')
+                        .map((f) => f.trim())
+                        .filter((f) => f.length > 0);
                 } else {
                     throw new Error("The 'folders' property must be an array of strings.");
                 }
@@ -246,40 +264,47 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                 fetch.on('message', (msg: Imap.ImapMessage, seqno: number) => {
                                     msg.on('body', (stream: NodeJS.ReadableStream) => {
                                         // Use injected dependency instead of direct import
-                                        dependencies.mailParser(stream as any, (err: Error | null, parsed: ParsedMail) => {
-                                            if (err) {
-                                                node.error(`Parse error for email from folder "${folder}": ${err.message}`);
-                                                return;
-                                            }
+                                        dependencies.mailParser(
+                                            stream as any,
+                                            (err: Error | null, parsed: ParsedMail) => {
+                                                if (err) {
+                                                    node.error(
+                                                        `Parse error for email from folder "${folder}": ${err.message}`,
+                                                    );
+                                                    return;
+                                                }
 
-                                            const outMsg: EmailReceiverMessage = {
-                                                topic: parsed.subject || '',
-                                                payload: parsed.text || '',
-                                                html: parsed.html || '',
-                                                from: parsed.replyTo?.text || parsed.from?.text || '',
-                                                date: parsed.date,
-                                                folder,
-                                                header: parsed.headers,
-                                                attachments: (parsed.attachments || []).map((att: Attachment) => ({
-                                                    contentType: att.contentType,
-                                                    fileName: att.filename,
-                                                    contentDisposition: att.contentDisposition as string,
-                                                    generatedFileName: att.cid || att.checksum,
-                                                    contentId: att.cid,
-                                                    checksum: att.checksum as string,
-                                                    length: att.size as number,
-                                                    content: att.content as Buffer,
-                                                })),
-                                            };
-                                            onMail(outMsg);
-                                        });
+                                                const outMsg: EmailReceiverMessage = {
+                                                    topic: parsed.subject || '',
+                                                    payload: parsed.text || '',
+                                                    html: parsed.html || '',
+                                                    from: parsed.replyTo?.text || parsed.from?.text || '',
+                                                    date: parsed.date,
+                                                    folder,
+                                                    header: parsed.headers,
+                                                    attachments: (parsed.attachments || []).map((att: Attachment) => ({
+                                                        contentType: att.contentType,
+                                                        fileName: att.filename,
+                                                        contentDisposition: att.contentDisposition as string,
+                                                        generatedFileName: att.cid || att.checksum,
+                                                        contentId: att.cid,
+                                                        checksum: att.checksum as string,
+                                                        length: att.size as number,
+                                                        content: att.content as Buffer,
+                                                    })),
+                                                };
+                                                onMail(outMsg);
+                                            },
+                                        );
                                     });
 
                                     if (fetchConfig.markSeen) {
                                         msg.once('attributes', (attrs: ImapMessageAttributes) => {
                                             imap.addFlags(attrs.uid, 'SEEN', (err: Error | null) => {
                                                 if (err) {
-                                                    node.error(`Failed to mark message UID ${attrs.uid} as seen: ${err.message}`);
+                                                    node.error(
+                                                        `Failed to mark message UID ${attrs.uid} as seen: ${err.message}`,
+                                                    );
                                                 }
                                             });
                                         });
@@ -329,7 +354,6 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     send(mail as any);
                 });
                 done();
-
             } catch (error) {
                 node.status({ fill: 'red', shape: 'ring', text: 'config error' });
                 done(error instanceof Error ? error : new Error(String(error)));

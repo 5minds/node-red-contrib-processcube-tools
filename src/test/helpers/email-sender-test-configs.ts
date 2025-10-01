@@ -1,4 +1,4 @@
-import { EmailSenderConfig } from "../interfaces/email-sender-config";
+import { EmailSenderConfig } from '../interfaces/email-sender-config';
 
 const EmailSenderTestConfigs = {
     valid: {
@@ -17,7 +17,7 @@ const EmailSenderTestConfigs = {
         user: 'testuser',
         password: 'testpass',
         secure: false,
-        rejectUnauthorized: true
+        rejectUnauthorized: true,
     } as EmailSenderConfig,
 
     minimal: {
@@ -33,7 +33,7 @@ const EmailSenderTestConfigs = {
         user: 'minimal-user',
         password: 'minimal-pass',
         secure: false,
-        rejectUnauthorized: true
+        rejectUnauthorized: true,
     } as EmailSenderConfig,
 
     invalid: {
@@ -46,9 +46,8 @@ const EmailSenderTestConfigs = {
         host: '', // Missing host
         port: 587,
         user: 'user',
-        password: '' // Missing password
+        password: '', // Missing password
     } as EmailSenderConfig,
-
 
     minimalDataDriven: {
         id: 'test-sender-minimal',
@@ -62,9 +61,8 @@ const EmailSenderTestConfigs = {
         user: 'minimal-user',
         password: 'minimal-pass',
         secure: false,
-        rejectUnauthorized: true
+        rejectUnauthorized: true,
     } as EmailSenderConfig,
-
 
     withAttachments: {
         id: 'test-sender-attachments',
@@ -73,14 +71,12 @@ const EmailSenderTestConfigs = {
         to: 'recipient@example.com',
         subject: 'Attachment Test',
         htmlContent: 'Email with attachments',
-        attachments: JSON.stringify([
-            { filename: 'test.txt', content: 'Test attachment' }
-        ]),
+        attachments: JSON.stringify([{ filename: 'test.txt', content: 'Test attachment' }]),
         attachmentsType: 'json',
         host: 'smtp.example.com',
         port: 587,
         user: 'testuser',
-        password: 'testpass'
+        password: 'testpass',
     } as EmailSenderConfig,
 
     errorScenarios: {
@@ -89,39 +85,39 @@ const EmailSenderTestConfigs = {
             type: 'email-sender',
             name: 'Network Error Scenario',
             host: 'unreachable.invalid.host.com',
-            shouldFail: true
+            shouldFail: true,
         } as EmailSenderConfig,
 
         rejectedEmail: {
             id: 'test-sender-rejected',
             type: 'email-sender',
             name: 'Rejected Email Scenario',
-            rejectedEmails: ['recipient@example.com']
+            rejectedEmails: ['recipient@example.com'],
         } as EmailSenderConfig,
 
         pendingEmail: {
             id: 'test-sender-pending',
             type: 'email-sender',
             name: 'Pending Email Scenario',
-            pendingEmails: ['recipient@example.com']
-        } as EmailSenderConfig
-    }
+            pendingEmails: ['recipient@example.com'],
+        } as EmailSenderConfig,
+    },
 };
 
 const baseConfig = EmailSenderTestConfigs.valid;
 EmailSenderTestConfigs.errorScenarios.networkError = {
     ...baseConfig,
-    ...EmailSenderTestConfigs.errorScenarios.networkError
+    ...EmailSenderTestConfigs.errorScenarios.networkError,
 };
 
 EmailSenderTestConfigs.errorScenarios.rejectedEmail = {
     ...baseConfig,
-    ...EmailSenderTestConfigs.errorScenarios.rejectedEmail
+    ...EmailSenderTestConfigs.errorScenarios.rejectedEmail,
 };
 
 EmailSenderTestConfigs.errorScenarios.pendingEmail = {
     ...baseConfig,
-    ...EmailSenderTestConfigs.errorScenarios.pendingEmail
+    ...EmailSenderTestConfigs.errorScenarios.pendingEmail,
 };
 
 export { EmailSenderTestConfigs };

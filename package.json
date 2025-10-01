@@ -7,7 +7,7 @@
         "build": "npm-run-all build:*",
         "build:ts": "tsc",
         "build:html": "cpx \"./src/**/*.html\" ./dist",
-        "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,js}\"",
+        "lint": "prettier --write --config ./.prettierrc.json \"**/*.{html,ts}\"",
         "test": "mocha --require ts-node/register 'src/test/**/*.test.ts'",
         "test:unit": "mocha --require ts-node/register 'src/test/unit/**/*.test.ts'",
         "test:integration": "mocha --require ts-node/register 'src/test/integration/**/*.test.ts'"

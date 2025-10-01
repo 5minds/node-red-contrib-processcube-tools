@@ -1,4 +1,4 @@
-import { EmailReceiverConfig } from "../interfaces/email-receiver-config";
+import { EmailReceiverConfig } from '../interfaces/email-receiver-config';
 
 export const EmailReceiverTestConfigs = {
     valid: {
@@ -11,7 +11,7 @@ export const EmailReceiverTestConfigs = {
         password: 'testpass',
         folder: ['INBOX'],
         tls: true,
-        markseen: true
+        markseen: true,
     } as EmailReceiverConfig,
 
     minimal: {
@@ -21,7 +21,7 @@ export const EmailReceiverTestConfigs = {
         port: 993,
         user: 'minimal@test.com',
         password: 'minimalpass',
-        folder: 'INBOX'
+        folder: 'INBOX',
     } as EmailReceiverConfig,
 
     arrayFolders: {
@@ -32,7 +32,7 @@ export const EmailReceiverTestConfigs = {
         port: 993,
         user: 'test@test.com',
         password: 'testpass',
-        folder: ['INBOX', 'SENT', 'DRAFTS']
+        folder: ['INBOX', 'SENT', 'DRAFTS'],
     } as EmailReceiverConfig,
 
     invalidFolderType: {
@@ -42,7 +42,7 @@ export const EmailReceiverTestConfigs = {
         port: 993,
         user: 'test@test.com',
         password: 'testpass',
-        folder: 123 as any // Invalid type
+        folder: 123 as any, // Invalid type
     } as EmailReceiverConfig,
 
     invalidConfig: {
@@ -52,7 +52,7 @@ export const EmailReceiverTestConfigs = {
         port: 993,
         user: 'test@test.com',
         password: '', // Missing password
-        folder: ['INBOX']
+        folder: ['INBOX'],
     } as EmailReceiverConfig,
 
     networkError: {
@@ -62,7 +62,6 @@ export const EmailReceiverTestConfigs = {
         port: 993,
         user: 'test@test.com',
         password: 'testpass',
-        folder: ['INBOX']
-    } as EmailReceiverConfig
+        folder: ['INBOX'],
+    } as EmailReceiverConfig,
 };
-

@@ -7,15 +7,11 @@ export { NodeAssertions } from './node-assertions';
 export { createNodeTestSuite } from './generic-node-test-suite';
 
 // Integration Testing Framework
-export { IntegrationTestRunner} from './integration-test-runner';
+export { IntegrationTestRunner } from './integration-test-runner';
 export { IntegrationAssertions } from './integration-assertions';
 export { IntegrationScenarioBuilder } from './integration-scenario-builder';
 
-export {
-  ErrorResilienceTestBuilder,
-  EdgeCaseTestBuilder,
-  SecurityTestBuilder,
-} from './advanced-test-patterns';
+export { ErrorResilienceTestBuilder, EdgeCaseTestBuilder, SecurityTestBuilder } from './advanced-test-patterns';
 
 // Types
 export * from './types';

@@ -1,6 +1,6 @@
-import { EnhancedMockNodeREDOptions } from "../framework/node-test-runner";
-import { MailOptions, MockNodemailerOptions } from "../interfaces/mail-options";
-import { SendMailResult } from "../interfaces/send-mail-result";
+import { EnhancedMockNodeREDOptions } from '../framework/node-test-runner';
+import { MailOptions, MockNodemailerOptions } from '../interfaces/mail-options';
+import { SendMailResult } from '../interfaces/send-mail-result';
 
 class MockNodemailer {
     constructor(private options: MockNodemailerOptions = {}) {}
@@ -13,7 +13,7 @@ class MockNodemailer {
         if (this.options.shouldFail) {
             console.log('💥 Triggering failure');
             const error = new Error(
-                this.options.failureMessage || 'Invalid login: 535 Authentication credentials invalid'
+                this.options.failureMessage || 'Invalid login: 535 Authentication credentials invalid',
             ) as Error & { code: string };
             error.code = this.options.failureCode || 'EAUTH';
             return callback(error);
@@ -30,7 +30,7 @@ class MockNodemailer {
                 response: this.getResponseMessage(result),
                 accepted: result.accepted,
                 rejected: result.rejected,
-                pending: result.pending
+                pending: result.pending,
             });
         }, 10);
     }
@@ -62,14 +62,14 @@ class MockNodemailer {
 
     private normalizeRecipients(to: string | string[]): string[] {
         if (Array.isArray(to)) return to;
-        if (typeof to === 'string') return to.split(',').map(email => email.trim());
+        if (typeof to === 'string') return to.split(',').map((email) => email.trim());
         return [];
     }
 
     private categorizeRecipients(recipients: string[]): { accepted: string[]; rejected: string[]; pending: string[] } {
         const result = { accepted: [] as string[], rejected: [] as string[], pending: [] as string[] };
 
-        recipients.forEach(email => {
+        recipients.forEach((email) => {
             if (this.options.rejectedEmails?.includes(email)) {
                 result.rejected.push(email);
             } else if (this.options.pendingEmails?.includes(email)) {
@@ -105,14 +105,14 @@ export function createMockNodemailer(options: MockNodemailerOptions = {}) {
         createTransport: (config?: any) => new MockNodemailer(options),
         restore: () => {
             // Cleanup method for compatibility
-        }
+        },
     };
 }
 
 export function withNodemailerMock(options: MockNodemailerOptions): Partial<EnhancedMockNodeREDOptions> {
     return {
         dependencies: {
-            nodemailer: createMockNodemailer(options)
-        }
+            nodemailer: createMockNodemailer(options),
+        },
     };
 }
