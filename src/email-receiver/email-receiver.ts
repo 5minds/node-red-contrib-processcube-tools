@@ -20,6 +20,7 @@ interface EmailReceiverNodeProperties extends NodeDef {
     folderType: string;
     markseen: boolean;
     markseenType: string;
+    sendstatus: boolean | string;
 }
 
 interface EmailReceiverNodeMessage extends NodeMessageInFlow {}
@@ -35,6 +36,17 @@ const defaultDependencies: Dependencies = {
     ImapClient: Imap,
     mailParser: simpleParser,
 };
+
+function toBoolean(val: any, defaultValue = false) {
+    if (typeof val === "boolean") return val;
+    if (typeof val === "number") return val !== 0;
+    if (typeof val === "string") {
+        const v = val.trim().toLowerCase();
+        if (["true", "1", "yes", "on"].includes(v)) return true;
+        if (["false", "0", "no", "off"].includes(v)) return false;
+    }
+    return defaultValue;
+}
 
 const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDependencies) => {
     function EmailReceiverNode(this: Node, config: EmailReceiverNodeProperties) {
@@ -126,6 +138,8 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                 const imap_tls = RED.util.evaluateNodeProperty(String(config.tls), config.tlsType, node, msg);
                 const imap_user = RED.util.evaluateNodeProperty(config.user, config.userType, node, msg);
                 const imap_password = RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg);
+                const sendstatus = config.sendstatus === true || config.sendstatus === 'true';
+
                 const imap_markSeen = RED.util.evaluateNodeProperty(
                     String(config.markseen),
                     config.markseenType,
@@ -153,7 +167,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     user: imap_user as string,
                     password: imap_password as string,
                     folders: folders,
-                    markSeen: imap_markSeen as boolean,
+                    markSeen: toBoolean(imap_markSeen, true),
                     connTimeout: (msg as any).imap_connTimeout || 10000,
                     authTimeout: (msg as any).imap_authTimeout || 5000,
                     keepalive: (msg as any).imap_keepalive ?? true,
@@ -200,6 +214,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     const state: FetchState = {
                         totalFolders: fetchConfig.folders.length,
                         processedFolders: 0,
+                        folderCount: {},
                         successes: 0,
                         failures: 0,
                         totalMails: 0,
@@ -214,18 +229,51 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                         if (error) {
                             node.error('IMAP session terminated: ' + error.message);
                             node.status({ fill: 'red', shape: 'ring', text: 'connection error' });
+                            if (sendstatus) {
+                            node.send([null, {
+                                payload: {
+                                    status: 'error',
+                                    message: error.message,
+                                    errors: state.errors,
+                                }
+                            }]);
+                        }
                         } else if (state.failures > 0) {
                             node.status({
                                 fill: 'red',
                                 shape: 'dot',
                                 text: `Done, ${state.totalMails} mails from ${state.successes}/${state.totalFolders} folders. ${state.failures} failed.`,
                             });
+                            if (sendstatus) {
+                            node.send([null, {
+                                payload: {
+                                    status: 'warning',
+                                    total: state.totalMails,
+                                    successes: state.successes,
+                                    failures: state.failures,
+                                    totalFolders: state.totalFolders,
+                                    errors: state.errors,
+                                }
+                            }]);
+                        }
                         } else {
                             node.status({
                                 fill: 'green',
                                 shape: 'dot',
                                 text: `Done, fetched ${state.totalMails} mails from ${fetchConfig.folders.join(', ')}.`,
                             });
+
+                            if (sendstatus) {
+                                node.send([null, {
+                                    payload: {
+                                        status: 'success',
+                                        total: state.totalMails,
+                                        folderCount: state.folderCount,
+                                        folders: folders.join(', '),
+                                    }
+                                }]);
+                            }
+
                         }
                         if (imap && imap.state !== 'disconnected') {
                             imap.end();
@@ -243,6 +291,8 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                 return startNextFolder();
                             }
 
+                            state.folderCount[folder] = 0;
+
                             imap.search(['UNSEEN'], (err: Error | null, results: number[]) => {
                                 if (err) {
                                     node.error(`Search failed in folder "${folder}": ${err.message}`);
@@ -259,7 +309,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
 
                                 state.totalMails += results.length;
 
-                                const fetch = imap.fetch(results, { bodies: '' });
+                                const fetch = imap.fetch(results, { bodies: '', markSeen: finalConfig.markSeen });
 
                                 fetch.on('message', (msg: Imap.ImapMessage, seqno: number) => {
                                     msg.on('body', (stream: NodeJS.ReadableStream) => {
@@ -293,6 +343,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                                         content: att.content as Buffer,
                                                     })),
                                                 };
+                                                state.folderCount[folder] = (state.folderCount[folder] || 0) + 1;
                                                 onMail(outMsg);
                                             },
                                         );
@@ -345,6 +396,13 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     imap.once('end', () => {
                         updateStatus('green', 'IMAP connection ended.');
                     });
+
+                    try {
+                        updateStatus('yellow', 'Connecting to IMAP...');
+                        imap.connect();
+                    } catch (err: any) {
+                        updateStatus('red', 'Connection error: ' + err.message);
+                    }
 
                     updateStatus('yellow', 'Connecting to IMAP...');
                     imap.connect();

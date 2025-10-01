@@ -5,4 +5,5 @@ export interface FetchState {
     failures: number;
     totalMails: number;
     errors: Error[];
+    folderCount: { [folder: string]: number };
 }
