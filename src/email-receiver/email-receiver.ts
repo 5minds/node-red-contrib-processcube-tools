@@ -38,12 +38,12 @@ const defaultDependencies: Dependencies = {
 };
 
 function toBoolean(val: any, defaultValue = false) {
-    if (typeof val === "boolean") return val;
-    if (typeof val === "number") return val !== 0;
-    if (typeof val === "string") {
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'number') return val !== 0;
+    if (typeof val === 'string') {
         const v = val.trim().toLowerCase();
-        if (["true", "1", "yes", "on"].includes(v)) return true;
-        if (["false", "0", "no", "off"].includes(v)) return false;
+        if (['true', '1', 'yes', 'on'].includes(v)) return true;
+        if (['false', '0', 'no', 'off'].includes(v)) return false;
     }
     return defaultValue;
 }
@@ -227,17 +227,22 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
 
                     const finalizeSession = (error: Error | null = null) => {
                         if (error) {
+                            state.errors.push(error);
                             node.error('IMAP session terminated: ' + error.message);
                             node.status({ fill: 'red', shape: 'ring', text: 'connection error' });
                             if (sendstatus) {
-                            node.send([null, {
-                                payload: {
-                                    status: 'error',
-                                    message: error.message,
-                                    errors: state.errors,
-                                }
-                            }]);
-                        }
+                                node.send([
+                                    null,
+                                    {
+                                        payload: {
+                                            status: 'error',
+                                            message: error.message,
+                                            errors: state.errors,
+                                        },
+                                    },
+                                ]);
+                            }
+                            done(error);
                         } else if (state.failures > 0) {
                             node.status({
                                 fill: 'red',
@@ -245,17 +250,20 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                 text: `Done, ${state.totalMails} mails from ${state.successes}/${state.totalFolders} folders. ${state.failures} failed.`,
                             });
                             if (sendstatus) {
-                            node.send([null, {
-                                payload: {
-                                    status: 'warning',
-                                    total: state.totalMails,
-                                    successes: state.successes,
-                                    failures: state.failures,
-                                    totalFolders: state.totalFolders,
-                                    errors: state.errors,
-                                }
-                            }]);
-                        }
+                                node.send([
+                                    null,
+                                    {
+                                        payload: {
+                                            status: 'warning',
+                                            total: state.totalMails,
+                                            successes: state.successes,
+                                            failures: state.failures,
+                                            totalFolders: state.totalFolders,
+                                            errors: state.errors,
+                                        },
+                                    },
+                                ]);
+                            }
                         } else {
                             node.status({
                                 fill: 'green',
@@ -264,16 +272,18 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                             });
 
                             if (sendstatus) {
-                                node.send([null, {
-                                    payload: {
-                                        status: 'success',
-                                        total: state.totalMails,
-                                        folderCount: state.folderCount,
-                                        folders: folders.join(', '),
-                                    }
-                                }]);
+                                node.send([
+                                    null,
+                                    {
+                                        payload: {
+                                            status: 'success',
+                                            total: state.totalMails,
+                                            folderCount: state.folderCount,
+                                            folders: folders.join(', '),
+                                        },
+                                    },
+                                ]);
                             }
-
                         }
                         if (imap && imap.state !== 'disconnected') {
                             imap.end();
@@ -401,11 +411,11 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                         updateStatus('yellow', 'Connecting to IMAP...');
                         imap.connect();
                     } catch (err: any) {
-                        updateStatus('red', 'Connection error: ' + err.message);
+                        const error = err instanceof Error ? err : new Error(String(err));
+                        updateStatus('red', 'Connection error: ' + error.message);
+                        done(error);
+                        return;
                     }
-
-                    updateStatus('yellow', 'Connecting to IMAP...');
-                    imap.connect();
                 };
 
                 fetchEmails(finalConfig, (mail) => {
