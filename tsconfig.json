@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    //set to commonjs and node for node-red compatibility
+    "module": "commonjs",
+    "moduleResolution": "node",
+    // set to es2021 for node-red compatibility
+    "target": "es2018",
+    "lib": ["es2018"],
+    "declaration": true,
+    "skipLibCheck": true,
+    "declarationDir": "dist",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["mocha", "chai", "node"],
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["src/test/**/*", "src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

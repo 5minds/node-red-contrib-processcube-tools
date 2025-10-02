@@ -25,7 +25,7 @@
     },
     {
         "id": "fd4bdf33d0253f6a",
-        "type": "processcube-html-to-text",
+        "type": "html-to-text",
         "z": "4a5484c44fd92283",
         "name": "",
         "x": 350,
@@ -534,7 +534,8 @@
         "y": 120,
         "wires": [
             [
-                "9f7dfdb7f34fa92b"
+                "9f7dfdb7f34fa92b",
+                "4606c8597de44ada"
             ]
         ]
     },
@@ -831,6 +832,49 @@
         "wires": [
             [
                 "c7e14035c3e1b2e0"
+            ]
+        ]
+    },
+    {
+        "id": "4606c8597de44ada",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "sender": "Diana",
+        "senderType": "str",
+        "address": "EMAIL_SEND_USER",
+        "addressType": "env",
+        "to": "diana.stefan@5minds.de",
+        "toType": "str",
+        "cc": "",
+        "ccType": "str",
+        "bcc": "",
+        "bccType": "str",
+        "replyTo": "",
+        "replyToType": "str",
+        "subject": "",
+        "subjectType": "str",
+        "htmlContent": "",
+        "htmlContentType": "str",
+        "attachments": "",
+        "attachmentsType": "msg",
+        "host": "smtp.gmail.com",
+        "hostType": "str",
+        "port": "587",
+        "portType": "num",
+        "user": "EMAIL_SEND_USER",
+        "userType": "env",
+        "password": "EMAIL_SEND_PASSWORD",
+        "passwordType": "env",
+        "secure": "false",
+        "secureType": "bool",
+        "rejectUnauthorized": "true",
+        "rejectUnauthorizedType": "bool",
+        "x": 820,
+        "y": 60,
+        "wires": [
+            [
+                "c246681d350609e4"
             ]
         ]
     }
