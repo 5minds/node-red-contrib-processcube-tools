@@ -134,7 +134,7 @@
 <script type="text/html" data-help-name="file-storage">
     <h2>File Storage Node</h2>
     <p>
-        A Node-RED node for storing, retrieving, and deleting files (including metadata) using either the local filesystem or PostgreSQL (Large Objects + metadata table) as a backend.
+        The File Storage Node allows you to store, retrieve, and delete files (including metadata) using either the local filesystem or PostgreSQL (Large Objects + metadata table) as a backend.
     </p>
     <h3>Features</h3>
     <ul>
@@ -153,8 +153,7 @@
         <li><b>Provider:</b> Select between Filesystem and PostgreSQL.</li>
         <li><b>Output:</b> Choose the output type for retrieval: Stream, Buffer, or Path (Path only for filesystem).</li>
         <li><b>Base Dir:</b> (Filesystem) Directory where files are stored.</li>
-        <li><b>Schema:</b> (PostgreSQL) Database schema (default: public).</li>
-        <li><b>Table:</b> (PostgreSQL) Table for metadata (default: files).</li>
+        <li><b>PostgreSQL Connection:</b> Enter username, password, host, port, database, schema (default: public), and table (default: files).</li>
         <li><b>Default Action:</b> Default action if not specified in the message (store, get, or delete).</li>
     </ul>
     <h3>Input</h3>
@@ -195,9 +194,10 @@ msg.file = { id: "your-file-id" };
     </pre>
     <h3>Notes</h3>
     <ul>
-        <li>For PostgreSQL, ensure the connection string, schema, and table exist and the user has the necessary permissions.</li>
+        <li>For PostgreSQL, ensure the connection details (username, password, host, port, database, schema, table) are correct and the user has the necessary permissions.</li>
         <li>For filesystem storage, ensure the base directory is writable by Node-RED.</li>
         <li>The node is designed to handle large files efficiently using streams.</li>
+        <li>If running in Docker, make sure the volumes are mapped correctly and the environment variables are set for both Node-RED and PostgreSQL services.</li>
     </ul>
     <p><b>Enjoy using the File Storage Node in your Node-RED flows!</b></p>
 </script>
