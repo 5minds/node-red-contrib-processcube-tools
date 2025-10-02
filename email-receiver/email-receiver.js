@@ -112,6 +112,7 @@ module.exports = function (RED) {
                 const state = {
                     totalFolders: folders.length,
                     processedFolders: 0,
+                    folderCount: {}, 
                     successes: 0,
                     failures: 0,
                     totalMails: 0,
@@ -168,6 +169,7 @@ module.exports = function (RED) {
                                 payload: {
                                     status: 'success',
                                     total: state.totalMails,
+                                    folderCount: state.folderCount,
                                     folders: folders.join(', '),
                                 }
                             }]);
@@ -189,6 +191,8 @@ module.exports = function (RED) {
                             state.processedFolders++;
                             return startNextFolder();
                         }
+
+                        state.folderCount[folder] = 0;
 
                         imap.search(['UNSEEN'], (err, results) => {
                             if (err) {
@@ -236,6 +240,7 @@ module.exports = function (RED) {
                                                 content: att.content,
                                             })),
                                         };
+                                        state.folderCount[folder] = (state.folderCount[folder] || 0) + 1;
                                         onMail(outMsg);
                                     });
                                 });
