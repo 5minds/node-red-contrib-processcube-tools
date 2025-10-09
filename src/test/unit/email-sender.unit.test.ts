@@ -11,7 +11,7 @@ import {
     createNodeTestSuite,
     ErrorResilienceTestBuilder,
     EdgeCaseTestBuilder,
-    type TestScenario,
+    TestScenario,
     MockNodeREDOptions,
 } from '../framework';
 

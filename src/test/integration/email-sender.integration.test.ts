@@ -4,7 +4,7 @@ import {
     IntegrationTestRunner,
     IntegrationAssertions,
     IntegrationScenarioBuilder,
-    type IntegrationTestScenario,
+    IntegrationTestScenario,
 } from '../framework';
 import { EmailSenderTestConfigs } from '../helpers/email-sender-test-configs';
 import { testFlows } from '../helpers/email-sender-test-flows';
