@@ -24,6 +24,23 @@
         "env": []
     },
     {
+        "id": "80507426de7d4fe9",
+        "type": "imap-config",
+        "name": "Mail Receiver Config for Stölting",
+        "host": "imap.gmail.com",
+        "port": 993,
+        "tls": true,
+        "user": "IMAP_USER",
+        "userType": "env",
+        "password": "IMAP_PASSWORD",
+        "passwordType": "env",
+        "connTimeout": 10000,
+        "authTimeout": 5000,
+        "keepalive": true,
+        "autotls": "never",
+        "rejectUnauthorized": false
+    },
+    {
         "id": "fd4bdf33d0253f6a",
         "type": "html-to-text",
         "z": "4a5484c44fd92283",
@@ -78,188 +95,24 @@
         "wires": []
     },
     {
-        "id": "bb3bd11a802bd671",
-        "type": "inject",
-        "z": "ea83acb4b5051be5",
-        "name": "Preset msg, global and flow with a password from the env",
-        "props": [],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 280,
-        "y": 120,
-        "wires": [
-            [
-                "40951f130640e822",
-                "5a6a5f9d1c4fd4fc",
-                "931dd8be9290213e"
-            ]
-        ]
-    },
-    {
-        "id": "40951f130640e822",
-        "type": "change",
-        "z": "ea83acb4b5051be5",
-        "name": "Set user and password to msg.payload",
-        "rules": [
-            {
-                "t": "set",
-                "p": "payload.user",
-                "pt": "msg",
-                "to": "EMAIL_SEND_USER",
-                "tot": "env",
-                "dc": true
-            },
-            {
-                "t": "set",
-                "p": "payload.password",
-                "pt": "msg",
-                "to": "EMAIL_SEND_PASSWORD",
-                "tot": "env",
-                "dc": true
-            }
-        ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 740,
-        "y": 80,
-        "wires": [
-            [
-                "11c54cb89dee1026"
-            ]
-        ]
-    },
-    {
-        "id": "5a6a5f9d1c4fd4fc",
-        "type": "change",
-        "z": "ea83acb4b5051be5",
-        "name": "Set global user and password",
-        "rules": [
-            {
-                "t": "set",
-                "p": "user",
-                "pt": "global",
-                "to": "EMAIL_SEND_USER",
-                "tot": "env",
-                "dc": true
-            },
-            {
-                "t": "set",
-                "p": "password",
-                "pt": "global",
-                "to": "EMAIL_SEND_PASSWORD",
-                "tot": "env",
-                "dc": true
-            }
-        ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 710,
-        "y": 160,
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "d902b06948353c07",
-        "type": "inject",
-        "z": "ea83acb4b5051be5",
-        "name": "Test the Email receiver node for flow and global",
-        "props": [],
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "topic": "",
-        "x": 260,
-        "y": 360,
-        "wires": [
-            [
-                "38057e937d452056",
-                "4597104b5f3d48be",
-                "73b10f832fff4e8a"
-            ]
-        ]
-    },
-    {
-        "id": "11c54cb89dee1026",
-        "type": "email-receiver",
-        "z": "ea83acb4b5051be5",
-        "name": "Email receiver via msg",
-        "host": "imap.gmail.com",
-        "hostType": "str",
-        "port": "993",
-        "portType": "num",
-        "tls": "true",
-        "tlsType": "bool",
-        "user": "payload.user",
-        "userType": "msg",
-        "password": "payload.password",
-        "passwordType": "msg",
-        "folder": "[\"stoelting/serviceline\"]",
-        "folderType": "json",
-        "markseen": "false",
-        "markseenType": "bool",
-        "x": 1040,
-        "y": 80,
-        "wires": [
-            [
-                "0de3b977ad96591b"
-            ],
-            []
-        ]
-    },
-    {
-        "id": "0de3b977ad96591b",
-        "type": "debug",
-        "z": "ea83acb4b5051be5",
-        "name": "Email receiver msg output",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 1310,
-        "y": 80,
-        "wires": []
-    },
-    {
         "id": "38057e937d452056",
         "type": "email-receiver",
         "z": "ea83acb4b5051be5",
-        "name": "Email receiver via flow",
-        "host": "imap.gmail.com",
-        "hostType": "str",
-        "port": "993",
-        "portType": "num",
-        "tls": "true",
-        "tlsType": "bool",
-        "user": "user",
-        "userType": "flow",
-        "password": "password",
-        "passwordType": "flow",
+        "name": "Email receiver via config and env",
+        "imapConfig": "80507426de7d4fe9",
         "folder": "[\"stoelting/serviceline\"]",
         "folderType": "json",
-        "markseen": "false",
+        "markseen": "true",
         "markseenType": "bool",
-        "x": 660,
-        "y": 320,
+        "x": 580,
+        "y": 120,
         "wires": [
             [
                 "85122d6c840dd054"
             ],
-            []
+            [
+                "be518361d14d09f7"
+            ]
         ]
     },
     {
@@ -276,52 +129,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 930,
-        "y": 320,
-        "wires": []
-    },
-    {
-        "id": "4597104b5f3d48be",
-        "type": "email-receiver",
-        "z": "ea83acb4b5051be5",
-        "name": "Email receiver via global",
-        "host": "imap.gmail.com",
-        "hostType": "str",
-        "port": "993",
-        "portType": "num",
-        "tls": "true",
-        "tlsType": "bool",
-        "user": "user",
-        "userType": "global",
-        "password": "password",
-        "passwordType": "global",
-        "folder": "[\"stoelting/serviceline\"]",
-        "folderType": "json",
-        "markseen": "false",
-        "markseenType": "bool",
-        "x": 650,
-        "y": 380,
-        "wires": [
-            [
-                "734fff9822cbb1d9"
-            ],
-            []
-        ]
-    },
-    {
-        "id": "734fff9822cbb1d9",
-        "type": "debug",
-        "z": "ea83acb4b5051be5",
-        "name": "Email receiver flow output",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 930,
-        "y": 380,
+        "y": 120,
         "wires": []
     },
     {
@@ -329,28 +137,20 @@
         "type": "email-receiver",
         "z": "ea83acb4b5051be5",
         "name": "Email receiver via env",
-        "host": "EMAIL_SEND_HOST",
-        "hostType": "env",
-        "port": "EMAIL_RECEIVE_PORT",
-        "portType": "env",
-        "tls": "true",
-        "tlsType": "bool",
-        "user": "EMAIL_SEND_USER",
-        "userType": "env",
-        "password": "EMAIL_SEND_PASSWORD",
-        "passwordType": "env",
+        "imapConfig": "80507426de7d4fe9",
         "folder": "[\"stoelting/personal\",\"stoelting/betrieb\"]",
         "folderType": "json",
         "markseen": "imap_markseen",
         "markseenType": "msg",
-        "sendstatus": false,
-        "x": 640,
-        "y": 440,
+        "x": 520,
+        "y": 280,
         "wires": [
             [
                 "4572ad36fe686399"
             ],
-            []
+            [
+                "b4358b9cd14f5ceb"
+            ]
         ]
     },
     {
@@ -367,42 +167,8 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 930,
-        "y": 440,
+        "y": 280,
         "wires": []
-    },
-    {
-        "id": "931dd8be9290213e",
-        "type": "change",
-        "z": "ea83acb4b5051be5",
-        "name": "Set flow user and password",
-        "rules": [
-            {
-                "t": "set",
-                "p": "user",
-                "pt": "flow",
-                "to": "EMAIL_SEND_USER",
-                "tot": "env",
-                "dc": true
-            },
-            {
-                "t": "set",
-                "p": "password",
-                "pt": "flow",
-                "to": "EMAIL_SEND_PASSWORD",
-                "tot": "env",
-                "dc": true
-            }
-        ],
-        "action": "",
-        "property": "",
-        "from": "",
-        "to": "",
-        "reg": false,
-        "x": 700,
-        "y": 120,
-        "wires": [
-            []
-        ]
     },
     {
         "id": "eee089cfd5ef3985",
@@ -421,8 +187,8 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 160,
-        "y": 440,
+        "x": 140,
+        "y": 280,
         "wires": [
             [
                 "73b10f832fff4e8a"
@@ -430,75 +196,21 @@
         ]
     },
     {
-        "id": "154bba0ae1e0eb0f",
-        "type": "email-receiver",
-        "z": "ea83acb4b5051be5",
-        "name": "Email receiver via env",
-        "host": "EMAIL_RECEIVE_HOST",
-        "hostType": "env",
-        "port": "EMAIL_RECEIVE_PORT",
-        "portType": "env",
-        "tls": "true",
-        "tlsType": "bool",
-        "user": "EMAIL_RECEIVE_USER",
-        "userType": "env",
-        "password": "EMAIL_RECEIVE_PASSWORD",
-        "passwordType": "env",
-        "folder": "[\"stoelting/personal\",\"stoelting/betrieb\"]",
-        "folderType": "json",
-        "markseen": "imap_markseen",
-        "markseenType": "msg",
-        "sendstatus": true,
-        "x": 640,
-        "y": 540,
-        "wires": [
-            [
-                "3445e02c1a6fae6a"
-            ],
-            [
-                "b4358b9cd14f5ceb"
-            ]
-        ]
-    },
-    {
-        "id": "3445e02c1a6fae6a",
-        "type": "debug",
-        "z": "ea83acb4b5051be5",
-        "name": "Email receiver env output",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "targetType": "full",
-        "statusVal": "",
-        "statusType": "auto",
-        "x": 930,
-        "y": 540,
-        "wires": []
-    },
-    {
         "id": "3710aefa684d1144",
         "type": "inject",
         "z": "ea83acb4b5051be5",
-        "name": "Test markseen",
-        "props": [
-            {
-                "p": "imap_markseen",
-                "v": "true",
-                "vt": "bool"
-            }
-        ],
+        "name": "Test Email Receiver Node with config",
+        "props": [],
         "repeat": "",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 160,
-        "y": 540,
+        "x": 210,
+        "y": 120,
         "wires": [
             [
-                "154bba0ae1e0eb0f"
+                "38057e937d452056"
             ]
         ]
     },
@@ -515,8 +227,25 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 890,
-        "y": 640,
+        "x": 940,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "be518361d14d09f7",
+        "type": "debug",
+        "z": "ea83acb4b5051be5",
+        "name": "Email Receiver Status Message",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 910,
+        "y": 180,
         "wires": []
     },
     {
@@ -852,9 +581,9 @@
         "bccType": "str",
         "replyTo": "",
         "replyToType": "str",
-        "subject": "",
+        "subject": "TEst",
         "subjectType": "str",
-        "htmlContent": "",
+        "htmlContent": "Example",
         "htmlContentType": "str",
         "attachments": "",
         "attachmentsType": "msg",

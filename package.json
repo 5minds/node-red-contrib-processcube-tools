@@ -41,6 +41,7 @@
     "node-red": {
         "version": "^4.1.0",
         "nodes": {
+            "ImapConfig": "dist/imap-config/imap-config.js",
             "EmailReceiver": "dist/email-receiver/email-receiver.js",
             "EmailSender": "dist/email-sender/email-sender.js",
             "HtmlToText": "dist/html-to-text/html-to-text.js"
