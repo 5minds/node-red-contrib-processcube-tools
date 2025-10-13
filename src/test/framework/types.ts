@@ -32,6 +32,7 @@ export interface MockNodeREDOptions {
     warnHandler?: (msg: any) => void;
     debugHandler?: (msg: any) => void;
     traceHandler?: (msg: any) => void;
+    getNodeHandler?: (id: string) => any;
 }
 
 // Integration Test Types

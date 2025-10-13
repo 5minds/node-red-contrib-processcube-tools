@@ -2,12 +2,17 @@ import { expect } from 'chai';
 import { TestScenarioBuilder } from './test-scenario-builder';
 import { NodeTestRunner } from './node-test-runner';
 import { NodeAssertions } from './node-assertions';
-import type { TestScenario } from './types';
+import type { TestScenario, MockNodeREDOptions } from './types';
 
 /**
  * Generic test suite generator for Node-RED custom nodes
  */
-export function createNodeTestSuite(nodeName: string, nodeConstructor: Function, testConfigs: Record<string, any>) {
+export function createNodeTestSuite(
+    nodeName: string,
+    nodeConstructor: Function,
+    testConfigs: Record<string, any>,
+    mockOptions?: MockNodeREDOptions,
+) {
     describe(`${nodeName} - Generic Test Suite`, function () {
         this.timeout(10000);
 
@@ -18,7 +23,7 @@ export function createNodeTestSuite(nodeName: string, nodeConstructor: Function,
                     config: testConfigs.valid || testConfigs.minimal || {},
                 };
 
-                const context = await NodeTestRunner.runScenario(nodeConstructor, scenario);
+                const context = await NodeTestRunner.runScenario(nodeConstructor, scenario, mockOptions);
                 expect(context.nodeInstance).to.exist;
                 expect(context.mockRED.nodes.lastRegisteredType).to.exist;
                 expect(context.mockRED.nodes.lastRegisteredConstructor).to.be.a('function');
@@ -42,7 +47,7 @@ export function createNodeTestSuite(nodeName: string, nodeConstructor: Function,
 
             validationTests.getScenarios().forEach((scenario) => {
                 it(`should handle ${scenario.name}`, async function () {
-                    const context = await NodeTestRunner.runScenario(nodeConstructor, scenario);
+                    const context = await NodeTestRunner.runScenario(nodeConstructor, scenario, mockOptions);
 
                     expect(context.nodeInstance).to.exist;
 

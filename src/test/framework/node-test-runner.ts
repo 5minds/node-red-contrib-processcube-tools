@@ -95,6 +95,14 @@ export class NodeTestRunner {
                     (this as any).lastRegisteredType = type;
                     (this as any).lastRegisteredConstructor = constructor;
                 },
+                getNode: function (id: string) {
+                    // Return mock config node or custom handler
+                    if (options.getNodeHandler) {
+                        return options.getNodeHandler(id);
+                    }
+                    // Default: return null (config node not found)
+                    return null;
+                },
             },
             util: {
                 evaluateNodeProperty: (value: any, type: string, node: any, msg: any): any => {

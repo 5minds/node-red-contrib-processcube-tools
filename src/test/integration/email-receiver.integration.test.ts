@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import emailReceiverNode from '../../email-receiver/email-receiver';
-import { EmailReceiverTestConfigs } from '../helpers/email-receiver-test-configs';
+import { EmailReceiverTestConfigs, createImapConfigNodeHandler } from '../helpers/email-receiver-test-configs';
 
 // Import our comprehensive test framework
 import { NodeTestRunner, NodeAssertions, TestScenario, MockNodeREDOptions } from '../framework';
@@ -21,6 +21,10 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
                 EmailReceiverTestConfigs.arrayFolders,
             ];
 
+            const mockOptions: MockNodeREDOptions = {
+                getNodeHandler: createImapConfigNodeHandler(),
+            };
+
             for (const config of mockConfigs) {
                 const scenario: TestScenario = {
                     name: `mock integration - ${config.name || 'unnamed'}`,
@@ -29,7 +33,7 @@ describe('E-Mail Receiver Node - Integration Tests', function () {
                     timeout: 2000,
                 };
 
-                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario);
+                const context = await NodeTestRunner.runScenario(emailReceiverNode, scenario, mockOptions);
                 expect(context.nodeInstance).to.exist;
 
                 if (config.name) {
