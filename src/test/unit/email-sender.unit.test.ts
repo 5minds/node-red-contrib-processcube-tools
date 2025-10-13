@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import emailSenderNode from '../../email-sender/email-sender';
-import { EmailSenderTestConfigs } from '../helpers/email-sender-test-configs';
+import { EmailSenderTestConfigs, createSmtpConfigNodeHandler } from '../helpers/email-sender-test-configs';
 
 import { createMockNodemailer, withNodemailerMock } from '../mocks/nodemailer-mock';
 
@@ -20,7 +20,10 @@ describe('E-Mail Sender Node - Unit Tests', function () {
     // USE GENERIC TEST SUITE FOR BASIC FUNCTIONALITY
     // ========================================================================
 
-    createNodeTestSuite('Email Sender', emailSenderNode, EmailSenderTestConfigs);
+    const genericTestMockOptions: MockNodeREDOptions = {
+        getNodeHandler: createSmtpConfigNodeHandler(),
+    };
+    createNodeTestSuite('Email Sender', emailSenderNode, EmailSenderTestConfigs, genericTestMockOptions);
 
     // ========================================================================
     // SPECIFIC EMAIL SENDER TESTS
@@ -37,9 +40,13 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     "Required property 'sender' is missing",
                 );
 
+            const mockOptions: MockNodeREDOptions = {
+                getNodeHandler: createSmtpConfigNodeHandler(),
+            };
+
             configTests.getScenarios().forEach((scenario) => {
                 it(`should handle ${scenario.name}`, async function () {
-                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
+                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
 
                     // Verify node was created
                     expect(context.nodeInstance).to.exist;
@@ -96,7 +103,10 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
             emailSendingTests.getScenarios().forEach((scenario) => {
                 it(`should handle ${scenario.name}`, async function () {
-                    const mockOptions: MockNodeREDOptions = scenario.mockOptions || {};
+                    const mockOptions: MockNodeREDOptions = {
+                        ...scenario.mockOptions,
+                        getNodeHandler: createSmtpConfigNodeHandler(),
+                    };
                     const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
 
                     expect(context.nodeInstance).to.exist;
@@ -122,6 +132,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
             const mockOptions: MockNodeREDOptions = {
                 dependencies: mockDependencies,
+                getNodeHandler: createSmtpConfigNodeHandler(),
                 statusHandler: function (status: any) {
                     console.log('📊 Status received:', JSON.stringify(status, null, 2));
                 },
@@ -222,6 +233,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
             const mockOptions: MockNodeREDOptions = {
                 dependencies: mockDependencies,
+                getNodeHandler: createSmtpConfigNodeHandler(),
                 statusHandler: function (status: any) {
                     console.log('📊 Status received:', JSON.stringify(status, null, 2));
                 },
@@ -318,6 +330,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
             const mockOptions: MockNodeREDOptions = {
                 dependencies: mockDependencies,
+                getNodeHandler: createSmtpConfigNodeHandler(),
                 statusHandler: function (status: any) {
                     console.log('📊 Status received:', JSON.stringify(status, null, 2));
                 },
@@ -364,7 +377,10 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
             [...resilience.getScenarios(), ...emailErrors.getScenarios()].forEach((scenario) => {
                 it(`should handle ${scenario.name}`, async function () {
-                    const testMockOptions = scenario.mockOptions || mockOptions;
+                    const testMockOptions = {
+                        ...scenario.mockOptions || mockOptions,
+                        getNodeHandler: createSmtpConfigNodeHandler(),
+                    };
                     const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, testMockOptions);
 
                     expect(context.nodeInstance).to.exist;
@@ -418,9 +434,13 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     },
                 });
 
+            const mockOptions: MockNodeREDOptions = {
+                getNodeHandler: createSmtpConfigNodeHandler(),
+            };
+
             [...edgeCases.getScenarios(), ...emailEdgeCases.getScenarios()].forEach((scenario) => {
                 it(`should handle ${scenario.name}`, async function () {
-                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
+                    const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
                     expect(context.nodeInstance).to.exist;
 
                     // Should either succeed or fail gracefully
@@ -445,6 +465,7 @@ describe('E-Mail Sender Node - Unit Tests', function () {
 
             const mockOptions: MockNodeREDOptions = {
                 dependencies: mockDependencies,
+                getNodeHandler: createSmtpConfigNodeHandler(),
                 statusHandler: function (status: any) {
                     console.log('📊 Status received:', JSON.stringify(status, null, 2));
                 },
@@ -542,7 +563,11 @@ describe('E-Mail Sender Node - Unit Tests', function () {
                     config: EmailSenderTestConfigs.minimal,
                 };
 
-                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario);
+                const mockOptions: MockNodeREDOptions = {
+                    getNodeHandler: createSmtpConfigNodeHandler(),
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
                 expect(context.mockRED.nodes.lastRegisteredType).to.equal('email-sender');
             });
         });
