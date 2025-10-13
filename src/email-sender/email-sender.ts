@@ -22,7 +22,7 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
         const validateRequiredProperties = (cfg: EmailSenderNodeProperties): string | null => {
             const requiredFields = [
                 { name: 'sender', value: cfg.sender },
-                { name: 'address', value: cfg.address },
+                { name: 'from', value: cfg.from },
                 { name: 'to', value: cfg.to },
                 { name: 'subject', value: cfg.subject },
                 { name: 'htmlContent', value: cfg.htmlContent },
@@ -79,7 +79,7 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
             try {
                 // Retrieve and evaluate all configuration values
                 const sender = String(RED.util.evaluateNodeProperty(config.sender, config.senderType, node, msg));
-                const address = String(RED.util.evaluateNodeProperty(config.address, config.addressType, node, msg));
+                const from = String(RED.util.evaluateNodeProperty(config.from, config.fromType, node, msg));
                 const to = String(RED.util.evaluateNodeProperty(config.to, config.toType, node, msg) || '');
                 const cc = String(RED.util.evaluateNodeProperty(config.cc, config.ccType, node, msg) || '');
                 const bcc = String(RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || '');
@@ -147,7 +147,7 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 });
 
                 const mailOptions = {
-                    from: { name: sender, address: address },
+                    from: { name: sender, address: from },
                     to,
                     cc,
                     bcc,

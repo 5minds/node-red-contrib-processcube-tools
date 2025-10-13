@@ -3,7 +3,7 @@ export interface EmailSenderConfig {
     type: string;
     name?: string;
     sender?: string;
-    address?: string;
+    from?: string;
     to?: string;
     cc?: string;
     bcc?: string;

@@ -4,8 +4,8 @@ export interface EmailSenderNodeProperties extends NodeDef {
     // Mail configuration properties
     sender: string;
     senderType: string;
-    address: string;
-    addressType: string;
+    from: string;
+    fromType: string;
     to: string;
     toType: string;
     cc: string;

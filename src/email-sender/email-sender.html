@@ -11,8 +11,8 @@
                 validate: RED.validators.typedInput('senderType'),
             },
             senderType: { value: 'str' },
-            address: { value: '', required: true, validate: RED.validators.typedInput('addressType') },
-            addressType: { value: 'str' },
+            from: { value: '', required: true, validate: RED.validators.typedInput('fromType') },
+            fromType: { value: 'str' },
             to: { value: '', required: true, validate: RED.validators.typedInput('toType') },
             toType: { value: 'str' },
             cc: { value: '', validate: RED.validators.typedInput('ccType') },
@@ -59,10 +59,10 @@
                 types: ['str', 'msg', 'flow', 'global', 'env'],
                 typeField: '#node-input-senderType',
             });
-            $('#node-input-address').typedInput({
+            $('#node-input-from').typedInput({
                 default: 'str',
                 types: ['str', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-addressType',
+                typeField: '#node-input-fromType',
             });
             $('#node-input-to').typedInput({
                 default: 'str',
@@ -148,9 +148,9 @@
         <input type="hidden" id="node-input-senderType" />
     </div>
     <div class="form-row">
-        <label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
-        <input type="text" id="node-input-address" placeholder="john.doe@example.com" />
-        <input type="hidden" id="node-input-addressType" />
+        <label for="node-input-from"><i class="fa fa-envelope"></i> From</label>
+        <input type="text" id="node-input-from" placeholder="john.doe@example.com" />
+        <input type="hidden" id="node-input-fromType" />
     </div>
     <div class="form-row">
         <label for="node-input-to"><i class="fa fa-user"></i> To</label>
@@ -260,7 +260,7 @@
         <dd>A descriptive name for the node.</dd>
         <dt>Sender <span class="property-type">string | variable</span></dt>
         <dd>The name displayed as the sender to the recipient.</dd>
-        <dt>Address <span class="property-type">string | variable</span></dt>
+        <dt>From <span class="property-type">string | variable</span></dt>
         <dd>The email address from which the email is sent.</dd>
         <dt>To <span class="property-type">string | variable</span></dt>
         <dd>The primary recipient(s) of the email. For multiple recipients, separate addresses with a comma.</dd>
