@@ -31,7 +31,7 @@ const ImapConfigNode: NodeInitializer = (RED) => {
         this.authTimeout = config.authTimeout || 5000;
         this.keepalive = config.keepalive !== undefined ? config.keepalive : true;
         this.autotls = config.autotls || 'never';
-        this.rejectUnauthorized = config.rejectUnauthorized !== undefined ? config.rejectUnauthorized : true;
+        this.rejectUnauthorized = config.rejectUnauthorized !== undefined ? config.rejectUnauthorized : false;
     }
 
     RED.nodes.registerType('imap-config', ImapConfig);

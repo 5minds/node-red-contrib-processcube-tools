@@ -14,7 +14,7 @@
             authTimeout: { value: 5000, validate: RED.validators.number() },
             keepalive: { value: true },
             autotls: { value: 'never' },
-            rejectUnauthorized: { value: true },
+            rejectUnauthorized: { value: false },
         },
         label: function () {
             return this.name || `${this.user}@${this.host}`;
@@ -134,6 +134,6 @@
         <dd>Controls STARTTLS behavior: never, always, or required (default: never).</dd>
 
         <dt>Reject Unauthorized <span class="property-type">boolean</span></dt>
-        <dd>Reject connections with invalid TLS certificates (default: true).</dd>
+        <dd>Reject connections with invalid TLS certificates (default: false).</dd>
     </dl>
 </script>
