@@ -3,7 +3,7 @@ export interface EmailSenderConfig {
     type: string;
     name?: string;
     sender?: string;
-    address?: string;
+    from?: string;
     to?: string;
     cc?: string;
     bcc?: string;
@@ -11,12 +11,7 @@ export interface EmailSenderConfig {
     htmlContent?: string;
     attachments?: string;
     attachmentsType?: string;
-    host?: string;
-    port?: number;
-    user?: string;
-    password?: string;
-    secure?: boolean;
-    rejectUnauthorized?: boolean;
+    smtpConfig: string; // Reference to smtp-config node
     wires?: string[][];
     // Test-specific properties
     shouldFail?: boolean;

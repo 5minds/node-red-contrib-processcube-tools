@@ -17,8 +17,6 @@ services:
       #- NODE_OPTIONS=--inspect-brk=0.0.0.0:9229
       - NODE_ENV=development
     volumes:
-      # required for mapping the current source into the directory
-      - ./.:/package_src/
       # save the flows
       - ./.processcube/nodered:/data
 

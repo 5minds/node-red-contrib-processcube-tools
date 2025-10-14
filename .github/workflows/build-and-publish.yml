@@ -41,7 +41,7 @@ jobs:
     name: 'Build and publish sources'
     runs-on: ubuntu-latest
     needs: test
-    if: "!(contains(github.actor, 'process-engine-ci') || contains(github.actor, 'admin'))"
+    if: ${{ !(contains(github.actor, 'process-engine-ci') || contains(github.actor, 'admin')) }}
 
     steps:
       - uses: actions/checkout@v4
@@ -65,12 +65,15 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm ci
 
+      - name: 'Build Package'
+        run: npm run build
+
       - name: 'Prepare Version'
-        if: "!startsWith(github.ref_name, 'renovate')"
+        if: ${{ !startsWith(github.ref_name, 'renovate') }}
         run: ci_tools prepare-version --allow-dirty-workdir
 
       - name: 'Commit & Tag Version'
-        if: "!startsWith(github.ref_name, 'renovate')"
+        if: ${{ !startsWith(github.ref_name, 'renovate') }}
         env:
           GH_USER: ${{ secrets.GH_USER }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
@@ -79,7 +82,7 @@ jobs:
           ci_tools update-github-release --only-on-primary-branches --use-title-and-text-from-git-tag
 
       - name: 'Publish Version'
-        if: "!startsWith(github.ref_name, 'renovate')"
+        if: ${{ !startsWith(github.ref_name, 'renovate') }}
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: ci_tools publish-npm-package --create-tag-from-branch-name

@@ -6,21 +6,11 @@ import type { FetchState } from '../interfaces/FetchState';
 import type { EmailReceiverMessage } from '../interfaces/EmailReceiverMessage';
 
 interface EmailReceiverNodeProperties extends NodeDef {
-    host: string;
-    hostType: string;
-    port: number;
-    portType: string;
-    tls: boolean;
-    tlsType: string;
-    user: string;
-    userType: string;
-    password: string;
-    passwordType: string;
+    imapConfig: string; // Reference to imap-config node
     folder: string | string[];
     folderType: string;
     markseen: boolean;
     markseenType: string;
-    sendstatus: boolean | string;
 }
 
 interface EmailReceiverNodeMessage extends NodeMessageInFlow {}
@@ -56,8 +46,16 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
         // Store configuration validation error without failing construction
         let configError: Error | null = null;
 
+        // Get the IMAP config node
+        const imapConfigNode = RED.nodes.getNode(config.imapConfig) as any;
+
         try {
-            // Validate folder configuration first
+            // Validate IMAP config node exists
+            if (!imapConfigNode) {
+                throw new Error('IMAP configuration node is not configured');
+            }
+
+            // Validate folder configuration
             if (typeof config.folder === 'number') {
                 throw new Error("The 'folders' property must be an array of strings.");
             }
@@ -68,36 +66,6 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                 }
             } else if (typeof config.folder !== 'string' && config.folder !== undefined) {
                 throw new Error("The 'folders' property must be an array of strings.");
-            }
-
-            // Validate required fields - check both explicit types and default string values
-            const requiredFields: Array<{
-                key: keyof EmailReceiverNodeProperties;
-                typeKey: keyof EmailReceiverNodeProperties;
-            }> = [
-                { key: 'host', typeKey: 'hostType' },
-                { key: 'user', typeKey: 'userType' },
-                { key: 'password', typeKey: 'passwordType' },
-                { key: 'port', typeKey: 'portType' },
-            ];
-
-            const missingFields: string[] = [];
-            requiredFields.forEach(({ key, typeKey }) => {
-                const value = config[key];
-                const type = config[typeKey] || 'str'; // Default to 'str' if type not specified
-
-                // Check for missing or empty values when type is string
-                if (type === 'str' && (!value || value === '' || (typeof value === 'string' && value.trim() === ''))) {
-                    missingFields.push(key as string);
-                }
-                // Also check for null/undefined regardless of type
-                if (value === null || value === undefined) {
-                    missingFields.push(key as string);
-                }
-            });
-
-            if (missingFields.length > 0) {
-                throw new Error(`Missing required IMAP config: ${missingFields.join(', ')}. Aborting.`);
             }
         } catch (error) {
             configError = error instanceof Error ? error : new Error(String(error));
@@ -133,13 +101,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
             }
 
             try {
-                const imap_host = RED.util.evaluateNodeProperty(config.host, config.hostType, node, msg);
-                const imap_port = RED.util.evaluateNodeProperty(String(config.port), config.portType, node, msg);
-                const imap_tls = RED.util.evaluateNodeProperty(String(config.tls), config.tlsType, node, msg);
-                const imap_user = RED.util.evaluateNodeProperty(config.user, config.userType, node, msg);
-                const imap_password = RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg);
-                const sendstatus = config.sendstatus === true || config.sendstatus === 'true';
-
+                // Get configuration from config node
                 const imap_markSeen = RED.util.evaluateNodeProperty(
                     String(config.markseen),
                     config.markseenType,
@@ -160,19 +122,33 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     throw new Error("The 'folders' property must be an array of strings.");
                 }
 
+                // Evaluate user and password from config node (supports env and global)
+                const imap_user = RED.util.evaluateNodeProperty(
+                    imapConfigNode.user,
+                    imapConfigNode.userType || 'env',
+                    imapConfigNode,
+                    msg,
+                );
+                const imap_password = RED.util.evaluateNodeProperty(
+                    imapConfigNode.password,
+                    imapConfigNode.passwordType || 'env',
+                    imapConfigNode,
+                    msg,
+                );
+
                 const finalConfig: ImapConnectionConfig = {
-                    host: imap_host as string,
-                    port: typeof imap_port === 'string' ? parseInt(imap_port, 10) : (imap_port as number),
-                    tls: imap_tls as boolean,
+                    host: imapConfigNode.host,
+                    port: imapConfigNode.port,
+                    tls: imapConfigNode.tls,
                     user: imap_user as string,
                     password: imap_password as string,
                     folders: folders,
                     markSeen: toBoolean(imap_markSeen, true),
-                    connTimeout: (msg as any).imap_connTimeout || 10000,
-                    authTimeout: (msg as any).imap_authTimeout || 5000,
-                    keepalive: (msg as any).imap_keepalive ?? true,
-                    autotls: (msg as any).imap_autotls || 'never',
-                    tlsOptions: (msg as any).imap_tlsOptions || { rejectUnauthorized: false },
+                    connTimeout: imapConfigNode.connTimeout,
+                    authTimeout: imapConfigNode.authTimeout,
+                    keepalive: imapConfigNode.keepalive,
+                    autotls: imapConfigNode.autotls,
+                    tlsOptions: { rejectUnauthorized: imapConfigNode.rejectUnauthorized },
                 };
 
                 // Enhanced validation after property evaluation
@@ -230,18 +206,16 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                             state.errors.push(error);
                             node.error('IMAP session terminated: ' + error.message);
                             node.status({ fill: 'red', shape: 'ring', text: 'connection error' });
-                            if (sendstatus) {
-                                node.send([
-                                    null,
-                                    {
-                                        payload: {
-                                            status: 'error',
-                                            message: error.message,
-                                            errors: state.errors,
-                                        },
+                            node.send([
+                                null,
+                                {
+                                    payload: {
+                                        status: 'error',
+                                        message: error.message,
+                                        errors: state.errors,
                                     },
-                                ]);
-                            }
+                                },
+                            ]);
                             done(error);
                         } else if (state.failures > 0) {
                             node.status({
@@ -249,21 +223,19 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                 shape: 'dot',
                                 text: `Done, ${state.totalMails} mails from ${state.successes}/${state.totalFolders} folders. ${state.failures} failed.`,
                             });
-                            if (sendstatus) {
-                                node.send([
-                                    null,
-                                    {
-                                        payload: {
-                                            status: 'warning',
-                                            total: state.totalMails,
-                                            successes: state.successes,
-                                            failures: state.failures,
-                                            totalFolders: state.totalFolders,
-                                            errors: state.errors,
-                                        },
+                            node.send([
+                                null,
+                                {
+                                    payload: {
+                                        status: 'warning',
+                                        total: state.totalMails,
+                                        successes: state.successes,
+                                        failures: state.failures,
+                                        totalFolders: state.totalFolders,
+                                        errors: state.errors,
                                     },
-                                ]);
-                            }
+                                },
+                            ]);
                         } else {
                             node.status({
                                 fill: 'green',
@@ -271,19 +243,17 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                 text: `Done, fetched ${state.totalMails} mails from ${fetchConfig.folders.join(', ')}.`,
                             });
 
-                            if (sendstatus) {
-                                node.send([
-                                    null,
-                                    {
-                                        payload: {
-                                            status: 'success',
-                                            total: state.totalMails,
-                                            folderCount: state.folderCount,
-                                            folders: folders.join(', '),
-                                        },
+                            node.send([
+                                null,
+                                {
+                                    payload: {
+                                        status: 'success',
+                                        total: state.totalMails,
+                                        folderCount: state.folderCount,
+                                        folders: folders.join(', '),
                                     },
-                                ]);
-                            }
+                                },
+                            ]);
                         }
                         if (imap && imap.state !== 'disconnected') {
                             imap.end();
@@ -429,11 +399,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
         });
         node.on('close', () => {});
     }
-    RED.nodes.registerType('email-receiver', EmailReceiverNode, {
-        credentials: {
-            password: { type: 'password' },
-        },
-    });
+    RED.nodes.registerType('email-receiver', EmailReceiverNode);
 };
 
 export = nodeInit;

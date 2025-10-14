@@ -4,27 +4,13 @@
         color: '#02AFD6',
         defaults: {
             name: { value: '' },
-            host: { value: '', required: true, validate: RED.validators.typedInput('hostType') },
-            hostType: { value: 'str' },
-            port: { value: '', required: true, validate: RED.validators.typedInput('portType') },
-            portType: { value: 'num' },
-            tls: { value: true, required: true, validate: RED.validators.typedInput('tlsType') },
-            tlsType: { value: 'bool' },
-            user: { value: '', required: true, validate: RED.validators.typedInput('userType') },
-            userType: { value: 'str' },
-            password: { value: '', required: true },
-            passwordType: { value: 'env', required: true },
+            imapConfig: { value: '', type: 'imap-config', required: true },
             folder: { value: '', required: true, validate: RED.validators.typedInput('folderType') },
             folderType: { value: 'json' },
             markseen: { value: true, validate: RED.validators.typedInput('markseenType') },
             markseenType: { value: 'bool' },
-            sendstatus: { value: true },
         },
         inputs: 1,
-        // outputs: function () {
-        //     const sendstatus = this.sendstatus === true || this.sendstatus === 'true';
-        //     return sendstatus ? 2 : 1;
-        // },
         outputs: 2,
         outputLabels: function (index) {
             if (index === 0) {
@@ -39,36 +25,6 @@
             return this.name || 'E-Mail Receiver';
         },
         oneditprepare: function () {
-            $('#node-input-host').typedInput({
-                default: 'str',
-                types: ['str', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-hostType',
-            });
-
-            $('#node-input-port').typedInput({
-                default: 'num',
-                types: ['num', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-portType',
-            });
-
-            $('#node-input-tls').typedInput({
-                default: 'bool',
-                types: ['bool', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-tlsType',
-            });
-
-            $('#node-input-user').typedInput({
-                default: 'str',
-                types: ['str', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-userType',
-            });
-
-            $('#node-input-password').typedInput({
-                default: 'env',
-                types: ['msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-passwordType',
-            });
-
             $('#node-input-folder').typedInput({
                 default: 'json',
                 types: ['msg', 'flow', 'global', 'json', 'jsonata', 'env'],
@@ -91,38 +47,13 @@
     </div>
 
     <div class="form-row">
-        <label for="node-input-host"><i class="fa fa-server"></i> IMAP Host</label>
-        <input type="text" id="node-input-host" placeholder="imap.gmail.com" />
-        <input type="hidden" id="node-input-hostType" />
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-port"><i class="fa fa-terminal"></i> Port</label>
-        <input type="text" id="node-input-port" placeholder="993" />
-        <input type="hidden" id="node-input-portType" />
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-tls"><i class="fa fa-lock"></i> Use TLS</label>
-        <input type="text" id="node-input-tls" />
-        <input type="hidden" id="node-input-tlsType" />
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-user"><i class="fa fa-user"></i> User</label>
-        <input type="text" id="node-input-user" />
-        <input type="hidden" id="node-input-userType" />
-    </div>
-
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" />
-        <input type="hidden" id="node-input-passwordType" />
+        <label for="node-input-imapConfig"><i class="fa fa-server"></i> IMAP Server</label>
+        <input type="text" id="node-input-imapConfig" />
     </div>
 
     <div class="form-row">
         <label for="node-input-folder"><i class="fa fa-folder-open"></i> Folder(s)</label>
-        <input type="text" id="node-input-folder" placeholder="[INBOX]" />
+        <input type="text" id="node-input-folder" placeholder='["INBOX"]' />
         <input type="hidden" id="node-input-folderType" />
     </div>
 
@@ -130,15 +61,6 @@
         <label for="node-input-markseen"><i class="fa fa-eye"></i> Mark as seen</label>
         <input type="text" id="node-input-markseen" />
         <input type="hidden" id="node-input-markseenType" />
-    </div>
-    <div class="form-row" style="margin-bottom: 3px;">
-        <input
-            type="checkbox"
-            checked
-            id="node-input-sendstatus"
-            style="display: inline-block; width: auto; vertical-align: top; margin-left: 5px;"
-        />
-        <label style="width:auto" for="node-input-sendstatus">Send status</label>
     </div>
 </script>
 

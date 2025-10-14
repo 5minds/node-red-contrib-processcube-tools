@@ -42,6 +42,9 @@ node_modules
 .project
 .settings/
 
+# Claude Code
+CLAUDE.md
+
 # TestResults
 test/_test_files_results/*.test
 
