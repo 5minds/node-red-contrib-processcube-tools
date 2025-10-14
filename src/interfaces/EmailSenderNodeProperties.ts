@@ -4,8 +4,8 @@ export interface EmailSenderNodeProperties extends NodeDef {
     // Mail configuration properties
     sender: string;
     senderType: string;
-    address: string;
-    addressType: string;
+    from: string;
+    fromType: string;
     to: string;
     toType: string;
     cc: string;
@@ -21,17 +21,6 @@ export interface EmailSenderNodeProperties extends NodeDef {
     attachments: string;
     attachmentsType: string;
 
-    // SMTP configuration properties
-    host: string;
-    hostType: string;
-    port: string;
-    portType: string;
-    user: string;
-    userType: string;
-    password: string;
-    passwordType: string;
-    secure: string;
-    secureType: string;
-    rejectUnauthorized: string;
-    rejectUnauthorizedType: string;
+    // SMTP configuration reference
+    smtpConfig: string; // Reference to smtp-config node
 }

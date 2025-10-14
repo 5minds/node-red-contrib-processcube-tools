@@ -19,37 +19,41 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
         RED.nodes.createNode(this, config);
         const node = this;
 
-        const validateRequiredProperties = (cfg: EmailSenderNodeProperties): string | null => {
+        // Store configuration validation error without failing construction
+        let configError: Error | null = null;
+
+        // Get the SMTP config node
+        const smtpConfigNode = RED.nodes.getNode(config.smtpConfig) as any;
+
+        try {
+            // Validate SMTP config node exists
+            if (!smtpConfigNode) {
+                throw new Error('SMTP configuration node is not configured');
+            }
+
+            // Validate only critical fields that can't be provided at runtime
+            // Fields like 'to', 'subject', 'htmlContent' can be empty if provided via msg
             const requiredFields = [
-                { name: 'sender', value: cfg.sender },
-                { name: 'address', value: cfg.address },
-                { name: 'to', value: cfg.to },
-                { name: 'subject', value: cfg.subject },
-                { name: 'htmlContent', value: cfg.htmlContent },
-                { name: 'host', value: cfg.host },
-                { name: 'port', value: cfg.port },
-                { name: 'user', value: cfg.user },
-                { name: 'password', value: cfg.password },
-                { name: 'secure', value: cfg.secure },
-                { name: 'rejectUnauthorized', value: cfg.rejectUnauthorized },
+                { name: 'sender', value: config.sender },
+                { name: 'from', value: config.from },
             ];
 
             for (const field of requiredFields) {
                 if (field.value === undefined || field.value === null || field.value === '') {
-                    return `Required property '${field.name}' is missing`;
+                    throw new Error(`Required property '${field.name}' is missing`);
                 }
             }
+        } catch (error) {
+            configError = error instanceof Error ? error : new Error(String(error));
+            node.status({ fill: 'red', shape: 'ring', text: 'config error' });
 
-            return null;
-        };
+            // Store error for test framework to detect
+            (node as any).configError = configError;
 
-        const validationError = validateRequiredProperties(config);
-        if (validationError) {
-            node.status({ fill: 'red', shape: 'dot', text: 'configuration error' });
+            // Emit error immediately during construction for test framework
             setImmediate(() => {
-                node.error(validationError);
+                node.error(configError!.message);
             });
-            return; // Stop initialization if config is invalid
         }
 
         const safeEvaluatePropertyAttachment = (cfg: EmailSenderNodeProperties, n: Node, m: NodeMessage) => {
@@ -76,10 +80,17 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                     if (err) node.error(err, msg);
                 };
 
+            // If there's a configuration error, report it and don't proceed
+            if (configError) {
+                node.error(configError.message);
+                done(configError);
+                return;
+            }
+
             try {
                 // Retrieve and evaluate all configuration values
                 const sender = String(RED.util.evaluateNodeProperty(config.sender, config.senderType, node, msg));
-                const address = String(RED.util.evaluateNodeProperty(config.address, config.addressType, node, msg));
+                const from = String(RED.util.evaluateNodeProperty(config.from, config.fromType, node, msg));
                 const to = String(RED.util.evaluateNodeProperty(config.to, config.toType, node, msg) || '');
                 const cc = String(RED.util.evaluateNodeProperty(config.cc, config.ccType, node, msg) || '');
                 const bcc = String(RED.util.evaluateNodeProperty(config.bcc, config.bccType, node, msg) || '');
@@ -96,15 +107,31 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 );
                 const attachments = safeEvaluatePropertyAttachment(config, node, msg);
 
-                // SMTP Configuration
-                const host = String(RED.util.evaluateNodeProperty(config.host, config.hostType, node, msg));
-                const port = Number(RED.util.evaluateNodeProperty(config.port, config.portType, node, msg));
-                const user = String(RED.util.evaluateNodeProperty(config.user, config.userType, node, msg));
-                const password = String(RED.util.evaluateNodeProperty(config.password, config.passwordType, node, msg));
-                const secure = Boolean(RED.util.evaluateNodeProperty(config.secure, config.secureType, node, msg));
-                const rejectUnauthorized = Boolean(
-                    RED.util.evaluateNodeProperty(config.rejectUnauthorized, config.rejectUnauthorizedType, node, msg),
+                // Get SMTP Configuration from config node
+                const smtp_user = RED.util.evaluateNodeProperty(
+                    smtpConfigNode.user,
+                    smtpConfigNode.userType || 'env',
+                    smtpConfigNode,
+                    msg,
                 );
+                const smtp_password = RED.util.evaluateNodeProperty(
+                    smtpConfigNode.password,
+                    smtpConfigNode.passwordType || 'env',
+                    smtpConfigNode,
+                    msg,
+                );
+
+                const host = smtpConfigNode.host;
+                const port = smtpConfigNode.port;
+                const user = String(smtp_user);
+                const password = String(smtp_password);
+                const secure = smtpConfigNode.secure;
+                const rejectUnauthorized = smtpConfigNode.rejectUnauthorized;
+
+                // Runtime validation: at least one recipient must be provided
+                if (!to && !cc && !bcc) {
+                    throw new Error('At least one recipient (to, cc, or bcc) must be specified');
+                }
 
                 // Process attachments
                 let processedAttachments: any[] = [];
@@ -147,7 +174,7 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 });
 
                 const mailOptions = {
-                    from: { name: sender, address: address },
+                    from: { name: sender, address: from },
                     to,
                     cc,
                     bcc,
@@ -200,11 +227,7 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
         });
     }
 
-    RED.nodes.registerType('email-sender', EmailSender, {
-        credentials: {
-            password: { type: 'password' },
-        },
-    });
+    RED.nodes.registerType('email-sender', EmailSender);
 };
 
 export = EmailSenderNode;

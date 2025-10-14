@@ -11,8 +11,8 @@
                 validate: RED.validators.typedInput('senderType'),
             },
             senderType: { value: 'str' },
-            address: { value: '', required: true, validate: RED.validators.typedInput('addressType') },
-            addressType: { value: 'str' },
+            from: { value: '', required: true, validate: RED.validators.typedInput('fromType') },
+            fromType: { value: 'str' },
             to: { value: '', required: true, validate: RED.validators.typedInput('toType') },
             toType: { value: 'str' },
             cc: { value: '', validate: RED.validators.typedInput('ccType') },
@@ -28,23 +28,8 @@
             attachments: { value: '', required: false },
             attachmentsType: { value: 'msg' },
 
-            // SMTP-Fields
-            host: { value: '', required: true, validate: RED.validators.typedInput('hostType') },
-            hostType: { value: 'str' },
-            port: { value: '', required: true, validate: RED.validators.typedInput('portType') },
-            portType: { value: 'num' },
-            user: { value: '', required: true, validate: RED.validators.typedInput('userType') },
-            userType: { value: 'str' },
-            password: { value: '', required: true, type: 'password' },
-            passwordType: { value: 'env', required: true },
-            secure: { value: '', required: true, validate: RED.validators.typedInput('secureType') },
-            secureType: { value: 'bool' },
-            rejectUnauthorized: {
-                value: '',
-                required: true,
-                validate: RED.validators.typedInput('rejectUnauthorizedType'),
-            },
-            rejectUnauthorizedType: { value: 'bool' },
+            // SMTP Configuration reference
+            smtpConfig: { value: '', required: true, type: 'smtp-config' },
         },
         inputs: 1,
         outputs: 1,
@@ -59,10 +44,10 @@
                 types: ['str', 'msg', 'flow', 'global', 'env'],
                 typeField: '#node-input-senderType',
             });
-            $('#node-input-address').typedInput({
+            $('#node-input-from').typedInput({
                 default: 'str',
                 types: ['str', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-addressType',
+                typeField: '#node-input-fromType',
             });
             $('#node-input-to').typedInput({
                 default: 'str',
@@ -99,38 +84,6 @@
                 types: ['msg', 'flow', 'global'],
                 typeField: '#node-input-attachmentsType',
             });
-
-            // SMTP Fields
-            $('#node-input-host').typedInput({
-                default: 'str',
-                types: ['str', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-hostType',
-            });
-            $('#node-input-port').typedInput({
-                default: 'num',
-                types: ['num', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-portType',
-            });
-            $('#node-input-user').typedInput({
-                default: 'str',
-                types: ['str', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-userType',
-            });
-            $('#node-input-password').typedInput({
-                default: 'env',
-                types: ['msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-passwordType',
-            });
-            $('#node-input-secure').typedInput({
-                default: 'bool',
-                types: ['bool', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-secureType',
-            });
-            $('#node-input-rejectUnauthorized').typedInput({
-                default: 'bool',
-                types: ['bool', 'msg', 'flow', 'global', 'env'],
-                typeField: '#node-input-rejectUnauthorizedType',
-            });
         },
     });
 </script>
@@ -148,9 +101,9 @@
         <input type="hidden" id="node-input-senderType" />
     </div>
     <div class="form-row">
-        <label for="node-input-address"><i class="fa fa-envelope"></i> Address</label>
-        <input type="text" id="node-input-address" placeholder="john.doe@example.com" />
-        <input type="hidden" id="node-input-addressType" />
+        <label for="node-input-from"><i class="fa fa-envelope"></i> From</label>
+        <input type="text" id="node-input-from" placeholder="john.doe@example.com" />
+        <input type="hidden" id="node-input-fromType" />
     </div>
     <div class="form-row">
         <label for="node-input-to"><i class="fa fa-user"></i> To</label>
@@ -187,37 +140,9 @@
         <input type="text" id="node-input-attachments" />
         <input type="hidden" id="node-input-attachmentsType" />
     </div>
-
-    <h3>SMTP Configuration</h3>
     <div class="form-row">
-        <label for="node-input-host"><i class="fa fa-server"></i> Host</label>
-        <input type="text" id="node-input-host" placeholder="smtp.gmail.com" />
-        <input type="hidden" id="node-input-hostType" />
-    </div>
-    <div class="form-row">
-        <label for="node-input-port"><i class="fa fa-plug"></i> Port</label>
-        <input type="text" id="node-input-port" placeholder="587" />
-        <input type="hidden" id="node-input-portType" />
-    </div>
-    <div class="form-row">
-        <label for="node-input-user"><i class="fa fa-user"></i> User</label>
-        <input type="text" id="node-input-user" placeholder="test.user@config.com" />
-        <input type="hidden" id="node-input-userType" />
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-lock"></i> Password</label>
-        <input type="text" id="node-input-password" />
-        <input type="hidden" id="node-input-passwordType" />
-    </div>
-    <div class="form-row">
-        <label for="node-input-secure"><i class="fa fa-shield"></i> SSL/TLS (Secure)</label>
-        <input type="text" id="node-input-secure" />
-        <input type="hidden" id="node-input-secureType" />
-    </div>
-    <div class="form-row">
-        <label for="node-input-rejectUnauthorized"><i class="fa fa-ban"></i> Reject Unauthorized</label>
-        <input type="text" id="node-input-rejectUnauthorized" />
-        <input type="hidden" id="node-input-rejectUnauthorizedType" />
+        <label for="node-input-smtpConfig"><i class="fa fa-server"></i> SMTP Config</label>
+        <input type="text" id="node-input-smtpConfig" />
     </div>
 </script>
 
@@ -260,7 +185,7 @@
         <dd>A descriptive name for the node.</dd>
         <dt>Sender <span class="property-type">string | variable</span></dt>
         <dd>The name displayed as the sender to the recipient.</dd>
-        <dt>Address <span class="property-type">string | variable</span></dt>
+        <dt>From <span class="property-type">string | variable</span></dt>
         <dd>The email address from which the email is sent.</dd>
         <dt>To <span class="property-type">string | variable</span></dt>
         <dd>The primary recipient(s) of the email. For multiple recipients, separate addresses with a comma.</dd>
@@ -283,24 +208,11 @@
 
     <h4>SMTP Configuration</h4>
     <dl class="message-properties">
-        <dt>Host <span class="property-type">string | variable</span></dt>
-        <dd>The hostname of your SMTP server (e.g., <code>smtp.gmail.com</code>).</dd>
-        <dt>Port <span class="property-type">number | variable</span></dt>
-        <dd>The port number for the SMTP server (e.g., <code>587</code> or <code>465</code>).</dd>
-        <dt>User <span class="property-type">string | variable</span></dt>
-        <dd>The username for SMTP authentication.</dd>
-        <dt>Password <span class="property-type">password | variable</span></dt>
+        <dt>SMTP Config <span class="property-type">smtp-config</span></dt>
         <dd>
-            The password for SMTP authentication. This is a secure field and its value will not be shown after
-            deployment.
-        </dd>
-        <dt>SSL/TLS (Secure) <span class="property-type">boolean | variable</span></dt>
-        <dd>Enables a secure connection. Set this to <code>true</code> to use SSL/TLS encryption.</dd>
-        <dt>Reject Unauthorized <span class="property-type">boolean | variable</span></dt>
-        <dd>
-            If <code>true</code>, the server's certificate is rejected if it isn't authorized by a trusted Certificate
-            Authority (CA). Set this to <code>false</code> only if you know the server's certificate is self-signed or
-            not from a trusted CA.
+            Reference to an SMTP configuration node that contains the server connection settings (host, port, user,
+            password, security options). This allows you to reuse the same SMTP configuration across multiple email
+            sender nodes.
         </dd>
     </dl>
 
@@ -311,13 +223,19 @@
             dynamic HTML content for your emails, using <code>msg</code> properties to fill in placeholders.
         </li>
         <li>
+            <b>Data-Driven Emails</b>: Fields like <b>To</b>, <b>Subject</b>, and <b>HTML Content</b> can be left empty
+            in the configuration and provided dynamically via message properties (<code>msg.to</code>, <code>msg.topic</code>,
+            <code>msg.payload</code>). At least one recipient (to, cc, or bcc) must be specified before sending.
+        </li>
+        <li>
             <b>Testing</b>: When testing, use a free service like
             <a href="https://mailtrap.io" target="_blank">Mailtrap</a> to avoid sending real emails. This allows you to
             inspect the email and its content without cluttering your inbox.
         </li>
         <li>
-            <b>Troubleshooting</b>: If you encounter a <code>Missing required IMAP config</code> error, double-check
-            that all required fields are correctly configured and have values.
+            <b>Troubleshooting</b>: If you encounter a <code>SMTP configuration node is not configured</code> error, make
+            sure you have created and selected an SMTP Config node. Check that the <b>Sender</b> and <b>From</b> fields
+            are configured, as these are required.
         </li>
     </ul>
 
