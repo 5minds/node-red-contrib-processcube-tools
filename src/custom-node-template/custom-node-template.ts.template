@@ -1,0 +1,69 @@
+import { NodeInitializer, Node, NodeDef, NodeMessage } from 'node-red';
+// Wenn du eine externe Bibliothek benötigst, importiere sie hier.
+// const myExternalLibrary = require('my-external-library');
+
+// Definiere ein Interface für die Konfigurations-Eigenschaften deines Nodes.
+// Ersetze 'MyNewNode' durch den Namen deiner Node.
+interface MyNewNodeProperties extends NodeDef {
+  // Füge hier deine benutzerdefinierten Konfigurationseigenschaften hinzu.
+  // Zum Beispiel:
+  // myConfigProperty: string;
+}
+
+// Definiere ein Interface für die Nachrichten-Payload, falls sie einen bestimmten Typ haben muss.
+// Ersetze 'MyNewNode' durch den Namen deiner Node.
+interface MyNewNodeMessage extends NodeMessage {
+  payload: any; // Ändere 'any' in den erwarteten Typ (z.B. 'string', 'number').
+}
+
+// Die Initialisierungsfunktion, die von Node-RED geladen wird.
+// Ersetze 'MyNewNode' durch den Namen deiner Node.
+const MyNewNode: NodeInitializer = function(RED) {
+  // Die Hauptfunktion für deine Node.
+  // Ersetze 'MyNewNode' durch den Namen deiner Node.
+  function MyNewNode(this: Node, config: MyNewNodeProperties) {
+    RED.nodes.createNode(this, config);
+    const node = this;
+
+    // Speichere die Konfiguration in der Node-Instanz.
+    // node.myConfigProperty = config.myConfigProperty;
+
+    // Registriere einen Listener für eingehende Nachrichten.
+    (node as any).on("input", (msg: MyNewNodeMessage, send?: Function, done?: Function) => {
+      // Stelle sicher, dass 'send' und 'done' verfügbar sind.
+      send = send || function(m: NodeMessage | NodeMessage[]) { node.send(m); };
+      done = done || function(err?: Error) { if (err) node.error(err, msg); };
+
+      try {
+        // --- Hier kommt deine eigentliche Node-Logik rein ---
+        // Beispiel:
+        // if (typeof msg.payload === 'string') {
+        //   msg.payload = "Hallo, das ist eine neue Node!";
+        // }
+        // --------------------------------------------------
+
+        // Sende die Nachricht weiter an die nächste Node.
+        send(msg);
+
+        // Signalisiere, dass die Verarbeitung abgeschlossen ist.
+        done();
+
+      } catch (error) {
+        // Bei einem Fehler, rufe `done` mit dem Fehlerobjekt auf.
+        done(error instanceof Error ? error : new Error(String(error)));
+      }
+    });
+
+    // Optional: Füge hier einen 'close'-Handler hinzu, um Ressourcen freizugeben.
+    // (node as any).on("close", (done) => {
+    //   // Aufräumarbeiten (z.B. Verbindung schließen)
+    //   done();
+    // });
+  }
+
+  // Registriere den Node-Typ bei Node-RED.
+  // Der String hier muss dem Namen in deiner .html-Datei entsprechen.
+  RED.nodes.registerType('my-new-node-name', MyNewNode);
+};
+
+export = MyNewNode;

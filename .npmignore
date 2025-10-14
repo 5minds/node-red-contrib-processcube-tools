@@ -1,9 +1,47 @@
-.github
-.processcube
-.vscode
-doc_generator
-postgres
-processes
+# Source files (only ship compiled JS)
+src/
+
+# Git files
+.github/
+.gitignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.iml
+*.iws
+.classpath
+.project
+.settings/
+
+# Development files
 DEVELOPMENT.md
 docker-compose.yml
 Dockerfile
+doc_generator/
+
+# Test directories
+dist/test/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+*.DS_Store
+.env
+
+# Build tools
+postgres/
+processes/
+.processcube/
+
+# Lock files (let users manage their own)
+yarn.lock
+
+# Auto-generated docs
+doc/
+
+# We KEEP dist/ for npm (except dist/test)
+# We KEEP node_modules excluded by default

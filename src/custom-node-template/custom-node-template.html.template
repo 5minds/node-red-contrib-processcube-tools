@@ -1,0 +1,45 @@
+<script type="text/javascript">
+    RED.nodes.registerType('my-new-node-name', {
+        category: 'ProcessCube Tools',
+        color: '#02AFD6',
+        defaults: {
+            name: { value: '' },
+            // Füge hier deine Konfigurations-Eigenschaften hinzu
+            // Beispiel:
+            // myProperty: { value: 'standardwert', required: true, validate: RED.validators.typedInput('myPropertyType') },
+            // myPropertyType: { value: 'str' }
+        },
+        inputs: 1, // Anzahl der Eingangsports
+        outputs: 1, // Anzahl der Ausgangsports
+        icon: 'font-awesome/fa-tag', // Symbol für die Node
+        label: function () {
+            return this.name || 'Meine Neue Node';
+        },
+        oneditprepare: function () {
+            // Hier konfigurierst du die TypedInput-Felder, die du im defaults-Block definiert hast.
+            // $('#node-input-myProperty').typedInput({
+            //     default: 'str',
+            //     types: ['str', 'msg', 'flow', 'global', 'env'],
+            //     typeField: '#node-input-myPropertyType',
+            // });
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="my-new-node-name">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name" />
+    </div>
+
+    </script>
+
+<script type="text/html" data-help-name="my-new-node-name">
+    <p>Eine einfache Node-RED-Node-Vorlage, die eine grundlegende Struktur für neue Nodes bietet.</p>
+
+    <h3>Konfiguration</h3>
+    <dl class="message-properties">
+        <dt>Name</dt>
+        <dd>Der Name deiner Node, wie er im Flow angezeigt wird.</dd>
+        </dl>
+</script>

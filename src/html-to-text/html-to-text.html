@@ -1,0 +1,41 @@
+<script type="text/javascript">
+    RED.nodes.registerType('html-to-text', {
+        category: 'ProcessCube Tools',
+        color: '#02AFD6',
+        defaults: {
+            name: { value: '' },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: 'font-awesome/fa-sign-in',
+        label: function () {
+            return this.name || 'html-to-text';
+        },
+    });
+</script>
+
+<script type="text/html" data-template-name="html-to-text">
+    <div class="form-row">
+        <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name" />
+    </div>
+</script>
+
+<script type="text/markdown" data-help-name="processcube-google-docs-mail-template">
+    # Html 2 Text
+
+    ## Inputs
+
+    : payload (String) : html content to convert to text
+
+    ## Outputs
+
+    : payload (String) : text content
+
+    ---
+
+    ## References
+
+    - [The ProcessCube Developer Network](https://processcube.io) – All documentation for the ProcessCube&copy; platform
+    - [Node-RED Integration in ProcessCube&copy;](https://processcube.io/docs/node-red) – Node-RED integration in ProcessCube&copy;
+</script>
