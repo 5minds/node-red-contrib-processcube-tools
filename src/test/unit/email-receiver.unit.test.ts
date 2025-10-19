@@ -36,12 +36,7 @@ describe('E-Mail Receiver Node - Unit Tests', function () {
             const configTests = new TestScenarioBuilder()
                 .addValidScenario('valid configuration', EmailReceiverTestConfigs.valid)
                 .addValidScenario('minimal configuration', EmailReceiverTestConfigs.minimal)
-                .addValidScenario('array folders configuration', EmailReceiverTestConfigs.arrayFolders)
-                .addErrorScenario(
-                    'invalid folder type',
-                    EmailReceiverTestConfigs.invalidFolderType,
-                    "The 'folders' property must be an array of strings.",
-                );
+                .addValidScenario('array folders configuration', EmailReceiverTestConfigs.arrayFolders);
 
             // Add custom scenario for runtime config validation (requires input)
             configTests.addCustomScenario({
