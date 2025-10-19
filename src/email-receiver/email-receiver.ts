@@ -72,7 +72,7 @@ function parseDynamicProperty(input: any): string[] {
     }
 
     // Fallback: primitive Werte (number, boolean etc.)
-    return [input];
+    return [String(input)];
 }
 
 const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDependencies) => {
@@ -136,6 +136,26 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                 // Validate folder configuration
                 const evaluatedFolder = RED.util.evaluateNodeProperty(config.folder as any, config.folderType, node, msg);
                 const parsedFolders: string[] = parseDynamicProperty(evaluatedFolder);
+
+                // Early validation of folders - before any IMAP connection attempts
+                if (!parsedFolders || parsedFolders.length === 0) {
+                    throw new Error('No valid folders specified. At least one folder must be provided.');
+                }
+
+                // Check for empty folder names
+                const emptyFolders = parsedFolders.filter(folder => !folder || folder.trim().length === 0);
+                if (emptyFolders.length > 0) {
+                    throw new Error('Empty folder names are not allowed. Please provide valid folder names.');
+                }
+
+                // Check for potentially problematic folder names
+                const problematicFolders = parsedFolders.filter(folder => {
+                    const trimmed = folder.trim();
+                    return /^\d+$/.test(trimmed) || trimmed.length === 0;
+                });
+                if (problematicFolders.length > 0) {
+                    throw new Error(`Invalid folder names detected: ${problematicFolders.join(', ')}. Folder names should be valid strings.`);
+                }
 
                 // Evaluate user and password from config node (supports env and global)
                 const imap_user = RED.util.evaluateNodeProperty(

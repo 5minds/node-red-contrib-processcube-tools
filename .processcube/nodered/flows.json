@@ -156,7 +156,7 @@
         "z": "ea83acb4b5051be5",
         "name": "Email receiver via env",
         "imapConfig": "80507426de7d4fe9",
-        "folder": "[\"stoelting/personal\",\"stoelting/betrieb\"]",
+        "folder": "[\"stoelting/test_foo\",\"stoelting/test_bar\"]",
         "folderType": "json",
         "markseen": "imap_markseen",
         "markseenType": "msg",
