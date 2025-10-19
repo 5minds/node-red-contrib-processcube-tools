@@ -38,6 +38,43 @@ function toBoolean(val: any, defaultValue = false) {
     return defaultValue;
 }
 
+function parseDynamicProperty(input: any): string[] {
+    if (input === null || input === undefined) return input;
+
+    // Wenn der Wert bereits ein Array oder Objekt ist, direkt zurückgeben
+    if (typeof input === "object") return input;
+
+    // Wenn String → prüfen ob JSON oder CSV
+    if (typeof input === "string") {
+        const trimmed: string = input.trim();
+
+        // Versuche JSON zu parsen
+        if ((trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+            (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
+            try {
+                return JSON.parse(trimmed);
+            } catch {
+                // Wenn es wie JSON aussieht, aber nicht parsebar ist → als String zurückgeben
+                return [trimmed];
+            }
+        }
+
+        // CSV-Fallback (Trennzeichen , oder ;)
+        if (trimmed.includes(",") || trimmed.includes(";")) {
+            return trimmed
+                .split(/[,;]/)
+                .map(v => v.trim())
+                .filter(Boolean);
+        }
+
+        // Kein JSON, kein CSV → einfacher String
+        return [trimmed];
+    }
+
+    // Fallback: primitive Werte (number, boolean etc.)
+    return [input];
+}
+
 const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDependencies) => {
     function EmailReceiverNode(this: Node, config: EmailReceiverNodeProperties) {
         RED.nodes.createNode(this, config);
@@ -53,19 +90,6 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
             // Validate IMAP config node exists
             if (!imapConfigNode) {
                 throw new Error('IMAP configuration node is not configured');
-            }
-
-            // Validate folder configuration
-            if (typeof config.folder === 'number') {
-                throw new Error("The 'folders' property must be an array of strings.");
-            }
-
-            if (Array.isArray(config.folder)) {
-                if (!config.folder.every((f) => typeof f === 'string')) {
-                    throw new Error("The 'folders' property must be an array of strings.");
-                }
-            } else if (typeof config.folder !== 'string' && config.folder !== undefined) {
-                throw new Error("The 'folders' property must be an array of strings.");
             }
         } catch (error) {
             configError = error instanceof Error ? error : new Error(String(error));
@@ -108,19 +132,10 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     node,
                     msg,
                 );
-                const imap_folder = RED.util.evaluateNodeProperty(String(config.folder), config.folderType, node, msg);
-                let folders: string[];
-
-                if (Array.isArray(imap_folder)) {
-                    folders = imap_folder as string[];
-                } else if (typeof imap_folder === 'string') {
-                    folders = imap_folder
-                        .split(',')
-                        .map((f) => f.trim())
-                        .filter((f) => f.length > 0);
-                } else {
-                    throw new Error("The 'folders' property must be an array of strings.");
-                }
+            
+                // Validate folder configuration
+                const evaluatedFolder = RED.util.evaluateNodeProperty(config.folder as any, config.folderType, node, msg);
+                const parsedFolders: string[] = parseDynamicProperty(evaluatedFolder);
 
                 // Evaluate user and password from config node (supports env and global)
                 const imap_user = RED.util.evaluateNodeProperty(
@@ -142,7 +157,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     tls: imapConfigNode.tls,
                     user: imap_user as string,
                     password: imap_password as string,
-                    folders: folders,
+                    folders: parsedFolders,
                     markSeen: toBoolean(imap_markSeen, true),
                     connTimeout: imapConfigNode.connTimeout,
                     authTimeout: imapConfigNode.authTimeout,
@@ -250,7 +265,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                         status: 'success',
                                         total: state.totalMails,
                                         folderCount: state.folderCount,
-                                        folders: folders.join(', '),
+                                        folders: fetchConfig.folders.join(', '),
                                     },
                                 },
                             ]);
