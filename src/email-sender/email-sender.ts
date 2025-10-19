@@ -108,12 +108,27 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 const attachments = safeEvaluatePropertyAttachment(config, node, msg);
 
                 // Get SMTP Configuration from config node
+                const smtp_host = RED.util.evaluateNodeProperty(
+                    smtpConfigNode.host,
+                    smtpConfigNode.hostType || 'env',
+                    smtpConfigNode,
+                    msg,
+                );
+
+                const smtp_port = RED.util.evaluateNodeProperty(
+                    smtpConfigNode.port,
+                    smtpConfigNode.portType || 'env',
+                    smtpConfigNode,
+                    msg,
+                );
+
                 const smtp_user = RED.util.evaluateNodeProperty(
                     smtpConfigNode.user,
                     smtpConfigNode.userType || 'env',
                     smtpConfigNode,
                     msg,
                 );
+
                 const smtp_password = RED.util.evaluateNodeProperty(
                     smtpConfigNode.password,
                     smtpConfigNode.passwordType || 'env',
@@ -121,8 +136,8 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                     msg,
                 );
 
-                const host = smtpConfigNode.host;
-                const port = smtpConfigNode.port;
+                const host = smtp_host;
+                const port = smtp_port;
                 const user = String(smtp_user);
                 const password = String(smtp_password);
                 const secure = smtpConfigNode.secure;
