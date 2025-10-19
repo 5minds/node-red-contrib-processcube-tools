@@ -108,12 +108,27 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 const attachments = safeEvaluatePropertyAttachment(config, node, msg);
 
                 // Get SMTP Configuration from config node
+                const smtp_host = RED.util.evaluateNodeProperty(
+                    smtpConfigNode.host,
+                    smtpConfigNode.hostType || 'env',
+                    smtpConfigNode,
+                    msg,
+                );
+
+                const smtp_port = RED.util.evaluateNodeProperty(
+                    smtpConfigNode.port,
+                    smtpConfigNode.portType || 'env',
+                    smtpConfigNode,
+                    msg,
+                );
+
                 const smtp_user = RED.util.evaluateNodeProperty(
                     smtpConfigNode.user,
                     smtpConfigNode.userType || 'env',
                     smtpConfigNode,
                     msg,
                 );
+
                 const smtp_password = RED.util.evaluateNodeProperty(
                     smtpConfigNode.password,
                     smtpConfigNode.passwordType || 'env',
@@ -121,8 +136,8 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                     msg,
                 );
 
-                const host = smtpConfigNode.host;
-                const port = smtpConfigNode.port;
+                const host = smtp_host;
+                const port = smtp_port;
                 const user = String(smtp_user);
                 const password = String(smtp_password);
                 const secure = smtpConfigNode.secure;
@@ -130,6 +145,12 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
 
                 // Runtime validation: at least one recipient must be provided
                 if (!to && !cc && !bcc) {
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('[DEBUG] Email Sender - No recipients found:');
+                        console.log('[DEBUG] to:', to);
+                        console.log('[DEBUG] cc:', cc);
+                        console.log('[DEBUG] bcc:', bcc);
+                    }
                     throw new Error('At least one recipient (to, cc, or bcc) must be specified');
                 }
 
@@ -162,6 +183,31 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                             throw new Error(`Invalid attachment format. Expected object, got: ${typeof attachment}`);
                         }
                     }
+                }
+
+                // Debug output for development environment (always show when NODE_ENV=development)
+                if (process.env.NODE_ENV === 'development') {
+                    const debugConfig = {
+                        smtp: {
+                            host,
+                            port,
+                            secure,
+                            user,
+                            password: password ? '[REDACTED]' : password,
+                            rejectUnauthorized
+                        },
+                        email: {
+                            from: { name: sender, address: from },
+                            to,
+                            cc,
+                            bcc,
+                            replyTo,
+                            subject,
+                            htmlContentLength: htmlContent ? htmlContent.length : 0,
+                            attachmentsCount: processedAttachments.length
+                        }
+                    };
+                    console.log('[DEBUG] Email Sender - Final Configuration:', JSON.stringify(debugConfig, null, 2));
                 }
 
                 // Create and send email
@@ -221,6 +267,10 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                     }
                 });
             } catch (error) {
+                // Debug output for errors in development
+                if (process.env.NODE_ENV === 'development') {
+                    console.log('[DEBUG] Email Sender - Error occurred:', error);
+                }
                 done(error instanceof Error ? error : new Error(String(error)));
                 node.status({ fill: 'red', shape: 'dot', text: 'error' });
             }

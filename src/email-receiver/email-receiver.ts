@@ -139,12 +139,21 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
 
                 // Early validation of folders - before any IMAP connection attempts
                 if (!parsedFolders || parsedFolders.length === 0) {
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('[DEBUG] Parsed folders:', parsedFolders);
+                        console.log('[DEBUG] Original folder config:', config.folder);
+                        console.log('[DEBUG] Evaluated folder:', evaluatedFolder);
+                    }
                     throw new Error('No valid folders specified. At least one folder must be provided.');
                 }
 
                 // Check for empty folder names
                 const emptyFolders = parsedFolders.filter(folder => !folder || folder.trim().length === 0);
                 if (emptyFolders.length > 0) {
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('[DEBUG] Empty folders detected:', emptyFolders);
+                        console.log('[DEBUG] All parsed folders:', parsedFolders);
+                    }
                     throw new Error('Empty folder names are not allowed. Please provide valid folder names.');
                 }
 
@@ -154,10 +163,26 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     return /^\d+$/.test(trimmed) || trimmed.length === 0;
                 });
                 if (problematicFolders.length > 0) {
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('[DEBUG] Problematic folders detected:', problematicFolders);
+                        console.log('[DEBUG] All parsed folders:', parsedFolders);
+                    }
                     throw new Error(`Invalid folder names detected: ${problematicFolders.join(', ')}. Folder names should be valid strings.`);
                 }
 
                 // Evaluate user and password from config node (supports env and global)
+                const imap_host = RED.util.evaluateNodeProperty(
+                    imapConfigNode.host,
+                    imapConfigNode.hostType || 'env',
+                    imapConfigNode,
+                    msg,
+                );
+                const imap_port = RED.util.evaluateNodeProperty(
+                    imapConfigNode.port,
+                    imapConfigNode.portType || 'env',
+                    imapConfigNode,
+                    msg,
+                );
                 const imap_user = RED.util.evaluateNodeProperty(
                     imapConfigNode.user,
                     imapConfigNode.userType || 'env',
@@ -172,8 +197,8 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                 );
 
                 const finalConfig: ImapConnectionConfig = {
-                    host: imapConfigNode.host,
-                    port: imapConfigNode.port,
+                    host: imap_host as string,
+                    port: imap_port as number,
                     tls: imapConfigNode.tls,
                     user: imap_user as string,
                     password: imap_password as string,
@@ -185,6 +210,15 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     autotls: imapConfigNode.autotls,
                     tlsOptions: { rejectUnauthorized: imapConfigNode.rejectUnauthorized },
                 };
+
+                // Debug output for development environment (always show when NODE_ENV=development)
+                if (process.env.NODE_ENV === 'development') {
+                    const debugConfig = {
+                        ...finalConfig,
+                        password: finalConfig.password ? '[REDACTED]' : finalConfig.password
+                    };
+                    console.log('[DEBUG] Email Receiver - Final IMAP Configuration:', JSON.stringify(debugConfig, null, 2));
+                }
 
                 // Enhanced validation after property evaluation
                 if (
@@ -201,6 +235,12 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     if (!finalConfig.port) missingFields.push('port');
                     if (!finalConfig.host) missingFields.push('host');
                     if (!finalConfig.folders || finalConfig.folders.length === 0) missingFields.push('folders');
+                    
+                    // Additional debug output for missing fields in development
+                    if (process.env.NODE_ENV === 'development') {
+                        console.log('[DEBUG] Missing fields:', missingFields);
+                    }
+                    
                     throw new Error(`Missing required IMAP config: ${missingFields.join(', ')}. Aborting.`);
                 }
 
