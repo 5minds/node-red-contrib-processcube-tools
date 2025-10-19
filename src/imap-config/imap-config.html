@@ -3,8 +3,10 @@
         category: 'config',
         defaults: {
             name: { value: '' },
-            host: { value: '', required: true },
-            port: { value: 993, required: true, validate: RED.validators.number() },
+            host: { value: '', required: true  },
+            hostType: { value: 'env' },    
+            port: { value: 993, required: true },
+            portType: { value: 'env' },
             tls: { value: true, required: true },
             user: { value: '', required: true, validate: RED.validators.typedInput('userType') },
             userType: { value: 'env' },
@@ -20,15 +22,27 @@
             return this.name || `${this.user}@${this.host}`;
         },
         oneditprepare: function () {
+            $('#node-config-input-host').typedInput({
+                default: 'env',
+                types: ['str', 'env'],
+                typeField: '#node-config-input-hostType',
+            });
+
+            $('#node-config-input-port').typedInput({
+                default: 'env',
+                types: ['str', 'env'],
+                typeField: '#node-config-input-portType',
+            });
+
             $('#node-config-input-user').typedInput({
                 default: 'env',
-                types: ['global', 'env'],
+                types: ['str', 'env'],
                 typeField: '#node-config-input-userType',
             });
 
             $('#node-config-input-password').typedInput({
                 default: 'env',
-                types: ['global', 'env'],
+                types: ['str', 'env'],
                 typeField: '#node-config-input-passwordType',
             });
         },
@@ -44,11 +58,13 @@
     <div class="form-row">
         <label for="node-config-input-host"><i class="fa fa-server"></i> IMAP Host</label>
         <input type="text" id="node-config-input-host" placeholder="imap.gmail.com" />
+        <input type="hidden" id="node-config-input-hostType" />
     </div>
 
     <div class="form-row">
         <label for="node-config-input-port"><i class="fa fa-terminal"></i> Port</label>
         <input type="text" id="node-config-input-port" placeholder="993" />
+        <input type="hidden" id="node-config-input-portType" />
     </div>
 
     <div class="form-row">
