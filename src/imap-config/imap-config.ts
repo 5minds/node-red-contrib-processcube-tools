@@ -2,7 +2,9 @@ import { NodeInitializer, NodeDef } from 'node-red';
 
 interface ImapConfigNodeProperties extends NodeDef {
     host: string;
+    hostType: string;
     port: number;
+    portType: string;
     tls: boolean;
     user: string;
     userType: string;
