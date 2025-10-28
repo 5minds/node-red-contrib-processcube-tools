@@ -24,25 +24,25 @@
         oneditprepare: function () {
             $('#node-config-input-host').typedInput({
                 default: 'env',
-                types: ['str', 'env'],
+                types: ['str', 'env', 'flow', 'global'],
                 typeField: '#node-config-input-hostType',
             });
 
             $('#node-config-input-port').typedInput({
                 default: 'env',
-                types: ['num', 'env'],
+                types: ['num', 'env', 'flow', 'global'],
                 typeField: '#node-config-input-portType',
             });
 
             $('#node-config-input-user').typedInput({
                 default: 'env',
-                types: ['str', 'env'],
+                types: ['str', 'env', 'flow', 'global'],
                 typeField: '#node-config-input-userType',
             });
 
             $('#node-config-input-password').typedInput({
                 default: 'env',
-                types: ['str', 'env'],
+                types: ['str', 'env', 'flow', 'global'],
                 typeField: '#node-config-input-passwordType',
             });
         },
@@ -122,20 +122,20 @@
         <dt>Name <span class="property-type">string</span></dt>
         <dd>A friendly name for this IMAP configuration.</dd>
 
-        <dt>IMAP Host <span class="property-type">string</span></dt>
-        <dd>The hostname or IP address of the IMAP server (e.g., imap.gmail.com).</dd>
+        <dt>IMAP Host <span class="property-type">string | variable</span></dt>
+        <dd>The hostname or IP address of the IMAP server (e.g., imap.gmail.com). Supports string, environment variables, flow context, and global context.</dd>
 
-        <dt>Port <span class="property-type">number</span></dt>
-        <dd>The port number for IMAP connection (typically 993 for TLS, 143 for non-TLS).</dd>
+        <dt>Port <span class="property-type">number | variable</span></dt>
+        <dd>The port number for IMAP connection (typically 993 for TLS, 143 for non-TLS). Supports number, environment variables, flow context, and global context.</dd>
 
         <dt>Use TLS <span class="property-type">boolean</span></dt>
         <dd>Enable TLS/SSL encryption for the connection.</dd>
 
-        <dt>User <span class="property-type">string</span></dt>
-        <dd>The username for IMAP authentication.</dd>
+        <dt>User <span class="property-type">string | variable</span></dt>
+        <dd>The username for IMAP authentication. Supports string, environment variables, flow context, and global context.</dd>
 
-        <dt>Password <span class="property-type">string</span></dt>
-        <dd>The password for IMAP authentication. This is stored securely as a credential.</dd>
+        <dt>Password <span class="property-type">string | variable</span></dt>
+        <dd>The password for IMAP authentication. Supports string, environment variables, flow context, and global context.</dd>
 
         <dt>Connection Timeout <span class="property-type">number</span></dt>
         <dd>The connection timeout in milliseconds (default: 10000).</dd>
