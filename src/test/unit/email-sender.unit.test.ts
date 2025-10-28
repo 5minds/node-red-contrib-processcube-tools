@@ -548,6 +548,312 @@ describe('E-Mail Sender Node - Unit Tests', function () {
         });
 
         // ========================================================================
+        // MSG.SMTPCONFIG OVERRIDE TESTS
+        // ========================================================================
+
+        describe('msg.smtpConfig Override Tests', function () {
+            const mockDependencies = {
+                nodemailer: createMockNodemailer({
+                    shouldFail: false,
+                    acceptedEmails: [],
+                }),
+            };
+
+            const mockOptions: MockNodeREDOptions = {
+                dependencies: mockDependencies,
+                getNodeHandler: createSmtpConfigNodeHandler(),
+                statusHandler: function (status: any) {
+                    console.log('📊 Status received:', JSON.stringify(status, null, 2));
+                },
+                errorHandler: function (err: any) {
+                    console.log('❌ Error received:', err);
+                },
+            };
+
+            it('should use msg.smtpConfig when provided instead of smtp-config node', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig override',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            host: 'override.smtp.com',
+                            port: 465,
+                            user: 'override-user',
+                            password: 'override-pass',
+                            secure: true,
+                        },
+                    },
+                    expectedStatus: { fill: 'green', text: 'sent' },
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                NodeAssertions.expectStatus(context, scenario.expectedStatus!);
+            });
+
+            it('should apply defaults for optional fields in msg.smtpConfig', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig with defaults',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            // Only required fields
+                            host: 'test.smtp.com',
+                            port: 587,
+                            user: 'test-user',
+                            password: 'test-pass',
+                            // Optional fields not provided - should use defaults
+                        },
+                    },
+                    expectedStatus: { fill: 'green', text: 'sent' },
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                NodeAssertions.expectStatus(context, scenario.expectedStatus!);
+            });
+
+            it('should honor explicit false values in msg.smtpConfig', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig with explicit false',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            host: 'test.smtp.com',
+                            port: 587,
+                            user: 'test-user',
+                            password: 'test-pass',
+                            secure: false, // Explicit false should be honored
+                            rejectUnauthorized: false,
+                        },
+                    },
+                    expectedStatus: { fill: 'green', text: 'sent' },
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                NodeAssertions.expectStatus(context, scenario.expectedStatus!);
+            });
+
+            it('should error when msg.smtpConfig is missing required host field', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig missing host',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            // Missing host
+                            port: 587,
+                            user: 'test-user',
+                            password: 'test-pass',
+                        },
+                    },
+                    expectedError: "Required SMTP field 'host' is missing from msg.smtpConfig",
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
+                }
+            });
+
+            it('should error when msg.smtpConfig is missing required port field', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig missing port',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            host: 'test.smtp.com',
+                            // Missing port
+                            user: 'test-user',
+                            password: 'test-pass',
+                        },
+                    },
+                    expectedError: "Required SMTP field 'port' is missing from msg.smtpConfig",
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
+                }
+            });
+
+            it('should error when msg.smtpConfig is missing required user field', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig missing user',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            host: 'test.smtp.com',
+                            port: 587,
+                            // Missing user
+                            password: 'test-pass',
+                        },
+                    },
+                    expectedError: "Required SMTP field 'user' is missing from msg.smtpConfig",
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
+                }
+            });
+
+            it('should error when msg.smtpConfig is missing required password field', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig missing password',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            host: 'test.smtp.com',
+                            port: 587,
+                            user: 'test-user',
+                            // Missing password
+                        },
+                    },
+                    expectedError: "Required SMTP field 'password' is missing from msg.smtpConfig",
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
+                }
+            });
+
+            it('should fall back to smtp-config node when msg.smtpConfig is not provided', async function () {
+                const scenario: TestScenario = {
+                    name: 'fallback to smtp-config node',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        // No msg.smtpConfig provided
+                    },
+                    expectedStatus: { fill: 'green', text: 'sent' },
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                NodeAssertions.expectStatus(context, scenario.expectedStatus!);
+            });
+
+            it('should use msg.smtpConfig with all optional fields specified', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig with all fields',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            host: 'complete.smtp.com',
+                            port: 465,
+                            user: 'complete-user',
+                            password: 'complete-pass',
+                            secure: true,
+                            rejectUnauthorized: true,
+                            connTimeout: 15000,
+                            authTimeout: 8000,
+                            keepalive: false,
+                            autotls: 'required',
+                        },
+                    },
+                    expectedStatus: { fill: 'green', text: 'sent' },
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                NodeAssertions.expectStatus(context, scenario.expectedStatus!);
+            });
+
+            it('should handle empty string values in required fields as error', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig with empty string host',
+                    config: EmailSenderTestConfigs.valid,
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            host: '', // Empty string should be treated as missing
+                            port: 587,
+                            user: 'test-user',
+                            password: 'test-pass',
+                        },
+                    },
+                    expectedError: "Required SMTP field 'host' is missing from msg.smtpConfig",
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                if (scenario.expectedError) {
+                    NodeAssertions.expectError(context, scenario.expectedError);
+                }
+            });
+
+            it('should not use smtp-config node when msg.smtpConfig is present', async function () {
+                const scenario: TestScenario = {
+                    name: 'msg.smtpConfig overrides smtp-config completely',
+                    config: EmailSenderTestConfigs.valid, // Has valid-smtp-config
+                    input: {
+                        payload: 'Test content',
+                        topic: 'Test Subject',
+                        smtpConfig: {
+                            // Different values from valid-smtp-config
+                            host: 'completely-different.smtp.com',
+                            port: 2525,
+                            user: 'different-user',
+                            password: 'different-pass',
+                        },
+                    },
+                    expectedStatus: { fill: 'green', text: 'sent' },
+                    timeout: 5000,
+                };
+
+                const context = await NodeTestRunner.runScenario(emailSenderNode, scenario, mockOptions);
+
+                expect(context.nodeInstance).to.exist;
+                NodeAssertions.expectStatus(context, scenario.expectedStatus!);
+                // The test should succeed, proving msg.smtpConfig was used instead of smtp-config node
+            });
+        });
+
+        // ========================================================================
         // LEGACY COMPATIBILITY
         // ========================================================================
 

@@ -216,6 +216,62 @@
         </dd>
     </dl>
 
+    <h4>Runtime SMTP Configuration Override</h4>
+    <p>
+        You can override the SMTP configuration at runtime by providing a <code>msg.smtpConfig</code> object.
+        When <code>msg.smtpConfig</code> is present, it will be used <b>instead of</b> the smtp-config node
+        (not merged with it).
+    </p>
+    <dl class="message-properties">
+        <dt>msg.smtpConfig <i>(Optional)</i> <span class="property-type">object</span></dt>
+        <dd>
+            SMTP configuration object to override the smtp-config node settings. When provided, this completely
+            replaces the smtp-config node configuration for that message.
+        </dd>
+    </dl>
+
+    <h5>Required Fields in msg.smtpConfig</h5>
+    <ul>
+        <li><code>host</code> <span class="property-type">string</span> - SMTP server hostname (e.g., "smtp.gmail.com")</li>
+        <li><code>port</code> <span class="property-type">number</span> - SMTP server port (e.g., 587 for STARTTLS, 465 for SSL/TLS)</li>
+        <li><code>user</code> <span class="property-type">string</span> - SMTP username for authentication</li>
+        <li><code>password</code> <span class="property-type">string</span> - SMTP password for authentication</li>
+    </ul>
+
+    <h5>Optional Fields in msg.smtpConfig (with defaults)</h5>
+    <ul>
+        <li><code>secure</code> <span class="property-type">boolean</span> - Use SSL/TLS encryption (default: <code>false</code>)</li>
+        <li><code>rejectUnauthorized</code> <span class="property-type">boolean</span> - Reject invalid TLS certificates (default: <code>false</code>)</li>
+        <li><code>connTimeout</code> <span class="property-type">number</span> - Connection timeout in milliseconds (default: <code>10000</code>)</li>
+        <li><code>authTimeout</code> <span class="property-type">number</span> - Authentication timeout in milliseconds (default: <code>5000</code>)</li>
+        <li><code>keepalive</code> <span class="property-type">boolean</span> - Keep connection alive (default: <code>true</code>)</li>
+        <li><code>autotls</code> <span class="property-type">string</span> - Auto TLS mode: "never", "always", or "required" (default: <code>"never"</code>)</li>
+    </ul>
+
+    <h5>Example: Using msg.smtpConfig</h5>
+    <pre><code>// In a Function node before the email-sender node:
+msg.smtpConfig = {
+    host: "smtp.example.com",
+    port: 587,
+    user: "myuser@example.com",
+    password: "mypassword",
+    secure: false  // Use STARTTLS
+};
+
+// Optional fields with custom values:
+msg.smtpConfig = {
+    host: "smtp.example.com",
+    port: 465,
+    user: "myuser@example.com",
+    password: "mypassword",
+    secure: true,           // Use SSL/TLS
+    rejectUnauthorized: true,
+    connTimeout: 15000,     // 15 seconds
+    authTimeout: 8000       // 8 seconds
+};
+
+return msg;</code></pre>
+
     <h3>Usage Notes</h3>
     <ul>
         <li>

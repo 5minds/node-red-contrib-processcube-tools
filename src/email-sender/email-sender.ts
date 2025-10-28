@@ -1,8 +1,11 @@
 import { NodeInitializer, Node, NodeMessage } from 'node-red';
 import nodemailer from 'nodemailer';
 import { EmailSenderNodeProperties } from '../interfaces/EmailSenderNodeProperties';
+import { SmtpConfigOverride, NormalizedSmtpConfig } from '../interfaces/SmtpConfigOverride';
 
-interface EmailSenderNodeMessage extends NodeMessage {}
+interface EmailSenderNodeMessage extends NodeMessage {
+    smtpConfig?: SmtpConfigOverride;
+}
 
 // Dependency injection interface
 interface Dependencies {
@@ -68,6 +71,99 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
             return null;
         };
 
+        /**
+         * Gets SMTP configuration either from msg.smtpConfig or smtp-config node
+         * Applies defaults for optional fields and validates required fields
+         */
+        const getSmtpConfig = (msg: EmailSenderNodeMessage, smtpConfigNode: any): NormalizedSmtpConfig => {
+            let configSource: string;
+            let rawConfig: any;
+
+            // Check if msg.smtpConfig is provided
+            if (msg.smtpConfig && typeof msg.smtpConfig === 'object') {
+                configSource = 'msg.smtpConfig';
+                rawConfig = msg.smtpConfig;
+            } else {
+                configSource = 'smtp-config node';
+                // Get configuration from smtp-config node (existing behavior)
+                rawConfig = {
+                    host: RED.util.evaluateNodeProperty(
+                        smtpConfigNode.host,
+                        smtpConfigNode.hostType || 'env',
+                        smtpConfigNode,
+                        msg,
+                    ),
+                    port: RED.util.evaluateNodeProperty(
+                        smtpConfigNode.port,
+                        smtpConfigNode.portType || 'env',
+                        smtpConfigNode,
+                        msg,
+                    ),
+                    user: RED.util.evaluateNodeProperty(
+                        smtpConfigNode.user,
+                        smtpConfigNode.userType || 'env',
+                        smtpConfigNode,
+                        msg,
+                    ),
+                    password: RED.util.evaluateNodeProperty(
+                        smtpConfigNode.password,
+                        smtpConfigNode.passwordType || 'env',
+                        smtpConfigNode,
+                        msg,
+                    ),
+                    secure: smtpConfigNode.secure,
+                    rejectUnauthorized: smtpConfigNode.rejectUnauthorized,
+                    connTimeout: smtpConfigNode.connTimeout,
+                    authTimeout: smtpConfigNode.authTimeout,
+                    keepalive: smtpConfigNode.keepalive,
+                    autotls: smtpConfigNode.autotls,
+                };
+            }
+
+            // Validate required fields
+            const requiredFields = ['host', 'port', 'user', 'password'];
+            for (const field of requiredFields) {
+                const value = rawConfig[field];
+                if (value === undefined || value === null || value === '') {
+                    throw new Error(
+                        `Required SMTP field '${field}' is missing from ${configSource}. ` +
+                        `Please provide it in msg.smtpConfig or configure the smtp-config node.`
+                    );
+                }
+            }
+
+            // Apply defaults for optional fields (undefined/null get defaults, explicit values are honored)
+            const normalizedConfig: NormalizedSmtpConfig = {
+                host: String(rawConfig.host),
+                port: Number(rawConfig.port),
+                user: String(rawConfig.user),
+                password: String(rawConfig.password),
+                secure: rawConfig.secure !== undefined && rawConfig.secure !== null ? Boolean(rawConfig.secure) : false,
+                rejectUnauthorized: rawConfig.rejectUnauthorized !== undefined && rawConfig.rejectUnauthorized !== null
+                    ? Boolean(rawConfig.rejectUnauthorized)
+                    : false,
+                connTimeout: rawConfig.connTimeout !== undefined && rawConfig.connTimeout !== null
+                    ? Number(rawConfig.connTimeout)
+                    : 10000,
+                authTimeout: rawConfig.authTimeout !== undefined && rawConfig.authTimeout !== null
+                    ? Number(rawConfig.authTimeout)
+                    : 5000,
+                keepalive: rawConfig.keepalive !== undefined && rawConfig.keepalive !== null
+                    ? Boolean(rawConfig.keepalive)
+                    : true,
+                autotls: rawConfig.autotls !== undefined && rawConfig.autotls !== null
+                    ? String(rawConfig.autotls)
+                    : 'never',
+            };
+
+            // Log which config source is being used in development mode
+            if (process.env.NODE_ENV === 'development') {
+                console.log(`[DEBUG] Email Sender - Using SMTP config from: ${configSource}`);
+            }
+
+            return normalizedConfig;
+        };
+
         (node as any).on('input', async (msg: EmailSenderNodeMessage, send: Function, done: Function) => {
             send =
                 send ||
@@ -107,41 +203,11 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 );
                 const attachments = safeEvaluatePropertyAttachment(config, node, msg);
 
-                // Get SMTP Configuration from config node
-                const smtp_host = RED.util.evaluateNodeProperty(
-                    smtpConfigNode.host,
-                    smtpConfigNode.hostType || 'env',
-                    smtpConfigNode,
-                    msg,
-                );
+                // Get SMTP Configuration (either from msg.smtpConfig or smtp-config node)
+                const smtpConfig = getSmtpConfig(msg, smtpConfigNode);
 
-                const smtp_port = RED.util.evaluateNodeProperty(
-                    smtpConfigNode.port,
-                    smtpConfigNode.portType || 'env',
-                    smtpConfigNode,
-                    msg,
-                );
-
-                const smtp_user = RED.util.evaluateNodeProperty(
-                    smtpConfigNode.user,
-                    smtpConfigNode.userType || 'env',
-                    smtpConfigNode,
-                    msg,
-                );
-
-                const smtp_password = RED.util.evaluateNodeProperty(
-                    smtpConfigNode.password,
-                    smtpConfigNode.passwordType || 'env',
-                    smtpConfigNode,
-                    msg,
-                );
-
-                const host = smtp_host;
-                const port = smtp_port;
-                const user = String(smtp_user);
-                const password = String(smtp_password);
-                const secure = smtpConfigNode.secure;
-                const rejectUnauthorized = smtpConfigNode.rejectUnauthorized;
+                // Extract values for use
+                const { host, port, user, password, secure, rejectUnauthorized } = smtpConfig;
 
                 // Runtime validation: at least one recipient must be provided
                 if (!to && !cc && !bcc) {
@@ -188,13 +254,18 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 // Debug output for development environment (always show when NODE_ENV=development)
                 if (process.env.NODE_ENV === 'development') {
                     const debugConfig = {
+                        configSource: msg.smtpConfig ? 'msg.smtpConfig' : 'smtp-config node',
                         smtp: {
                             host,
                             port,
                             secure,
                             user,
                             password: password ? '[REDACTED]' : password,
-                            rejectUnauthorized
+                            rejectUnauthorized,
+                            connTimeout: smtpConfig.connTimeout,
+                            authTimeout: smtpConfig.authTimeout,
+                            keepalive: smtpConfig.keepalive,
+                            autotls: smtpConfig.autotls
                         },
                         email: {
                             from: { name: sender, address: from },
