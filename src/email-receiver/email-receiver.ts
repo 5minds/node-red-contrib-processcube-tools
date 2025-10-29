@@ -4,6 +4,7 @@ import { simpleParser, ParsedMail, Attachment } from 'mailparser';
 import type { ImapConnectionConfig } from '../interfaces/ImapConnectionConfig';
 import type { FetchState } from '../interfaces/FetchState';
 import type { EmailReceiverMessage } from '../interfaces/EmailReceiverMessage';
+import { ImapConfigOverride, NormalizedImapConfig } from '../interfaces/ImapConfigOverride';
 
 interface EmailReceiverNodeProperties extends NodeDef {
     imapConfig: string; // Reference to imap-config node
@@ -13,7 +14,9 @@ interface EmailReceiverNodeProperties extends NodeDef {
     markseenType: string;
 }
 
-interface EmailReceiverNodeMessage extends NodeMessageInFlow {}
+interface EmailReceiverNodeMessage extends NodeMessageInFlow {
+    imapConfig?: ImapConfigOverride;
+}
 
 // Dependency injection interface
 interface Dependencies {
@@ -76,6 +79,99 @@ function parseDynamicProperty(input: any): string[] {
 }
 
 const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDependencies) => {
+    /**
+     * Gets IMAP configuration either from msg.imapConfig or imap-config node
+     * Applies defaults for optional fields and validates required fields
+     */
+    const getImapConfig = (msg: EmailReceiverNodeMessage, imapConfigNode: any, node: Node): NormalizedImapConfig => {
+        let configSource: string;
+        let rawConfig: any;
+
+        // Check if msg.imapConfig is provided
+        if (msg.imapConfig && typeof msg.imapConfig === 'object') {
+            configSource = 'msg.imapConfig';
+            rawConfig = msg.imapConfig;
+        } else {
+            configSource = 'imap-config node';
+            // Get configuration from imap-config node (existing behavior)
+            rawConfig = {
+                host: RED.util.evaluateNodeProperty(
+                    imapConfigNode.host,
+                    imapConfigNode.hostType || 'env',
+                    imapConfigNode,
+                    msg,
+                ),
+                port: RED.util.evaluateNodeProperty(
+                    imapConfigNode.port,
+                    imapConfigNode.portType || 'env',
+                    imapConfigNode,
+                    msg,
+                ),
+                user: RED.util.evaluateNodeProperty(
+                    imapConfigNode.user,
+                    imapConfigNode.userType || 'env',
+                    imapConfigNode,
+                    msg,
+                ),
+                password: RED.util.evaluateNodeProperty(
+                    imapConfigNode.password,
+                    imapConfigNode.passwordType || 'env',
+                    imapConfigNode,
+                    msg,
+                ),
+                tls: imapConfigNode.tls,
+                connTimeout: imapConfigNode.connTimeout,
+                authTimeout: imapConfigNode.authTimeout,
+                keepalive: imapConfigNode.keepalive,
+                autotls: imapConfigNode.autotls,
+                rejectUnauthorized: imapConfigNode.rejectUnauthorized,
+            };
+        }
+
+        // Validate required fields
+        const requiredFields = ['host', 'port', 'user', 'password'];
+        for (const field of requiredFields) {
+            const value = rawConfig[field];
+            if (value === undefined || value === null || value === '') {
+                throw new Error(
+                    `Required IMAP field '${field}' is missing from ${configSource}. ` +
+                    `Please provide it in msg.imapConfig or configure the imap-config node.`
+                );
+            }
+        }
+
+        // Apply defaults for optional fields (undefined/null get defaults, explicit values are honored)
+        const normalizedConfig: NormalizedImapConfig = {
+            host: String(rawConfig.host),
+            port: Number(rawConfig.port),
+            user: String(rawConfig.user),
+            password: String(rawConfig.password),
+            tls: rawConfig.tls !== undefined && rawConfig.tls !== null ? Boolean(rawConfig.tls) : true,
+            connTimeout: rawConfig.connTimeout !== undefined && rawConfig.connTimeout !== null
+                ? Number(rawConfig.connTimeout)
+                : 10000,
+            authTimeout: rawConfig.authTimeout !== undefined && rawConfig.authTimeout !== null
+                ? Number(rawConfig.authTimeout)
+                : 5000,
+            keepalive: rawConfig.keepalive !== undefined && rawConfig.keepalive !== null
+                ? Boolean(rawConfig.keepalive)
+                : true,
+            autotls: rawConfig.autotls !== undefined && rawConfig.autotls !== null
+                ? String(rawConfig.autotls)
+                : 'never',
+            rejectUnauthorized: rawConfig.rejectUnauthorized !== undefined && rawConfig.rejectUnauthorized !== null
+                ? Boolean(rawConfig.rejectUnauthorized)
+                : false,
+        };
+
+        // Log which config source is being used in development mode
+        if (process.env.NODE_ENV === 'development') {
+            console.log(`[DEBUG] Email Receiver - Using IMAP config from: ${configSource}`);
+        }
+
+        return normalizedConfig;
+    };
+
     function EmailReceiverNode(this: Node, config: EmailReceiverNodeProperties) {
         RED.nodes.createNode(this, config);
         const node = this;
@@ -170,45 +266,22 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     throw new Error(`Invalid folder names detected: ${problematicFolders.join(', ')}. Folder names should be valid strings.`);
                 }
 
-                // Evaluate user and password from config node (supports env and global)
-                const imap_host = RED.util.evaluateNodeProperty(
-                    imapConfigNode.host,
-                    imapConfigNode.hostType || 'env',
-                    imapConfigNode,
-                    msg,
-                );
-                const imap_port = RED.util.evaluateNodeProperty(
-                    imapConfigNode.port,
-                    imapConfigNode.portType || 'env',
-                    imapConfigNode,
-                    msg,
-                );
-                const imap_user = RED.util.evaluateNodeProperty(
-                    imapConfigNode.user,
-                    imapConfigNode.userType || 'env',
-                    imapConfigNode,
-                    msg,
-                );
-                const imap_password = RED.util.evaluateNodeProperty(
-                    imapConfigNode.password,
-                    imapConfigNode.passwordType || 'env',
-                    imapConfigNode,
-                    msg,
-                );
+                // Get IMAP Configuration (either from msg.imapConfig or imap-config node)
+                const imapConfig = getImapConfig(msg, imapConfigNode, node);
 
                 const finalConfig: ImapConnectionConfig = {
-                    host: imap_host as string,
-                    port: imap_port as number,
-                    tls: imapConfigNode.tls,
-                    user: imap_user as string,
-                    password: imap_password as string,
+                    host: imapConfig.host,
+                    port: imapConfig.port,
+                    tls: imapConfig.tls,
+                    user: imapConfig.user,
+                    password: imapConfig.password,
                     folders: parsedFolders,
                     markSeen: toBoolean(imap_markSeen, true),
-                    connTimeout: imapConfigNode.connTimeout,
-                    authTimeout: imapConfigNode.authTimeout,
-                    keepalive: imapConfigNode.keepalive,
-                    autotls: imapConfigNode.autotls,
-                    tlsOptions: { rejectUnauthorized: imapConfigNode.rejectUnauthorized },
+                    connTimeout: imapConfig.connTimeout,
+                    authTimeout: imapConfig.authTimeout,
+                    keepalive: imapConfig.keepalive,
+                    autotls: imapConfig.autotls,
+                    tlsOptions: { rejectUnauthorized: imapConfig.rejectUnauthorized },
                 };
 
                 // Debug output for development environment (always show when NODE_ENV=development)
