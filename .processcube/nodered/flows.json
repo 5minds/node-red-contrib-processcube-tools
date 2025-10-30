@@ -40,7 +40,9 @@
         "authTimeout": 5000,
         "keepalive": true,
         "autotls": "never",
-        "rejectUnauthorized": false
+        "rejectUnauthorized": false,
+        "poolEnabled": true,
+        "poolTimeout": "60000"
     },
     {
         "id": "be3042551fefd2a7",
@@ -58,7 +60,10 @@
         "authTimeout": "",
         "keepalive": false,
         "secure": false,
-        "rejectUnauthorized": false
+        "rejectUnauthorized": false,
+        "poolEnabled": false,
+        "poolSize": "5",
+        "poolTimeout": "60000"
     },
     {
         "id": "fd4bdf33d0253f6a",
