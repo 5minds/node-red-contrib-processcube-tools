@@ -392,6 +392,26 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                 },
                             ]);
                             done(error);
+                        } else if (state.errors.length > 0) {
+                            // Propagate accumulated errors to catch node
+                            node.status({
+                                fill: 'red',
+                                shape: 'dot',
+                                text: `Done, ${state.totalMails} mails from ${state.successes}/${state.totalFolders} folders. ${state.errors.length} errors.`,
+                            });
+                            node.send([
+                                null,
+                                {
+                                    payload: {
+                                        status: 'error',
+                                        total: state.totalMails,
+                                        successes: state.successes,
+                                        errors: state.errors,
+                                        totalFolders: state.totalFolders,
+                                    },
+                                },
+                            ]);
+                            done(state.errors[0]);
                         } else if (state.failures > 0) {
                             node.status({
                                 fill: 'red',
@@ -446,6 +466,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                         imap.openBox(folder, false, (err: Error | null, box: Imap.Box | null) => {
                             if (err) {
                                 node.error(`Could not open folder "${folder}": ${err.message}`);
+                                state.errors.push(err);
                                 state.failures++;
                                 state.processedFolders++;
                                 return startNextFolder();
@@ -456,6 +477,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                             imap.search(['UNSEEN'], (err: Error | null, results: number[]) => {
                                 if (err) {
                                     node.error(`Search failed in folder "${folder}": ${err.message}`);
+                                    state.errors.push(err);
                                     state.failures++;
                                     state.processedFolders++;
                                     return startNextFolder();
@@ -481,6 +503,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                                     node.error(
                                                         `Parse error for email from folder "${folder}": ${err.message}`,
                                                     );
+                                                    state.errors.push(err);
                                                     return;
                                                 }
 
@@ -516,6 +539,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                                     node.error(
                                                         `Failed to mark message UID ${attrs.uid} as seen: ${err.message}`,
                                                     );
+                                                    state.errors.push(err);
                                                 }
                                             });
                                         });
@@ -524,6 +548,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
 
                                 fetch.once('error', (err: Error) => {
                                     node.error(`Fetch error in folder "${folder}": ${err.message}`);
+                                    finalizeSession(err);
                                 });
 
                                 fetch.once('end', () => {

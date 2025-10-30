@@ -275,14 +275,14 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                             send(msg);
                             done();
                         } else if (info.rejected && info.rejected.length > 0) {
-                            done(new Error('Email rejected: ' + info.rejected.join(', ')));
                             node.status({ fill: 'red', shape: 'dot', text: 'rejected' });
+                            done(new Error('Email rejected: ' + info.rejected.join(', ')));
                         } else if (info.pending && info.pending.length > 0) {
-                            done(new Error('Email pending: ' + info.pending.join(', ')));
                             node.status({ fill: 'yellow', shape: 'dot', text: 'pending' });
+                            done(new Error('Email pending: ' + info.pending.join(', ')));
                         } else {
-                            done(new Error('Unknown error while sending email.'));
                             node.status({ fill: 'red', shape: 'dot', text: 'unknown error' });
+                            done(new Error('Unknown error while sending email.'));
                         }
                     }
                 });
