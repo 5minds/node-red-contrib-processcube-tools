@@ -2,7 +2,9 @@ import { NodeInitializer, NodeDef } from 'node-red';
 
 interface ImapConfigNodeProperties extends NodeDef {
     host: string;
-    port: number;
+    hostType: string;
+    port: string;
+    portType: string;
     tls: boolean;
     user: string;
     userType: string;
@@ -13,6 +15,8 @@ interface ImapConfigNodeProperties extends NodeDef {
     keepalive: boolean;
     autotls: 'always' | 'never' | 'required';
     rejectUnauthorized: boolean;
+    poolEnabled?: boolean;
+    poolTimeout?: number;
 }
 
 const ImapConfigNode: NodeInitializer = (RED) => {
@@ -32,6 +36,8 @@ const ImapConfigNode: NodeInitializer = (RED) => {
         this.keepalive = config.keepalive !== undefined ? config.keepalive : true;
         this.autotls = config.autotls || 'never';
         this.rejectUnauthorized = config.rejectUnauthorized !== undefined ? config.rejectUnauthorized : false;
+        this.poolEnabled = config.poolEnabled !== undefined ? config.poolEnabled : true;
+        this.poolTimeout = config.poolTimeout !== undefined ? config.poolTimeout : 60000;
     }
 
     RED.nodes.registerType('imap-config', ImapConfig);
