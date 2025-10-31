@@ -3,7 +3,7 @@ import { NodeInitializer, NodeDef } from 'node-red';
 interface SmtpConfigNodeProperties extends NodeDef {
     host: string;
     hostType: string;
-    port: string;
+    port: number;
     portType: string;
     user: string;
     userType: string;
@@ -33,15 +33,15 @@ const SmtpConfigNode: NodeInitializer = (RED) => {
         this.userType = config.userType;
         this.password = config.password;
         this.passwordType = config.passwordType;
-        this.connTimeout = config.connTimeout !== undefined ? config.connTimeout : 10000;
-        this.authTimeout = config.authTimeout !== undefined ? config.authTimeout : 5000;
+        this.connTimeout = config.connTimeout !== undefined ? Number(config.connTimeout) : 10000;
+        this.authTimeout = config.authTimeout !== undefined ? Number(config.authTimeout) : 5000;
         this.keepalive = config.keepalive !== undefined ? config.keepalive : true;
         this.secure = config.secure !== undefined ? config.secure : false;
         this.autotls = config.autotls || 'never';
         this.rejectUnauthorized = config.rejectUnauthorized !== undefined ? config.rejectUnauthorized : false;
         this.poolEnabled = config.poolEnabled !== undefined ? config.poolEnabled : true;
-        this.poolSize = config.poolSize !== undefined ? config.poolSize : 5;
-        this.poolTimeout = config.poolTimeout !== undefined ? config.poolTimeout : 60000;
+        this.poolSize = config.poolSize !== undefined ? Number(config.poolSize) : 5;
+        this.poolTimeout = config.poolTimeout !== undefined ? Number(config.poolTimeout) : 60000;
     }
 
     RED.nodes.registerType('smtp-config', SmtpConfig);
