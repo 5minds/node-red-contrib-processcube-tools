@@ -228,7 +228,7 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                     };
 
                     // Add pooling configuration if enabled
-                    if (smtpConfigNode.poolEnabled !== false) {
+                    if (smtpConfigNode.poolEnabled === true) {
                         transportConfig.pool = true;
                         transportConfig.maxConnections = smtpConfigNode.poolSize || 5;
                         transportConfig.maxMessages = 100; // Close connection after 100 messages

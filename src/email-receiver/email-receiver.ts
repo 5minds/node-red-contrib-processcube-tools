@@ -232,7 +232,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     node,
                     msg,
                 );
-            
+
                 // Validate folder configuration
                 const evaluatedFolder = RED.util.evaluateNodeProperty(config.folder as any, config.folderType, node, msg);
                 const parsedFolders: string[] = parseDynamicProperty(evaluatedFolder);
@@ -335,12 +335,12 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     if (!finalConfig.port) missingFields.push('port');
                     if (!finalConfig.host) missingFields.push('host');
                     if (!finalConfig.folders || finalConfig.folders.length === 0) missingFields.push('folders');
-                    
+
                     // Additional debug output for missing fields in development
                     if (process.env.NODE_ENV === 'development') {
                         console.log('[DEBUG] Missing fields:', missingFields);
                     }
-                    
+
                     throw new Error(`Missing required IMAP config: ${missingFields.join(', ')}. Aborting.`);
                 }
 
@@ -349,7 +349,6 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     onMail: (mail: EmailReceiverMessage) => void,
                 ) => {
                     // Get pooling configuration
-                    const poolEnabled = imapConfigNode.poolEnabled !== false;
                     const poolTimeout = imapConfigNode.poolTimeout || 60000;
                     const poolKey = `${config.imapConfig}`;
 
@@ -358,7 +357,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                         poolKey,
                         fetchConfig,
                         dependencies.ImapClient,
-                        poolEnabled,
+                        imapConfigNode.poolEnabled,
                         poolTimeout,
                     );
 
@@ -452,7 +451,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                         }
 
                         // Only close connection if pooling is disabled or there's an error
-                        if (!poolEnabled || error) {
+                        if (!imapConfigNode.poolEnabled || error) {
                             if (imap && imap.state !== 'disconnected') {
                                 imap.end();
                             }
