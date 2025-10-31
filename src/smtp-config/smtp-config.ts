@@ -15,6 +15,9 @@ interface SmtpConfigNodeProperties extends NodeDef {
     secure: boolean;
     autotls: string;
     rejectUnauthorized: boolean;
+    poolEnabled?: boolean;
+    poolSize?: number;
+    poolTimeout?: number;
 }
 
 const SmtpConfigNode: NodeInitializer = (RED) => {
@@ -36,6 +39,9 @@ const SmtpConfigNode: NodeInitializer = (RED) => {
         this.secure = config.secure !== undefined ? config.secure : false;
         this.autotls = config.autotls || 'never';
         this.rejectUnauthorized = config.rejectUnauthorized !== undefined ? config.rejectUnauthorized : false;
+        this.poolEnabled = config.poolEnabled !== undefined ? config.poolEnabled : true;
+        this.poolSize = config.poolSize !== undefined ? config.poolSize : 5;
+        this.poolTimeout = config.poolTimeout !== undefined ? config.poolTimeout : 60000;
     }
 
     RED.nodes.registerType('smtp-config', SmtpConfig);

@@ -47,6 +47,12 @@
                 typeField: '#node-config-input-passwordType',
             });
         },
+        oneditsave: function () {
+            this.keepalive = $('#node-config-input-keepalive').is(':checked');
+            this.secure = $('#node-config-input-secure').is(':checked');
+            this.rejectUnauthorized = $('#node-config-input-rejectUnauthorized').is(':checked');
+            this.poolEnabled = $('#node-config-input-poolEnabled').is(':checked');
+        },
     });
 </script>
 
