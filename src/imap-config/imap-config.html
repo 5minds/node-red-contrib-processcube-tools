@@ -48,6 +48,12 @@
                 typeField: '#node-config-input-passwordType',
             });
         },
+        oneditsave: function () {
+            this.tls = $('#node-config-input-tls').is(':checked');
+            this.keepalive = $('#node-config-input-keepalive').is(':checked');
+            this.rejectUnauthorized = $('#node-config-input-rejectUnauthorized').is(':checked');
+            this.poolEnabled = $('#node-config-input-poolEnabled').is(':checked');
+        },
     });
 </script>
 
