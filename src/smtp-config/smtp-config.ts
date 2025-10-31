@@ -2,7 +2,9 @@ import { NodeInitializer, NodeDef } from 'node-red';
 
 interface SmtpConfigNodeProperties extends NodeDef {
     host: string;
+    hostType: string;
     port: number;
+    portType: string;
     user: string;
     userType: string;
     password: string;
@@ -21,7 +23,9 @@ const SmtpConfigNode: NodeInitializer = (RED) => {
 
         // Store configuration properties
         this.host = config.host;
+        this.hostType = config.hostType;
         this.port = config.port;
+        this.portType = config.portType;
         this.user = config.user;
         this.userType = config.userType;
         this.password = config.password;
