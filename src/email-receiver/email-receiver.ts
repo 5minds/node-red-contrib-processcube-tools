@@ -27,6 +27,106 @@ const defaultDependencies: Dependencies = {
     mailParser: simpleParser,
 };
 
+// Connection pool for IMAP connections
+interface PooledConnection {
+    imap: Imap;
+    lastUsed: number;
+    timeout: NodeJS.Timeout;
+}
+
+const imapConnectionPool = new Map<string, PooledConnection>();
+
+// Helper function to get or create IMAP connection from pool
+function getOrCreateImapConnection(
+    poolKey: string,
+    config: ImapConnectionConfig,
+    ImapClient: typeof Imap,
+    poolEnabled: boolean,
+    poolTimeout: number,
+): Imap {
+    // If pooling is disabled, always create a new connection
+    if (!poolEnabled) {
+        return new ImapClient({
+            user: config.user,
+            password: config.password,
+            host: config.host,
+            port: config.port,
+            tls: config.tls,
+            connTimeout: config.connTimeout,
+            authTimeout: config.authTimeout,
+            keepalive: config.keepalive,
+            autotls: config.autotls as 'always' | 'never' | 'required',
+            tlsOptions: config.tlsOptions,
+        });
+    }
+
+    // Check if we have a valid connection in the pool
+    const pooled = imapConnectionPool.get(poolKey);
+    if (pooled && pooled.imap.state !== 'disconnected') {
+        // Clear the existing timeout
+        clearTimeout(pooled.timeout);
+
+        // Update last used time
+        pooled.lastUsed = Date.now();
+
+        // Set new timeout
+        pooled.timeout = setTimeout(() => {
+            if (pooled.imap && pooled.imap.state !== 'disconnected') {
+                pooled.imap.end();
+            }
+            imapConnectionPool.delete(poolKey);
+        }, poolTimeout);
+
+        return pooled.imap;
+    }
+
+    // Create new connection
+    const imap = new ImapClient({
+        user: config.user,
+        password: config.password,
+        host: config.host,
+        port: config.port,
+        tls: config.tls,
+        connTimeout: config.connTimeout,
+        authTimeout: config.authTimeout,
+        keepalive: config.keepalive,
+        autotls: config.autotls as 'always' | 'never' | 'required',
+        tlsOptions: config.tlsOptions,
+    });
+
+    // Store in pool with timeout
+    const timeout = setTimeout(() => {
+        if (imap && imap.state !== 'disconnected') {
+            imap.end();
+        }
+        imapConnectionPool.delete(poolKey);
+    }, poolTimeout);
+
+    imapConnectionPool.set(poolKey, {
+        imap,
+        lastUsed: Date.now(),
+        timeout,
+    });
+
+    return imap;
+}
+
+// Helper function to cleanup connection from pool
+function cleanupImapConnection(poolKey: string, poolEnabled: boolean): void {
+    if (!poolEnabled) {
+        return; // Non-pooled connections clean up themselves
+    }
+
+    const pooled = imapConnectionPool.get(poolKey);
+    if (pooled) {
+        clearTimeout(pooled.timeout);
+        if (pooled.imap && pooled.imap.state !== 'disconnected') {
+            pooled.imap.end();
+        }
+        imapConnectionPool.delete(poolKey);
+    }
+}
+
 function toBoolean(val: any, defaultValue = false) {
     if (typeof val === 'boolean') return val;
     if (typeof val === 'number') return val !== 0;
@@ -132,7 +232,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     node,
                     msg,
                 );
-            
+
                 // Validate folder configuration
                 const evaluatedFolder = RED.util.evaluateNodeProperty(config.folder as any, config.folderType, node, msg);
                 const parsedFolders: string[] = parseDynamicProperty(evaluatedFolder);
@@ -198,14 +298,14 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
 
                 const finalConfig: ImapConnectionConfig = {
                     host: imap_host as string,
-                    port: imap_port as number,
+                    port: Number(imap_port),
                     tls: imapConfigNode.tls,
                     user: imap_user as string,
                     password: imap_password as string,
                     folders: parsedFolders,
                     markSeen: toBoolean(imap_markSeen, true),
-                    connTimeout: imapConfigNode.connTimeout,
-                    authTimeout: imapConfigNode.authTimeout,
+                    connTimeout: Number(imapConfigNode.connTimeout),
+                    authTimeout: Number(imapConfigNode.authTimeout),
                     keepalive: imapConfigNode.keepalive,
                     autotls: imapConfigNode.autotls,
                     tlsOptions: { rejectUnauthorized: imapConfigNode.rejectUnauthorized },
@@ -235,12 +335,12 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     if (!finalConfig.port) missingFields.push('port');
                     if (!finalConfig.host) missingFields.push('host');
                     if (!finalConfig.folders || finalConfig.folders.length === 0) missingFields.push('folders');
-                    
+
                     // Additional debug output for missing fields in development
                     if (process.env.NODE_ENV === 'development') {
                         console.log('[DEBUG] Missing fields:', missingFields);
                     }
-                    
+
                     throw new Error(`Missing required IMAP config: ${missingFields.join(', ')}. Aborting.`);
                 }
 
@@ -248,19 +348,18 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                     fetchConfig: ImapConnectionConfig,
                     onMail: (mail: EmailReceiverMessage) => void,
                 ) => {
-                    // Use injected dependency instead of direct import
-                    const imap = new dependencies.ImapClient({
-                        user: fetchConfig.user,
-                        password: fetchConfig.password,
-                        host: fetchConfig.host,
-                        port: fetchConfig.port,
-                        tls: fetchConfig.tls,
-                        connTimeout: fetchConfig.connTimeout,
-                        authTimeout: fetchConfig.authTimeout,
-                        keepalive: fetchConfig.keepalive,
-                        autotls: fetchConfig.autotls as 'always' | 'never' | 'required',
-                        tlsOptions: fetchConfig.tlsOptions,
-                    });
+                    // Get pooling configuration
+                    const poolTimeout = imapConfigNode.poolTimeout || 60000;
+                    const poolKey = `${config.imapConfig}`;
+
+                    // Get or create IMAP connection from pool
+                    const imap = getOrCreateImapConnection(
+                        poolKey,
+                        fetchConfig,
+                        dependencies.ImapClient,
+                        imapConfigNode.poolEnabled,
+                        poolTimeout,
+                    );
 
                     const state: FetchState = {
                         totalFolders: fetchConfig.folders.length,
@@ -292,6 +391,26 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                 },
                             ]);
                             done(error);
+                        } else if (state.errors.length > 0) {
+                            // Propagate accumulated errors to catch node
+                            node.status({
+                                fill: 'red',
+                                shape: 'dot',
+                                text: `Done, ${state.totalMails} mails from ${state.successes}/${state.totalFolders} folders. ${state.errors.length} errors.`,
+                            });
+                            node.send([
+                                null,
+                                {
+                                    payload: {
+                                        status: 'error',
+                                        total: state.totalMails,
+                                        successes: state.successes,
+                                        errors: state.errors,
+                                        totalFolders: state.totalFolders,
+                                    },
+                                },
+                            ]);
+                            done(state.errors[0]);
                         } else if (state.failures > 0) {
                             node.status({
                                 fill: 'red',
@@ -330,9 +449,14 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                 },
                             ]);
                         }
-                        if (imap && imap.state !== 'disconnected') {
-                            imap.end();
+
+                        // Only close connection if pooling is disabled or there's an error
+                        if (!imapConfigNode.poolEnabled || error) {
+                            if (imap && imap.state !== 'disconnected') {
+                                imap.end();
+                            }
                         }
+                        // If pooling is enabled, keep connection alive for reuse
                     };
 
                     const fetchFromFolder = (folder: string) => {
@@ -341,6 +465,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                         imap.openBox(folder, false, (err: Error | null, box: Imap.Box | null) => {
                             if (err) {
                                 node.error(`Could not open folder "${folder}": ${err.message}`);
+                                state.errors.push(err);
                                 state.failures++;
                                 state.processedFolders++;
                                 return startNextFolder();
@@ -351,6 +476,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                             imap.search(['UNSEEN'], (err: Error | null, results: number[]) => {
                                 if (err) {
                                     node.error(`Search failed in folder "${folder}": ${err.message}`);
+                                    state.errors.push(err);
                                     state.failures++;
                                     state.processedFolders++;
                                     return startNextFolder();
@@ -376,6 +502,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                                     node.error(
                                                         `Parse error for email from folder "${folder}": ${err.message}`,
                                                     );
+                                                    state.errors.push(err);
                                                     return;
                                                 }
 
@@ -411,6 +538,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                                                     node.error(
                                                         `Failed to mark message UID ${attrs.uid} as seen: ${err.message}`,
                                                     );
+                                                    state.errors.push(err);
                                                 }
                                             });
                                         });
@@ -419,6 +547,7 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
 
                                 fetch.once('error', (err: Error) => {
                                     node.error(`Fetch error in folder "${folder}": ${err.message}`);
+                                    finalizeSession(err);
                                 });
 
                                 fetch.once('end', () => {
@@ -439,27 +568,37 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                         }
                     };
 
-                    imap.once('ready', () => {
-                        node.status({ fill: 'green', shape: 'dot', text: 'connected' });
+                    // Check if connection is already established (from pool)
+                    const isAlreadyConnected = imap.state === 'authenticated';
+
+                    if (isAlreadyConnected) {
+                        // Connection already ready, start fetching immediately
+                        node.status({ fill: 'green', shape: 'dot', text: 'connected (pooled)' });
                         startNextFolder();
-                    });
+                    } else {
+                        // Set up event handlers for new connection
+                        imap.once('ready', () => {
+                            node.status({ fill: 'green', shape: 'dot', text: 'connected' });
+                            startNextFolder();
+                        });
 
-                    imap.once('error', (err: Error) => {
-                        finalizeSession(err);
-                    });
+                        imap.once('error', (err: Error) => {
+                            finalizeSession(err);
+                        });
 
-                    imap.once('end', () => {
-                        updateStatus('green', 'IMAP connection ended.');
-                    });
+                        imap.once('end', () => {
+                            updateStatus('green', 'IMAP connection ended.');
+                        });
 
-                    try {
-                        updateStatus('yellow', 'Connecting to IMAP...');
-                        imap.connect();
-                    } catch (err: any) {
-                        const error = err instanceof Error ? err : new Error(String(err));
-                        updateStatus('red', 'Connection error: ' + error.message);
-                        done(error);
-                        return;
+                        try {
+                            updateStatus('yellow', 'Connecting to IMAP...');
+                            imap.connect();
+                        } catch (err: any) {
+                            const error = err instanceof Error ? err : new Error(String(err));
+                            updateStatus('red', 'Connection error: ' + error.message);
+                            done(error);
+                            return;
+                        }
                     }
                 };
 
@@ -472,7 +611,16 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
                 done(error instanceof Error ? error : new Error(String(error)));
             }
         });
-        node.on('close', () => {});
+
+        node.on('close', (done: () => void) => {
+            const imapConfigNode = RED.nodes.getNode(config.imapConfig) as any;
+            if (imapConfigNode) {
+                const poolEnabled = imapConfigNode.poolEnabled !== false;
+                const poolKey = `${config.imapConfig}`;
+                cleanupImapConnection(poolKey, poolEnabled);
+            }
+            done();
+        });
     }
     RED.nodes.registerType('email-receiver', EmailReceiverNode);
 };

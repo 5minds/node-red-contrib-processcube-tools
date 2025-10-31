@@ -14,6 +14,9 @@ const defaultDependencies: Dependencies = {
     nodemailer: nodemailer,
 };
 
+// Connection pool to store transporters per config node
+const transporterPool = new Map<string, any>();
+
 const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defaultDependencies) => {
     function EmailSender(this: Node, config: EmailSenderNodeProperties) {
         RED.nodes.createNode(this, config);
@@ -210,14 +213,31 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                     console.log('[DEBUG] Email Sender - Final Configuration:', JSON.stringify(debugConfig, null, 2));
                 }
 
-                // Create and send email
-                const transporter = dependencies.nodemailer.createTransport({
-                    host,
-                    port,
-                    secure,
-                    auth: { user, pass: password },
-                    tls: { rejectUnauthorized },
-                });
+                // Get or create transporter from pool
+                const poolKey = `${config.smtpConfig}`;
+                let transporter = transporterPool.get(poolKey);
+
+                if (!transporter) {
+                    // Create new transporter with optional pooling
+                    const transportConfig: any = {
+                        host,
+                        port,
+                        secure,
+                        auth: { user, pass: password },
+                        tls: { rejectUnauthorized },
+                    };
+
+                    // Add pooling configuration if enabled
+                    if (smtpConfigNode.poolEnabled === true) {
+                        transportConfig.pool = true;
+                        transportConfig.maxConnections = smtpConfigNode.poolSize || 5;
+                        transportConfig.maxMessages = 100; // Close connection after 100 messages
+                        transportConfig.socketTimeout = smtpConfigNode.poolTimeout || 60000;
+                    }
+
+                    transporter = dependencies.nodemailer.createTransport(transportConfig);
+                    transporterPool.set(poolKey, transporter);
+                }
 
                 const mailOptions = {
                     from: { name: sender, address: from },
@@ -230,7 +250,7 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                     attachments: processedAttachments,
                 };
 
-                transporter.sendMail(mailOptions, (error, info) => {
+                transporter.sendMail(mailOptions, (error: any, info: any) => {
                     if (error) {
                         node.status({ fill: 'red', shape: 'dot', text: 'error sending' });
                         if (
@@ -255,14 +275,14 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                             send(msg);
                             done();
                         } else if (info.rejected && info.rejected.length > 0) {
-                            done(new Error('Email rejected: ' + info.rejected.join(', ')));
                             node.status({ fill: 'red', shape: 'dot', text: 'rejected' });
+                            done(new Error('Email rejected: ' + info.rejected.join(', ')));
                         } else if (info.pending && info.pending.length > 0) {
-                            done(new Error('Email pending: ' + info.pending.join(', ')));
                             node.status({ fill: 'yellow', shape: 'dot', text: 'pending' });
+                            done(new Error('Email pending: ' + info.pending.join(', ')));
                         } else {
-                            done(new Error('Unknown error while sending email.'));
                             node.status({ fill: 'red', shape: 'dot', text: 'unknown error' });
+                            done(new Error('Unknown error while sending email.'));
                         }
                     }
                 });
@@ -274,6 +294,19 @@ const EmailSenderNode: NodeInitializer = (RED, dependencies: Dependencies = defa
                 done(error instanceof Error ? error : new Error(String(error)));
                 node.status({ fill: 'red', shape: 'dot', text: 'error' });
             }
+        });
+
+        // Cleanup transporter on node close
+        node.on('close', (done: () => void) => {
+            const poolKey = `${config.smtpConfig}`;
+            const transporter = transporterPool.get(poolKey);
+
+            if (transporter) {
+                transporter.close();
+                transporterPool.delete(poolKey);
+            }
+
+            done();
         });
     }
 

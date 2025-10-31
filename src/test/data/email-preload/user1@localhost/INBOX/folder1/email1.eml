@@ -1,0 +1,12 @@
+Return-Path: <test1@local>
+Received: from 172.18.0.1 (HELO [127.0.0.1]); Thu Oct 30 14:56:32 GMT 2025
+Message-ID: <46d1f231-655c-41fb-8b4c-159d18ab513d@local>
+Date: Thu, 30 Oct 2025 15:56:32 +0100
+MIME-Version: 1.0
+User-Agent: Mozilla Thunderbird
+To: user1@localhost
+From: Thorsten Kallweit <test1@local>
+Subject: sdsd
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
