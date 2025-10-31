@@ -25,7 +25,9 @@ const ImapConfigNode: NodeInitializer = (RED) => {
 
         // Store configuration properties
         this.host = config.host;
+        this.hostType = config.hostType;
         this.port = config.port;
+        this.portType = config.portType;
         this.tls = config.tls;
         this.user = config.user;
         this.userType = config.userType;

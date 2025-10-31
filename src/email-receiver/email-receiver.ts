@@ -298,14 +298,14 @@ const nodeInit: NodeInitializer = (RED, dependencies: Dependencies = defaultDepe
 
                 const finalConfig: ImapConnectionConfig = {
                     host: imap_host as string,
-                    port: imap_port as number,
+                    port: Number(imap_port),
                     tls: imapConfigNode.tls,
                     user: imap_user as string,
                     password: imap_password as string,
                     folders: parsedFolders,
                     markSeen: toBoolean(imap_markSeen, true),
-                    connTimeout: imapConfigNode.connTimeout,
-                    authTimeout: imapConfigNode.authTimeout,
+                    connTimeout: Number(imapConfigNode.connTimeout),
+                    authTimeout: Number(imapConfigNode.authTimeout),
                     keepalive: imapConfigNode.keepalive,
                     autotls: imapConfigNode.autotls,
                     tlsOptions: { rejectUnauthorized: imapConfigNode.rejectUnauthorized },

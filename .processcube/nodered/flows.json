@@ -164,8 +164,8 @@
         "z": "ea83acb4b5051be5",
         "name": "Email receiver via env",
         "imapConfig": "80507426de7d4fe9",
-        "folder": "[\"stoelting/test_foo\",\"stoelting/test_bar\"]",
-        "folderType": "json",
+        "folder": "EMAIL_RECEIVE_FOLDER",
+        "folderType": "env",
         "markseen": "imap_markseen",
         "markseenType": "msg",
         "x": 520,
@@ -204,7 +204,7 @@
         "props": [
             {
                 "p": "imap_markseen",
-                "v": "true",
+                "v": "false",
                 "vt": "bool"
             }
         ],
@@ -602,8 +602,8 @@
         "once": false,
         "onceDelay": 0.1,
         "topic": "",
-        "x": 340,
-        "y": 420,
+        "x": 240,
+        "y": 440,
         "wires": [
             [
                 "bd5716f5aab6b375"
@@ -623,8 +623,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1000,
-        "y": 360,
+        "x": 1060,
+        "y": 380,
         "wires": []
     },
     {
@@ -651,8 +651,8 @@
         "attachments": "",
         "attachmentsType": "msg",
         "smtpConfig": "be3042551fefd2a7",
-        "x": 760,
-        "y": 420,
+        "x": 820,
+        "y": 440,
         "wires": [
             [
                 "a5f8c07f51d015a0",
@@ -664,7 +664,7 @@
         "id": "bd5716f5aab6b375",
         "type": "function",
         "z": "efcace170d0f887c",
-        "name": "function 1",
+        "name": "Initialize mass mail",
         "func": "msg.max = 5000;\nmsg.subject = `Massentest ${(msg.count || 0) + 1}`;\nreturn msg;",
         "outputs": 1,
         "timeout": 0,
@@ -672,8 +672,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 600,
-        "y": 420,
+        "x": 550,
+        "y": 440,
         "wires": [
             [
                 "8705fdd5b13ff4a6"
@@ -684,7 +684,7 @@
         "id": "8b050c8e5b685db1",
         "type": "function",
         "z": "efcace170d0f887c",
-        "name": "function 2",
+        "name": "Next mail",
         "func": "if (!msg.count){\n    msg.count = 0;\n}\n\nmsg.count = msg.count + 1;\n\nif (msg.count < msg.max){\n    return [null, msg];\n}\nelse{\n    return [msg, null];\n}",
         "outputs": 2,
         "timeout": 0,
@@ -692,8 +692,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1100,
-        "y": 420,
+        "x": 1040,
+        "y": 440,
         "wires": [
             [
                 "9239cc3c7b82daea"
@@ -707,17 +707,17 @@
         "id": "9239cc3c7b82daea",
         "type": "debug",
         "z": "efcace170d0f887c",
-        "name": "debug 2",
+        "name": "Mass emails sent",
         "active": true,
-        "tosidebar": true,
+        "tosidebar": false,
         "console": false,
         "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1320,
-        "y": 420,
+        "x": 1270,
+        "y": 440,
         "wires": []
     },
     {
@@ -727,8 +727,8 @@
         "name": "",
         "scope": null,
         "uncaught": false,
-        "x": 260,
-        "y": 560,
+        "x": 160,
+        "y": 580,
         "wires": [
             [
                 "fbcc94109c77dd3d"
@@ -748,8 +748,8 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 420,
-        "y": 560,
+        "x": 320,
+        "y": 580,
         "wires": []
     }
 ]
