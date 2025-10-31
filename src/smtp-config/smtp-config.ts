@@ -26,7 +26,9 @@ const SmtpConfigNode: NodeInitializer = (RED) => {
 
         // Store configuration properties
         this.host = config.host;
+        this.hostType = config.hostType;
         this.port = config.port;
+        this.portType = config.portType;
         this.user = config.user;
         this.userType = config.userType;
         this.password = config.password;
