@@ -26,12 +26,12 @@
     {
         "id": "80507426de7d4fe9",
         "type": "imap-config",
-        "name": "Mail Receiver Config for Stölting",
+        "name": "Mail Receiver Config",
         "host": "EMAIL_RECEIVE_HOST",
         "hostType": "env",
         "port": "EMAIL_RECEIVE_PORT",
         "portType": "env",
-        "tls": true,
+        "tls": false,
         "user": "EMAIL_RECEIVE_USER",
         "userType": "env",
         "password": "EMAIL_RECEIVE_PASSWORD",
@@ -40,7 +40,9 @@
         "authTimeout": 5000,
         "keepalive": true,
         "autotls": "never",
-        "rejectUnauthorized": false
+        "rejectUnauthorized": false,
+        "poolEnabled": false,
+        "poolTimeout": "60000"
     },
     {
         "id": "be3042551fefd2a7",
@@ -48,7 +50,7 @@
         "name": "SMTP Send Config",
         "host": "EMAIL_SEND_HOST",
         "hostType": "env",
-        "port": "EMAIL_SEND_PORT=993",
+        "port": "EMAIL_SEND_PORT",
         "portType": "env",
         "user": "EMAIL_SEND_USER",
         "userType": "env",
@@ -58,7 +60,11 @@
         "authTimeout": "",
         "keepalive": false,
         "secure": false,
-        "rejectUnauthorized": false
+        "autotls": "never",
+        "rejectUnauthorized": false,
+        "poolEnabled": true,
+        "poolSize": "5",
+        "poolTimeout": "60000"
     },
     {
         "id": "fd4bdf33d0253f6a",
@@ -158,8 +164,8 @@
         "z": "ea83acb4b5051be5",
         "name": "Email receiver via env",
         "imapConfig": "80507426de7d4fe9",
-        "folder": "[\"stoelting/test_foo\",\"stoelting/test_bar\"]",
-        "folderType": "json",
+        "folder": "EMAIL_RECEIVE_FOLDER",
+        "folderType": "env",
         "markseen": "imap_markseen",
         "markseenType": "msg",
         "x": 520,
@@ -198,7 +204,7 @@
         "props": [
             {
                 "p": "imap_markseen",
-                "v": "true",
+                "v": "false",
                 "vt": "bool"
             }
         ],
@@ -260,8 +266,8 @@
         "tosidebar": true,
         "console": false,
         "tostatus": false,
-        "complete": "payload",
-        "targetType": "msg",
+        "complete": "true",
+        "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
         "x": 910,
@@ -283,8 +289,8 @@
         "y": 120,
         "wires": [
             [
-                "9f7dfdb7f34fa92b",
-                "4606c8597de44ada"
+                "4606c8597de44ada",
+                "9f7dfdb7f34fa92b"
             ]
         ]
     },
@@ -312,9 +318,9 @@
         "name": "",
         "sender": "Diana",
         "senderType": "str",
-        "from": "EMAIL_SEND_USER",
-        "fromType": "env",
-        "to": "martin.moellenbeck@googlemail.com",
+        "from": "user2",
+        "fromType": "str",
+        "to": "user1@localhost",
         "toType": "str",
         "cc": "",
         "ccType": "str",
@@ -558,11 +564,11 @@
         "type": "email-sender",
         "z": "efcace170d0f887c",
         "name": "",
-        "sender": "Diana",
+        "sender": "Processcube",
         "senderType": "str",
-        "from": "EMAIL_SEND_USER",
-        "fromType": "env",
-        "to": "martin.moellenbeck@googlemail.com",
+        "from": "user2",
+        "fromType": "str",
+        "to": "user1@localhost",
         "toType": "str",
         "cc": "",
         "ccType": "str",
@@ -584,5 +590,166 @@
                 "c246681d350609e4"
             ]
         ]
+    },
+    {
+        "id": "1ebe7d802151c733",
+        "type": "inject",
+        "z": "efcace170d0f887c",
+        "name": "Mass send test of the email-sender node",
+        "props": [],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 240,
+        "y": 440,
+        "wires": [
+            [
+                "bd5716f5aab6b375"
+            ]
+        ]
+    },
+    {
+        "id": "a5f8c07f51d015a0",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "Test email sent",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1060,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "8705fdd5b13ff4a6",
+        "type": "email-sender",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "sender": "Mass Sender",
+        "senderType": "str",
+        "from": "user2",
+        "fromType": "str",
+        "to": "user1@localhost",
+        "toType": "str",
+        "cc": "",
+        "ccType": "str",
+        "bcc": "",
+        "bccType": "str",
+        "replyTo": "",
+        "replyToType": "str",
+        "subject": "subject",
+        "subjectType": "msg",
+        "htmlContent": "test",
+        "htmlContentType": "str",
+        "attachments": "",
+        "attachmentsType": "msg",
+        "smtpConfig": "be3042551fefd2a7",
+        "x": 820,
+        "y": 440,
+        "wires": [
+            [
+                "a5f8c07f51d015a0",
+                "8b050c8e5b685db1"
+            ]
+        ]
+    },
+    {
+        "id": "bd5716f5aab6b375",
+        "type": "function",
+        "z": "efcace170d0f887c",
+        "name": "Initialize mass mail",
+        "func": "msg.max = 5000;\nmsg.subject = `Massentest ${(msg.count || 0) + 1}`;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 440,
+        "wires": [
+            [
+                "8705fdd5b13ff4a6"
+            ]
+        ]
+    },
+    {
+        "id": "8b050c8e5b685db1",
+        "type": "function",
+        "z": "efcace170d0f887c",
+        "name": "Next mail",
+        "func": "if (!msg.count){\n    msg.count = 0;\n}\n\nmsg.count = msg.count + 1;\n\nif (msg.count < msg.max){\n    return [null, msg];\n}\nelse{\n    return [msg, null];\n}",
+        "outputs": 2,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1040,
+        "y": 440,
+        "wires": [
+            [
+                "9239cc3c7b82daea"
+            ],
+            [
+                "bd5716f5aab6b375"
+            ]
+        ]
+    },
+    {
+        "id": "9239cc3c7b82daea",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "Mass emails sent",
+        "active": true,
+        "tosidebar": false,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1270,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "73f822f0be4f8fb0",
+        "type": "catch",
+        "z": "efcace170d0f887c",
+        "name": "",
+        "scope": null,
+        "uncaught": false,
+        "x": 160,
+        "y": 580,
+        "wires": [
+            [
+                "fbcc94109c77dd3d"
+            ]
+        ]
+    },
+    {
+        "id": "fbcc94109c77dd3d",
+        "type": "debug",
+        "z": "efcace170d0f887c",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 320,
+        "y": 580,
+        "wires": []
     }
 ]

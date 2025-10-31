@@ -15,6 +15,7 @@ export const MockSmtpConfigNodes = {
         secure: false,
         autotls: 'never',
         rejectUnauthorized: true,
+        poolEnabled: false, // Disable pooling for most tests
     },
     'minimal-smtp-config': {
         host: 'smtp.minimal.com',
@@ -29,6 +30,7 @@ export const MockSmtpConfigNodes = {
         secure: false,
         autotls: 'never',
         rejectUnauthorized: true,
+        poolEnabled: false, // Disable pooling for most tests
     },
     'invalid-smtp-config': {
         host: '', // Missing host
@@ -43,6 +45,24 @@ export const MockSmtpConfigNodes = {
         secure: false,
         autotls: 'never',
         rejectUnauthorized: false,
+        poolEnabled: false, // Disable pooling for most tests
+    },
+    'pooled-smtp-config': {
+        host: 'smtp.pooled.com',
+        port: 587,
+        user: 'pooled-user',
+        userType: 'str',
+        password: 'pooled-pass',
+        passwordType: 'str',
+        connTimeout: 10000,
+        authTimeout: 5000,
+        keepalive: true,
+        secure: false,
+        autotls: 'never',
+        rejectUnauthorized: true,
+        poolEnabled: true, // Enable pooling for pooling tests
+        poolSize: 5,
+        poolTimeout: 5000, // Short timeout for tests
     },
 };
 
@@ -105,6 +125,18 @@ const EmailSenderTestConfigs = {
         attachments: JSON.stringify([{ filename: 'test.txt', content: 'Test attachment' }]),
         attachmentsType: 'json',
         smtpConfig: 'valid-smtp-config',
+    } as EmailSenderConfig,
+
+    pooled: {
+        id: 'test-sender-pooled',
+        type: 'email-sender',
+        name: 'Pooled Email Sender',
+        sender: 'Test Sender',
+        from: 'test.sender@example.com',
+        to: 'recipient@example.com',
+        subject: 'Pooled Test',
+        htmlContent: 'Pooled email test',
+        smtpConfig: 'pooled-smtp-config',
     } as EmailSenderConfig,
 
     errorScenarios: {

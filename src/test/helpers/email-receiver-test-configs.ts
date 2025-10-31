@@ -15,6 +15,7 @@ export const MockImapConfigNodes = {
         keepalive: true,
         autotls: 'never',
         rejectUnauthorized: false,
+        poolEnabled: false, // Disable pooling for tests
     },
     'minimal-imap-config': {
         host: 'imap.minimal.com',
@@ -29,6 +30,7 @@ export const MockImapConfigNodes = {
         keepalive: true,
         autotls: 'never',
         rejectUnauthorized: false,
+        poolEnabled: false, // Disable pooling for tests
     },
     'invalid-imap-config': {
         host: '', // Missing host
@@ -43,6 +45,7 @@ export const MockImapConfigNodes = {
         keepalive: true,
         autotls: 'never',
         rejectUnauthorized: false,
+        poolEnabled: false, // Disable pooling for tests
     },
     'network-error-imap-config': {
         host: 'unreachable.invalid.host.com',
@@ -57,6 +60,23 @@ export const MockImapConfigNodes = {
         keepalive: true,
         autotls: 'never',
         rejectUnauthorized: false,
+        poolEnabled: false, // Disable pooling for most tests
+    },
+    'pooled-imap-config': {
+        host: 'imap.pooled.com',
+        port: 993,
+        tls: true,
+        user: 'pooled@test.com',
+        userType: 'str',
+        password: 'pooledpass',
+        passwordType: 'str',
+        connTimeout: 10000,
+        authTimeout: 5000,
+        keepalive: true,
+        autotls: 'never',
+        rejectUnauthorized: false,
+        poolEnabled: true, // Enable pooling for pooling tests
+        poolTimeout: 5000, // Short timeout for tests
     },
 };
 
@@ -111,6 +131,17 @@ export const EmailReceiverTestConfigs = {
         imapConfig: 'network-error-imap-config',
         folder: ['INBOX'],
         folderType: 'str',
+    } as EmailReceiverConfig,
+
+    pooled: {
+        id: 'test-node-pooled',
+        type: 'email-receiver',
+        name: 'Pooled Email Receiver',
+        imapConfig: 'pooled-imap-config',
+        folder: ['INBOX'],
+        folderType: 'str',
+        markseen: true,
+        markseenType: 'bool',
     } as EmailReceiverConfig,
 };
 

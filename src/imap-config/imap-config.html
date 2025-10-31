@@ -4,7 +4,7 @@
         defaults: {
             name: { value: '' },
             host: { value: '', required: true  },
-            hostType: { value: 'env' },    
+            hostType: { value: 'env' },
             port: { value: 993, required: true },
             portType: { value: 'env' },
             tls: { value: true, required: true },
@@ -17,6 +17,8 @@
             keepalive: { value: true },
             autotls: { value: 'never' },
             rejectUnauthorized: { value: false },
+            poolEnabled: { value: true },
+            poolTimeout: { value: 60000, validate: RED.validators.number() },
         },
         label: function () {
             return this.name || `${this.user}@${this.host}`;
@@ -45,6 +47,12 @@
                 types: ['str', 'env'],
                 typeField: '#node-config-input-passwordType',
             });
+        },
+        oneditsave: function () {
+            this.tls = $('#node-config-input-tls').is(':checked');
+            this.keepalive = $('#node-config-input-keepalive').is(':checked');
+            this.rejectUnauthorized = $('#node-config-input-rejectUnauthorized').is(':checked');
+            this.poolEnabled = $('#node-config-input-poolEnabled').is(':checked');
         },
     });
 </script>
@@ -112,6 +120,16 @@
         <label for="node-config-input-rejectUnauthorized"><i class="fa fa-certificate"></i> Reject Unauthorized</label>
         <input type="checkbox" id="node-config-input-rejectUnauthorized" style="display: inline-block; width: auto; vertical-align: top;" />
     </div>
+
+    <div class="form-row">
+        <label for="node-config-input-poolEnabled"><i class="fa fa-exchange"></i> Enable Connection Pool</label>
+        <input type="checkbox" id="node-config-input-poolEnabled" style="display: inline-block; width: auto; vertical-align: top;" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-poolTimeout">Pool Timeout (ms)</label>
+        <input type="text" id="node-config-input-poolTimeout" placeholder="60000" />
+    </div>
 </script>
 
 <script type="text/html" data-help-name="imap-config">
@@ -151,5 +169,11 @@
 
         <dt>Reject Unauthorized <span class="property-type">boolean</span></dt>
         <dd>Reject connections with invalid TLS certificates (default: false).</dd>
+
+        <dt>Enable Connection Pool <span class="property-type">boolean</span></dt>
+        <dd>Keep IMAP connections alive and reuse them for multiple fetch operations (default: true). Significantly improves performance and prevents "too many connections" errors.</dd>
+
+        <dt>Pool Timeout <span class="property-type">number</span></dt>
+        <dd>Time in milliseconds to keep idle connections alive (default: 60000 = 1 minute).</dd>
     </dl>
 </script>
