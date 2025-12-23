@@ -24,6 +24,14 @@
         "env": []
     },
     {
+        "id": "76bd713542d30914",
+        "type": "tab",
+        "label": "Test gmail",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
         "id": "80507426de7d4fe9",
         "type": "imap-config",
         "name": "Mail Receiver Config",
@@ -65,6 +73,27 @@
         "poolEnabled": true,
         "poolSize": "5",
         "poolTimeout": "60000"
+    },
+    {
+        "id": "c301ebb7ed0f3021",
+        "type": "imap-config",
+        "name": "gmail",
+        "host": "imap.gmail.com",
+        "hostType": "str",
+        "port": 993,
+        "portType": "num",
+        "tls": true,
+        "user": "cuby@processcube.io",
+        "userType": "str",
+        "password": "bykr pjib xwic xdzt",
+        "passwordType": "str",
+        "connTimeout": 10000,
+        "authTimeout": 5000,
+        "keepalive": true,
+        "autotls": "never",
+        "rejectUnauthorized": false,
+        "poolEnabled": true,
+        "poolTimeout": 60000
     },
     {
         "id": "fd4bdf33d0253f6a",
@@ -750,6 +779,123 @@
         "statusType": "auto",
         "x": 320,
         "y": 580,
+        "wires": []
+    },
+    {
+        "id": "a72df1388406bc7f",
+        "type": "inject",
+        "z": "76bd713542d30914",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "{\"folder\":[\"INBOX\"]}",
+        "payloadType": "json",
+        "x": 150,
+        "y": 120,
+        "wires": [
+            [
+                "a66aa88bd33f8438"
+            ]
+        ]
+    },
+    {
+        "id": "57c9a9cf9286959a",
+        "type": "debug",
+        "z": "76bd713542d30914",
+        "name": "debug 2",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "a66aa88bd33f8438",
+        "type": "email-receiver",
+        "z": "76bd713542d30914",
+        "name": "",
+        "imapConfig": "c301ebb7ed0f3021",
+        "folder": "payload.folder",
+        "folderType": "msg",
+        "markseen": "false",
+        "markseenType": "bool",
+        "x": 340,
+        "y": 120,
+        "wires": [
+            [
+                "57c9a9cf9286959a",
+                "fdb343dea5dcedef"
+            ],
+            [
+                "09980e8c78ca8cfd"
+            ]
+        ]
+    },
+    {
+        "id": "09980e8c78ca8cfd",
+        "type": "debug",
+        "z": "76bd713542d30914",
+        "name": "debug 4",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 540,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "fdb343dea5dcedef",
+        "type": "mailactions",
+        "z": "76bd713542d30914",
+        "name": "",
+        "protocol": "IMAP",
+        "server": "imap.gmail.com",
+        "useSSL": true,
+        "port": "993",
+        "box": "INBOX",
+        "outbox": "ProcessCube/nodered",
+        "tag": "nodered",
+        "x": 330,
+        "y": 300,
+        "wires": [
+            [
+                "70dc8cd4c323ab35"
+            ]
+        ]
+    },
+    {
+        "id": "70dc8cd4c323ab35",
+        "type": "debug",
+        "z": "76bd713542d30914",
+        "name": "debug 5",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 490,
+        "y": 320,
         "wires": []
     }
 ]

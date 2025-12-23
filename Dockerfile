@@ -4,6 +4,7 @@ FROM nodered/node-red:4.1.0-22
 USER root
 
 RUN npm i node-red-debugger
+RUN npm i node-red-contrib-mail-actions
 
 COPY ./ /package_src/
 RUN cd /package_src/ && npm install

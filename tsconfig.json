@@ -12,6 +12,7 @@
     "skipLibCheck": true,
     "declarationDir": "dist",
     "sourceMap": true,
+    "inlineSources": true,
     "esModuleInterop": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,

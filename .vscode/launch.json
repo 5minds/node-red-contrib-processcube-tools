@@ -8,7 +8,19 @@
         "address": "localhost",
         "port": 9229,
         "localRoot": "${workspaceFolder}",
-        "remoteRoot": "/package_src"
+        "remoteRoot": "/package_src",
+        "sourceMapPathOverrides": {
+          "/usr/src/node-red/node_modules/@5minds/node-red-contrib-processcube-tools/*": "${workspaceFolder}/*",
+          "/package_src/*": "${workspaceFolder}/*"
+        },
+        "resolveSourceMapLocations": [
+          "!**/node_modules/**",
+          "/usr/src/node-red/node_modules/@5minds/node-red-contrib-processcube-tools/**",
+          "/package_src/**"
+        ],
+        "skipFiles": [
+          "<node_internals>/**"
+        ]
       }
   ]
 }

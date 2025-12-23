@@ -19,6 +19,9 @@ services:
     volumes:
       # save the flows
       - ./.processcube/nodered:/data
+      # mount source for debugging
+      - ./src:/package_src/src:ro
+      - ./dist:/package_src/dist:ro
   greenmail:
     image: greenmail/standalone:latest
     ports:
